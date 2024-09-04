@@ -98,38 +98,38 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "saas_redis_sentinel_server_info and on(namespace,sentinel,redis_server) rate(saas_redis_sentinel_sdown_count{namespace='$namespace',sentinel=~\"[[sentinel]].*\"}[1m]) > 0",
+          "expr": "saas_redis_sentinel_server_info and on(namespace,sentinel,redis_server_alias) rate(saas_redis_sentinel_sdown_count{namespace='$namespace',sentinel=~\"[[sentinel]].*\"}[1m]) > 0",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{`down: {{shard}}/{{redis_server}}/{{role}}`}}",
+          "legendFormat": "{{`down: {{shard}}/{{redis_server_alias}}/{{role}}`}}",
           "refId": "A"
         },
         {
           "exemplar": true,
-          "expr": "saas_redis_sentinel_server_info and on(namespace,sentinel,redis_server) rate(saas_redis_sentinel_sdown_cleared_count{namespace='$namespace',sentinel=~\"[[sentinel]].*\"}[1m]) > 0",
+          "expr": "saas_redis_sentinel_server_info and on(namespace,sentinel,redis_server_alias) rate(saas_redis_sentinel_sdown_cleared_count{namespace='$namespace',sentinel=~\"[[sentinel]].*\"}[1m]) > 0",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{`up: {{shard}}/{{redis_server}}/{{role}}`}}",
+          "legendFormat": "{{`up: {{shard}}/{{redis_server_alias}}/{{role}}`}}",
           "refId": "B"
         },
         {
           "exemplar": true,
-          "expr": "saas_redis_sentinel_server_info and on(namespace,sentinel,redis_server) rate(saas_redis_sentinel_sdown_sentinel_count{namespace='$namespace',sentinel=~\"[[sentinel]].*\"}[1m]) > 0",
+          "expr": "saas_redis_sentinel_server_info and on(namespace,sentinel,redis_server_alias) rate(saas_redis_sentinel_sdown_sentinel_count{namespace='$namespace',sentinel=~\"[[sentinel]].*\"}[1m]) > 0",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "down: sentinel/{{`{{redis_server}}`}}",
+          "legendFormat": "down: sentinel/{{`{{redis_server_alias}}`}}",
           "refId": "C"
         },
         {
           "exemplar": true,
-          "expr": "saas_redis_sentinel_server_info and on(namespace,sentinel,redis_server) rate(saas_redis_sentinel_sdown_cleared_sentinel_count{namespace='$namespace',sentinel=~\"[[sentinel]].*\"}[1m]) > 0",
+          "expr": "saas_redis_sentinel_server_info and on(namespace,sentinel,redis_server_alias) rate(saas_redis_sentinel_sdown_cleared_sentinel_count{namespace='$namespace',sentinel=~\"[[sentinel]].*\"}[1m]) > 0",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "up: sentinel/{{`{{redis_server}}`}}",
+          "legendFormat": "up: sentinel/{{`{{redis_server_alias}}`}}",
           "refId": "D"
         }
       ],
@@ -232,11 +232,11 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "saas_redis_sentinel_server_info{role='master'} and on(namespace,sentinel,shard,redis_server) rate(saas_redis_sentinel_switch_master_count{namespace='$namespace',sentinel=~\"[[sentinel]].*\"}[1m]) > 0",
+          "expr": "saas_redis_sentinel_server_info{role='master'} and on(namespace,sentinel,shard,redis_server_alias) rate(saas_redis_sentinel_switch_master_count{namespace='$namespace',sentinel=~\"[[sentinel]].*\"}[1m]) > 0",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{`{{shard}}/{{redis_server}}`}}",
+          "legendFormat": "{{`{{shard}}/{{redis_server_alias}}`}}",
           "refId": "A"
         }
       ],
@@ -450,7 +450,7 @@
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{`{{shard}}/{{redis_server}}/{{role}}`}}",
+          "legendFormat": "{{`{{shard}}/{{redis_server_alias}}/{{role}}`}}",
           "refId": "A"
         }
       ],
@@ -565,7 +565,7 @@
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{`{{shard}}/{{redis_server}}/{{role}}`}}",
+          "legendFormat": "{{`{{shard}}/{{redis_server_alias}}/{{role}}`}}",
           "refId": "A"
         }
       ],
@@ -670,7 +670,7 @@
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{`{{shard}}/{{redis_server}}/{{role}}`}}",
+          "legendFormat": "{{`{{shard}}/{{redis_server_alias}}/{{role}}`}}",
           "refId": "A"
         }
       ],
@@ -777,7 +777,7 @@
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{`{{shard}}/{{redis_server}}/{{role}}`}}",
+          "legendFormat": "{{`{{shard}}/{{redis_server_alias}}/{{role}}`}}",
           "refId": "A"
         }
       ],
@@ -1096,7 +1096,7 @@
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{`{{shard}}/{{redis_server}}/{{role}}`}}",
+          "legendFormat": "{{`{{shard}}/{{redis_server_alias}}/{{role}}`}}",
           "refId": "A"
         }
       ],
@@ -1213,20 +1213,20 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "saas_redis_sentinel_server_info and on(namespace,sentinel,redis_server) rate(saas_redis_sentinel_sdown_count{namespace='$namespace',sentinel=~\"[[sentinel]].*\"}[1m]) > 0",
+              "expr": "saas_redis_sentinel_server_info and on(namespace,sentinel,redis_server_alias) rate(saas_redis_sentinel_sdown_count{namespace='$namespace',sentinel=~\"[[sentinel]].*\"}[1m]) > 0",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 1,
-              "legendFormat": "{{`{{shard}}/{{redis_server}}`}}",
+              "legendFormat": "{{`{{shard}}/{{redis_server_alias}}`}}",
               "refId": "A"
             },
             {
               "exemplar": true,
-              "expr": "saas_redis_sentinel_server_info and on(namespace,sentinel,redis_server) rate(saas_redis_sentinel_sdown_sentinel_count{namespace='$namespace',sentinel=~\"[[sentinel]].*\"}[1m]) > 0",
+              "expr": "saas_redis_sentinel_server_info and on(namespace,sentinel,redis_server_alias) rate(saas_redis_sentinel_sdown_sentinel_count{namespace='$namespace',sentinel=~\"[[sentinel]].*\"}[1m]) > 0",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 1,
-              "legendFormat": "sentinel/{{`{{redis_server}}`}}",
+              "legendFormat": "sentinel/{{`{{redis_server_alias}}`}}",
               "refId": "B"
             }
           ],
@@ -1556,7 +1556,7 @@
               "format": "time_series",
               "interval": "",
               "intervalFactor": 1,
-              "legendFormat": "{{`{{shard}}/{{redis_server}}/{{role}}`}}",
+              "legendFormat": "{{`{{shard}}/{{redis_server_alias}}/{{role}}`}}",
               "refId": "A"
             }
           ],
@@ -1674,7 +1674,7 @@
               "format": "time_series",
               "interval": "",
               "intervalFactor": 1,
-              "legendFormat": "{{`{{shard}}/{{redis_server}}/{{role}}`}}",
+              "legendFormat": "{{`{{shard}}/{{redis_server_alias}}/{{role}}`}}",
               "refId": "A"
             }
           ],
@@ -1782,7 +1782,7 @@
               "format": "time_series",
               "interval": "",
               "intervalFactor": 1,
-              "legendFormat": "{{`{{shard}}/{{redis_server}}/{{role}}`}}",
+              "legendFormat": "{{`{{shard}}/{{redis_server_alias}}/{{role}}`}}",
               "refId": "A"
             }
           ],
@@ -1892,7 +1892,7 @@
               "format": "time_series",
               "interval": "",
               "intervalFactor": 1,
-              "legendFormat": "{{`{{shard}}/{{redis_server}}/{{role}}`}}",
+              "legendFormat": "{{`{{shard}}/{{redis_server_alias}}/{{role}}`}}",
               "refId": "A"
             }
           ],
@@ -2220,7 +2220,7 @@
               "format": "time_series",
               "interval": "",
               "intervalFactor": 1,
-              "legendFormat": "{{`{{shard}}/{{redis_server}}/{{role}}`}}",
+              "legendFormat": "{{`{{shard}}/{{redis_server_alias}}/{{role}}`}}",
               "refId": "A"
             }
           ],
@@ -2350,20 +2350,20 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "saas_redis_sentinel_server_info and on(namespace,sentinel,redis_server) rate(saas_redis_sentinel_sdown_count{namespace='$namespace',sentinel=~\"[[sentinel]].*\"}[1m]) > 0",
+              "expr": "saas_redis_sentinel_server_info and on(namespace,sentinel,redis_server_alias) rate(saas_redis_sentinel_sdown_count{namespace='$namespace',sentinel=~\"[[sentinel]].*\"}[1m]) > 0",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 1,
-              "legendFormat": "{{`{{shard}}-{{redis_server}}`}}",
+              "legendFormat": "{{`{{shard}}-{{redis_server_alias}}`}}",
               "refId": "A"
             },
             {
               "exemplar": true,
-              "expr": "saas_redis_sentinel_server_info and on(namespace,sentinel,redis_server) rate(saas_redis_sentinel_sdown_sentinel_count{namespace='$namespace',sentinel=~\"[[sentinel]].*\"}[1m]) > 0",
+              "expr": "saas_redis_sentinel_server_info and on(namespace,sentinel,redis_server_alias) rate(saas_redis_sentinel_sdown_sentinel_count{namespace='$namespace',sentinel=~\"[[sentinel]].*\"}[1m]) > 0",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 1,
-              "legendFormat": "sentinel-{{`{{redis_server}}`}}",
+              "legendFormat": "sentinel-{{`{{redis_server_alias}}`}}",
               "refId": "B"
             }
           ],
@@ -2693,7 +2693,7 @@
               "format": "time_series",
               "interval": "",
               "intervalFactor": 1,
-              "legendFormat": "{{`{{shard}}/{{redis_server}}/{{role}}`}}",
+              "legendFormat": "{{`{{shard}}/{{redis_server_alias}}/{{role}}`}}",
               "refId": "A"
             }
           ],
@@ -2811,7 +2811,7 @@
               "format": "time_series",
               "interval": "",
               "intervalFactor": 1,
-              "legendFormat": "{{`{{shard}}/{{redis_server}}/{{role}}`}}",
+              "legendFormat": "{{`{{shard}}/{{redis_server_alias}}/{{role}}`}}",
               "refId": "A"
             }
           ],
@@ -2919,7 +2919,7 @@
               "format": "time_series",
               "interval": "",
               "intervalFactor": 1,
-              "legendFormat": "{{`{{shard}}/{{redis_server}}/{{role}}`}}",
+              "legendFormat": "{{`{{shard}}/{{redis_server_alias}}/{{role}}`}}",
               "refId": "A"
             }
           ],
@@ -3029,7 +3029,7 @@
               "format": "time_series",
               "interval": "",
               "intervalFactor": 1,
-              "legendFormat": "{{`{{shard}}/{{redis_server}}/{{role}}`}}",
+              "legendFormat": "{{`{{shard}}/{{redis_server_alias}}/{{role}}`}}",
               "refId": "A"
             }
           ],
@@ -3357,7 +3357,7 @@
               "format": "time_series",
               "interval": "",
               "intervalFactor": 1,
-              "legendFormat": "{{`{{shard}}/{{redis_server}}/{{role}}`}}",
+              "legendFormat": "{{`{{shard}}/{{redis_server_alias}}/{{role}}`}}",
               "refId": "A"
             }
           ],
