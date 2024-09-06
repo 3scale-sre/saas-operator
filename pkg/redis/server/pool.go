@@ -70,3 +70,11 @@ func (pool *ServerPool) indexByHostPort() map[string]*Server {
 
 	return index
 }
+
+func (pool *ServerPool) GetServerAlias(hostport string) string {
+	if srv, err := pool.GetServer("redis://"+hostport, nil); err == nil {
+		return srv.alias
+	} else {
+		return ""
+	}
+}
