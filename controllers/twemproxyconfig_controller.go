@@ -23,15 +23,15 @@ import (
 	"sync"
 	"time"
 
-	"github.com/3scale-ops/basereconciler/reconciler"
-	"github.com/3scale-ops/basereconciler/resource"
-	"github.com/3scale-ops/basereconciler/util"
 	saasv1alpha1 "github.com/3scale-ops/saas-operator/api/v1alpha1"
 	"github.com/3scale-ops/saas-operator/pkg/generators/twemproxyconfig"
 	"github.com/3scale-ops/saas-operator/pkg/reconcilers/threads"
 	"github.com/3scale-ops/saas-operator/pkg/redis/events"
 	redis "github.com/3scale-ops/saas-operator/pkg/redis/server"
 	operatorutils "github.com/3scale-ops/saas-operator/pkg/util"
+	"github.com/3scale-sre/basereconciler/reconciler"
+	"github.com/3scale-sre/basereconciler/resource"
+	"github.com/3scale-sre/basereconciler/util"
 	"github.com/go-logr/logr"
 	grafanav1beta1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
 	corev1 "k8s.io/api/core/v1"
@@ -260,7 +260,7 @@ func (r *TwemproxyConfigReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		For(&saasv1alpha1.TwemproxyConfig{}).
 		Owns(&corev1.ConfigMap{}).
 		Owns(&grafanav1beta1.GrafanaDashboard{}).
-		WatchesRawSource(&source.Channel{Source: r.SentinelEvents.GetChannel()}, &handler.EnqueueRequestForObject{}).
+		WatchesRawSource(source.Channel(r.SentinelEvents.GetChannel(), &handler.EnqueueRequestForObject{})).
 		WithOptions(controller.Options{
 			RateLimiter: PermissiveRateLimiter(),
 			// this allows for different resources to be reconciled in parallel

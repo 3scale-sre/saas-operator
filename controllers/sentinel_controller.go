@@ -21,8 +21,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/3scale-ops/basereconciler/reconciler"
-	"github.com/3scale-ops/basereconciler/util"
 	saasv1alpha1 "github.com/3scale-ops/saas-operator/api/v1alpha1"
 	"github.com/3scale-ops/saas-operator/pkg/generators/sentinel"
 	"github.com/3scale-ops/saas-operator/pkg/reconcilers/threads"
@@ -30,6 +28,8 @@ import (
 	"github.com/3scale-ops/saas-operator/pkg/redis/metrics"
 	redis "github.com/3scale-ops/saas-operator/pkg/redis/server"
 	"github.com/3scale-ops/saas-operator/pkg/redis/sharded"
+	"github.com/3scale-sre/basereconciler/reconciler"
+	"github.com/3scale-sre/basereconciler/util"
 	"github.com/go-logr/logr"
 	"golang.org/x/time/rate"
 	"k8s.io/apimachinery/pkg/api/equality"
@@ -37,7 +37,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
-	"sigs.k8s.io/controller-runtime/pkg/ratelimiter"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
@@ -206,18 +206,18 @@ func (r *SentinelReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return reconciler.SetupWithDynamicTypeWatches(r,
 		ctrl.NewControllerManagedBy(mgr).
 			For(&saasv1alpha1.Sentinel{}).
-			WatchesRawSource(&source.Channel{Source: r.SentinelEvents.GetChannel()}, &handler.EnqueueRequestForObject{}).
+			WatchesRawSource(source.Channel(r.SentinelEvents.GetChannel(), &handler.EnqueueRequestForObject{})).
 			WithOptions(controller.Options{RateLimiter: PermissiveRateLimiter()}),
 	)
 }
 
-func PermissiveRateLimiter() ratelimiter.RateLimiter {
+func PermissiveRateLimiter() workqueue.TypedRateLimiter[reconcile.Request] {
 	// return workqueue.DefaultControllerRateLimiter()
-	return workqueue.NewMaxOfRateLimiter(
+	return workqueue.NewTypedMaxOfRateLimiter(
 		// First retries are more spaced that default
 		// Max retry time is limited to 10 seconds
-		workqueue.NewItemExponentialFailureRateLimiter(5*time.Millisecond, 10*time.Second),
+		workqueue.NewTypedItemExponentialFailureRateLimiter[reconcile.Request](5*time.Millisecond, 10*time.Second),
 		// 10 qps, 100 bucket size.  This is only for retry speed and its only the overall factor (not per item)
-		&workqueue.BucketRateLimiter{Limiter: rate.NewLimiter(rate.Limit(10), 100)},
+		&workqueue.TypedBucketRateLimiter[reconcile.Request]{Limiter: rate.NewLimiter(rate.Limit(10), 100)},
 	)
 }

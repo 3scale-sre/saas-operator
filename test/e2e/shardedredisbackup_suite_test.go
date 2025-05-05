@@ -2,15 +2,16 @@ package e2e
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
-	"github.com/3scale-ops/basereconciler/util"
 	saasv1alpha1 "github.com/3scale-ops/saas-operator/api/v1alpha1"
 	testutil "github.com/3scale-ops/saas-operator/test/util"
+	"github.com/3scale-sre/basereconciler/util"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	. "github.com/onsi/ginkgo/v2"
@@ -185,7 +186,7 @@ var _ = Describe("shardedredisbackup e2e suite", func() {
 			if len(backup.Status.Backups) == 0 {
 				msg := "[debug] waiting for backup to be scheduled"
 				GinkgoWriter.Println(msg)
-				return fmt.Errorf(msg)
+				return errors.New(msg)
 			}
 			return nil
 		}, timeout, poll).ShouldNot(HaveOccurred())
@@ -235,7 +236,7 @@ var _ = Describe("shardedredisbackup e2e suite", func() {
 				return nil
 			default:
 				GinkgoWriter.Printf("[debug %s] backup failed: '%s'\n", time.Now(), backupResult.Message)
-				return fmt.Errorf(backupResult.Message)
+				return errors.New(backupResult.Message)
 			}
 
 		}, timeout, poll).ShouldNot(HaveOccurred())

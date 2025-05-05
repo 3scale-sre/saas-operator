@@ -1,7 +1,7 @@
 package generators
 
 import (
-	"github.com/3scale-ops/basereconciler/util"
+	"github.com/3scale-sre/basereconciler/util"
 	"k8s.io/apimachinery/pkg/types"
 )
 

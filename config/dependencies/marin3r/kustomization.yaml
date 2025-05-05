@@ -1,6 +1,6 @@
 namespace: marin3r
 resources:
-  - https://github.com/3scale-ops/marin3r/config/default/?ref=v0.12.3
+  - https://github.com/3scale-sre/marin3r/config/default/?ref=v0.12.3
 
 # somehow this works in upstream repo but not here
 patches:

@@ -1,10 +1,10 @@
 package templates
 
 import (
-	"github.com/3scale-ops/marin3r/pkg/envoy"
-	envoy_serializer_v3 "github.com/3scale-ops/marin3r/pkg/envoy/serializer/v3"
 	saasv1alpha1 "github.com/3scale-ops/saas-operator/api/v1alpha1"
 	operatorutils "github.com/3scale-ops/saas-operator/pkg/util"
+	"github.com/3scale-sre/marin3r/api/envoy"
+	envoy_serializer_v3 "github.com/3scale-sre/marin3r/api/envoy/serializer/v3"
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 )
 

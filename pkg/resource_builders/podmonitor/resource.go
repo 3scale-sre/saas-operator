@@ -3,6 +3,7 @@ package podmonitor
 import (
 	"fmt"
 
+	"github.com/3scale-sre/basereconciler/util"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -37,7 +38,7 @@ func PodMetricsEndpoint(path, port string, interval int32) monitoringv1.PodMetri
 	return monitoringv1.PodMetricsEndpoint{
 		Interval: monitoringv1.Duration(fmt.Sprintf("%ds", interval)),
 		Path:     path,
-		Port:     port,
+		Port:     util.Pointer(port),
 		Scheme:   "http",
 	}
 }
