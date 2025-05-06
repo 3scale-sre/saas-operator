@@ -116,10 +116,10 @@ test/assets/external-apis/crds.yaml: kustomize
 	echo "---" >> $@ && $(KUSTOMIZE) build config/dependencies/tekton-crds >> $@
 
 test: manifests generate fmt vet envtest assets ginkgo test/assets/external-apis/crds.yaml ## Run tests.
-	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) $(GINKGO) -p -r $(TEST_PKG)  -coverprofile cover.out
+	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) $(GINKGO) -p -r -coverprofile cover.out $(TEST_PKG)
 
 test-debug: manifests generate fmt vet envtest assets ginkgo test/assets/external-apis/crds.yaml ## Run tests.
-	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) $(GINKGO) -v -r $(TEST_PKG)  -coverprofile cover.out
+	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) $(GINKGO) -v -r -coverprofile cover.out $(TEST_PKG)
 
 TEST_E2E_DEPLOY = marin3r-crds prometheus-crds tekton-crds grafana-crds external-secrets-crds minio
 test-e2e: export KUBECONFIG = $(PWD)/kubeconfig
@@ -350,8 +350,8 @@ HELM ?= $(LOCALBIN)/helm
 
 ## Tool Versions
 KUSTOMIZE_VERSION ?= v5.1.1
-CONTROLLER_TOOLS_VERSION ?= v0.11.0
-GINKGO_VERSION ?= v2.17.0
+CONTROLLER_TOOLS_VERSION ?= v0.17.1
+GINKGO_VERSION ?= v2.23.4
 CRD_REFDOCS_VERSION ?= v0.0.8
 KIND_VERSION ?= v0.16.0
 ENVTEST_VERSION ?= release-0.17

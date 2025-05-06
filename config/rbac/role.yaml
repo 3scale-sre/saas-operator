@@ -2,50 +2,14 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  creationTimestamp: null
   name: manager-role
   namespace: placeholder
 rules:
 - apiGroups:
-  - apps
-  resources:
-  - deployments
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - apps
-  resources:
-  - statefulsets
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - autoscaling
-  resources:
-  - horizontalpodautoscalers
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
   - ""
   resources:
   - configmaps
+  - services
   verbs:
   - create
   - delete
@@ -72,9 +36,22 @@ rules:
   - list
   - watch
 - apiGroups:
-  - ""
+  - apps
   resources:
-  - services
+  - deployments
+  - statefulsets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - autoscaling
+  resources:
+  - horizontalpodautoscalers
   verbs:
   - create
   - delete
@@ -147,291 +124,16 @@ rules:
   - saas.3scale.net
   resources:
   - apicasts
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - saas.3scale.net
-  resources:
-  - apicasts/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - saas.3scale.net
-  resources:
-  - apicasts/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - saas.3scale.net
-  resources:
   - autossls
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - saas.3scale.net
-  resources:
-  - autossls/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - saas.3scale.net
-  resources:
-  - autossls/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - saas.3scale.net
-  resources:
   - backends
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - saas.3scale.net
-  resources:
-  - backends/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - saas.3scale.net
-  resources:
-  - backends/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - saas.3scale.net
-  resources:
   - corsproxies
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - saas.3scale.net
-  resources:
-  - corsproxies/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - saas.3scale.net
-  resources:
-  - corsproxies/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - saas.3scale.net
-  resources:
   - echoapis
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - saas.3scale.net
-  resources:
-  - echoapis/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - saas.3scale.net
-  resources:
-  - echoapis/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - saas.3scale.net
-  resources:
   - mappingservices
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - saas.3scale.net
-  resources:
-  - mappingservices/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - saas.3scale.net
-  resources:
-  - mappingservices/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - saas.3scale.net
-  resources:
   - redisshards
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - saas.3scale.net
-  resources:
-  - redisshards/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - saas.3scale.net
-  resources:
-  - redisshards/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - saas.3scale.net
-  resources:
   - sentinels
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - saas.3scale.net
-  resources:
-  - sentinels/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - saas.3scale.net
-  resources:
-  - sentinels/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - saas.3scale.net
-  resources:
   - shardedredisbackups
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - saas.3scale.net
-  resources:
-  - shardedredisbackups/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - saas.3scale.net
-  resources:
-  - shardedredisbackups/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - saas.3scale.net
-  resources:
   - systems
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - saas.3scale.net
-  resources:
-  - systems/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - saas.3scale.net
-  resources:
-  - systems/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - saas.3scale.net
-  resources:
   - twemproxyconfigs
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - saas.3scale.net
-  resources:
-  - twemproxyconfigs/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - saas.3scale.net
-  resources:
-  - twemproxyconfigs/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - saas.3scale.net
-  resources:
   - zyncs
   verbs:
   - create
@@ -444,12 +146,34 @@ rules:
 - apiGroups:
   - saas.3scale.net
   resources:
+  - apicasts/finalizers
+  - autossls/finalizers
+  - backends/finalizers
+  - corsproxies/finalizers
+  - echoapis/finalizers
+  - mappingservices/finalizers
+  - redisshards/finalizers
+  - sentinels/finalizers
+  - shardedredisbackups/finalizers
+  - systems/finalizers
+  - twemproxyconfigs/finalizers
   - zyncs/finalizers
   verbs:
   - update
 - apiGroups:
   - saas.3scale.net
   resources:
+  - apicasts/status
+  - autossls/status
+  - backends/status
+  - corsproxies/status
+  - echoapis/status
+  - mappingservices/status
+  - redisshards/status
+  - sentinels/status
+  - shardedredisbackups/status
+  - systems/status
+  - twemproxyconfigs/status
   - zyncs/status
   verbs:
   - get
@@ -459,17 +183,6 @@ rules:
   - tekton.dev
   resources:
   - pipelines
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - tekton.dev
-  resources:
   - tasks
   verbs:
   - create

@@ -3,8 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.11.0
-  creationTimestamp: null
+    controller-gen.kubebuilder.io/version: v0.17.1
   name: twemproxyconfigs.saas.3scale.net
 spec:
   group: saas.3scale.net
@@ -25,14 +24,19 @@ spec:
         description: TwemproxyConfig is the Schema for the twemproxyconfigs API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation
-              of an object. Servers should convert recognized schemas to the latest
-              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this
-              object represents. Servers may infer this from the endpoint the client
-              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
             type: string
           metadata:
             type: object
@@ -52,22 +56,25 @@ spec:
                     type: string
                 type: object
               reconcileServerPools:
-                description: ReconcileServerPools is a flag that allows to deactivate
+                description: |-
+                  ReconcileServerPools is a flag that allows to deactivate
                   the reconcile of the contents of the managed ConfigMap. This is
-                  useful in an emergency, to fix something manually. The re-sync logic
-                  will still work whenever the contents of the ConfigMap are changed,
-                  even if they are manually changed. This switch defaults to "true".
+                  useful in an emergency, to fix something manually. The re-sync
+                  logic will still work whenever the contents of the ConfigMap
+                  are changed, even if they are manually changed.
+                  This switch defaults to "true".
                 type: boolean
               sentinelURIs:
-                description: 'SentinelURI is the redis URI of sentinel. If not set,
-                  the controller will try to autodiscover Sentinel within the namespace.
-                  TODO: remove, unused'
+                description: |-
+                  SentinelURI is the redis URI of sentinel. If not set, the controller
+                  will try to autodiscover Sentinel within the namespace.
                 items:
                   type: string
                 type: array
               serverPools:
-                description: 'ServerPools is the list of Twemproxy server pools WARNING:
-                  only 1 pool is supported at this time'
+                description: |-
+                  ServerPools is the list of Twemproxy server pools
+                  WARNING: only 1 pool is supported at this time
                 items:
                   properties:
                     bindAddress:
@@ -80,13 +87,13 @@ spec:
                       description: Connect to all servers in the pool during startup
                       type: boolean
                     target:
-                      description: Target defines which are the servers that will
-                        be configured as backend redis servers for the Twemproxy configuration.
-                        The default is to target masters, but read-write slaves can
-                        be configured through this option. If read-write slaves are
-                        configured but there are none available, the config will fall
-                        back to masters. The masters never fall back to slaves though
-                        and will just wait for sentinel triggered failovers to solve
+                      description: |-
+                        Target defines which are the servers that will be configured
+                        as backend redis servers for the Twemproxy configuration. The
+                        default is to target masters, but read-write slaves can be configured
+                        through this option. If read-write slaves are configured but there are none
+                        available, the config will fall back to masters. The masters never fall back
+                        to slaves though and will just wait for sentinel triggered failovers to solve
                         the unavailability.
                       enum:
                       - masters
@@ -96,19 +103,22 @@ spec:
                       description: Max number of pending connections in the queue
                       type: integer
                     timeout:
-                      description: Timeout to stablish connection with the servers
-                        in the server pool
+                      description: |-
+                        Timeout to stablish connection with the servers in the
+                        server pool
                       type: integer
                     topology:
-                      description: The topology of the servers within the server pool.
-                        This field describes the association of logical shards to
-                        physical shards.
+                      description: |-
+                        The topology of the servers within the server pool. This
+                        field describes the association of logical shards to physical
+                        shards.
                       items:
                         properties:
                           physicalShard:
-                            description: The physical shard where the logical one
-                              is stored. This name should match the shard names monitored
-                              by Sentinel.
+                            description: |-
+                              The physical shard where the logical one is stored.
+                              This name should match the shard names monitored by
+                              Sentinel.
                             type: string
                           shardName:
                             description: The name of the locigal shard
