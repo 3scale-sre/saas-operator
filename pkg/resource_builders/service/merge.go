@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"reflect"
 
+	"dario.cat/mergo"
 	saasv1alpha1 "github.com/3scale-ops/saas-operator/api/v1alpha1"
 	"github.com/3scale-ops/saas-operator/pkg/util"
-	"github.com/imdario/mergo"
 	"github.com/samber/lo"
 )
 

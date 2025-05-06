@@ -21,10 +21,10 @@ import (
 	"sort"
 	"time"
 
-	"github.com/3scale-ops/basereconciler/util"
 	"github.com/3scale-ops/saas-operator/pkg/redis/client"
 	redis "github.com/3scale-ops/saas-operator/pkg/redis/server"
 	"github.com/3scale-ops/saas-operator/pkg/redis/sharded"
+	"github.com/3scale-sre/basereconciler/util"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/3scale-ops/basereconciler/util"
 	saasv1alpha1 "github.com/3scale-ops/saas-operator/api/v1alpha1"
 	redisclient "github.com/3scale-ops/saas-operator/pkg/redis/client"
 	testutil "github.com/3scale-ops/saas-operator/test/util"
+	"github.com/3scale-sre/basereconciler/util"
 	"github.com/google/go-cmp/cmp"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"

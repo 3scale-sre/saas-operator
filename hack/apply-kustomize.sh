@@ -26,7 +26,7 @@ function deploy_crds() {
     local FILTER=".kind == \"CustomResourceDefinition\""
     if [[ $(resource_names ${RESFILE} "${FILTER}") != "/" ]]; then
         echo; echo "#################### > Deploying CRDs for ${NAME}"
-        filter_resources ${RESFILE} "${FILTER}" | kubectl apply -f -
+        filter_resources ${RESFILE} "${FILTER}" | kubectl apply --server-side -f -
         resource_names ${RESFILE} "${FILTER}" | cut -f2 -d/ | xargs kubectl wait --for condition=established --timeout=60s crd
     fi
 }
@@ -50,7 +50,7 @@ function deploy_controller() {
     local FILTER=".kind != \"CustomResourceDefinition\" and .apiVersion != \"*${NAME}*\""
     if [[ $(resource_names ${RESFILE} "${FILTER}") != "/" ]]; then
         echo; echo "#################### > Deploying controller for ${NAME}"
-        filter_resources ${RESFILE} "${FILTER}" | kubectl apply -f -
+        filter_resources ${RESFILE} "${FILTER}" | kubectl apply --server-side -f -
         for KIND in "Deployment" "StatefulSet"; do wait_for ${KIND}; done
     fi
 }
@@ -60,7 +60,7 @@ function deploy_custom_resources() {
     local FILTER=".kind != \"CustomResourceDefinition\" and .apiVersion == \"*${NAME}*\""
     if [[ $(resource_names ${RESFILE} "${FILTER}") != "/" ]]; then
         echo; echo "#################### > Deploying custom resources for ${NAME}"
-        filter_resources ${RESFILE} "${FILTER}" | kubectl apply -f -
+        filter_resources ${RESFILE} "${FILTER}" | kubectl apply --server-side -f -
     fi
 }
 

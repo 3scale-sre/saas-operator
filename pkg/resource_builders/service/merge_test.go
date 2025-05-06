@@ -3,10 +3,10 @@ package service
 import (
 	"testing"
 
-	"github.com/3scale-ops/basereconciler/util"
+	"dario.cat/mergo"
 	saasv1alpha1 "github.com/3scale-ops/saas-operator/api/v1alpha1"
+	"github.com/3scale-sre/basereconciler/util"
 	"github.com/google/go-cmp/cmp"
-	"github.com/imdario/mergo"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )

@@ -19,7 +19,7 @@ package v1alpha1
 import (
 	"fmt"
 
-	"github.com/3scale-ops/basereconciler/util"
+	"github.com/3scale-sre/basereconciler/util"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )

@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/3scale-ops/basereconciler/util"
 	saasv1alpha1 "github.com/3scale-ops/saas-operator/api/v1alpha1"
+	"github.com/3scale-sre/basereconciler/util"
 	"github.com/go-test/deep"
 	"k8s.io/apimachinery/pkg/types"
 )

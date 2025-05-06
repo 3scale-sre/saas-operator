@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/3scale-ops/basereconciler/util"
+	"github.com/3scale-sre/basereconciler/util"
 )
 
 func TestServerPool_GetServer(t *testing.T) {

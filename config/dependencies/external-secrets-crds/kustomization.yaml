@@ -1,2 +1,2 @@
 resources:
-  - https://github.com/external-secrets/external-secrets/config/crds/bases/?ref=v0.9.11
+  - https://github.com/external-secrets/external-secrets/config/crds/bases/?ref=v0.11.0

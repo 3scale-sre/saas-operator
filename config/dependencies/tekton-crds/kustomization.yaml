@@ -1,6 +1,6 @@
 resources:
-  - https://raw.githubusercontent.com/tektoncd/pipeline/release-v0.49.x/config/300-pipeline.yaml
-  - https://raw.githubusercontent.com/tektoncd/pipeline/release-v0.49.x/config/300-task.yaml
+  - https://raw.githubusercontent.com/tektoncd/pipeline/refs/tags/v1.0.0/config/300-crds/300-pipeline.yaml
+  - https://raw.githubusercontent.com/tektoncd/pipeline/refs/tags/v1.0.0/config/300-crds/300-task.yaml
 
 patches:
   - target:

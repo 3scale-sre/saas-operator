@@ -22,7 +22,7 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/3scale-ops/basereconciler/util"
+	"github.com/3scale-sre/basereconciler/util"
 	jsonpatch "github.com/evanphx/json-patch"
 	appsv1 "k8s.io/api/apps/v1"
 	autoscalingv2 "k8s.io/api/autoscaling/v2"

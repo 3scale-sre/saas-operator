@@ -22,7 +22,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/3scale-ops/basereconciler/util"
+	"github.com/3scale-sre/basereconciler/util"
 	"github.com/samber/lo"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

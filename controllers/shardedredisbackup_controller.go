@@ -21,14 +21,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/3scale-ops/basereconciler/reconciler"
-	"github.com/3scale-ops/basereconciler/util"
 	saasv1alpha1 "github.com/3scale-ops/saas-operator/api/v1alpha1"
 	"github.com/3scale-ops/saas-operator/pkg/reconcilers/threads"
 	"github.com/3scale-ops/saas-operator/pkg/redis/backup"
 	redis "github.com/3scale-ops/saas-operator/pkg/redis/server"
 	"github.com/3scale-ops/saas-operator/pkg/redis/sharded"
 	operatorutils "github.com/3scale-ops/saas-operator/pkg/util"
+	"github.com/3scale-sre/basereconciler/reconciler"
+	"github.com/3scale-sre/basereconciler/util"
 	"github.com/robfig/cron/v3"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -290,6 +290,6 @@ func (r *ShardedRedisBackupReconciler) reconcileBackupList(ctx context.Context, 
 func (r *ShardedRedisBackupReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&saasv1alpha1.ShardedRedisBackup{}).
-		WatchesRawSource(&source.Channel{Source: r.BackupRunner.GetChannel()}, &handler.EnqueueRequestForObject{}).
+		WatchesRawSource(source.Channel(r.BackupRunner.GetChannel(), &handler.EnqueueRequestForObject{})).
 		Complete(r)
 }

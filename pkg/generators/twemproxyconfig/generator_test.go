@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/3scale-ops/basereconciler/util"
 	saasv1alpha1 "github.com/3scale-ops/saas-operator/api/v1alpha1"
 	"github.com/3scale-ops/saas-operator/pkg/generators"
 	redis_client "github.com/3scale-ops/saas-operator/pkg/redis/client"
 	"github.com/3scale-ops/saas-operator/pkg/redis/server"
 	"github.com/3scale-ops/saas-operator/pkg/resource_builders/twemproxy"
+	"github.com/3scale-sre/basereconciler/util"
 	"github.com/go-logr/logr"
 	"github.com/go-test/deep"
 	"github.com/google/go-cmp/cmp"
