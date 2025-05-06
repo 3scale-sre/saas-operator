@@ -8,9 +8,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/3scale-ops/saas-operator/pkg/redis/client"
-	redis "github.com/3scale-ops/saas-operator/pkg/redis/server"
-	operatorutils "github.com/3scale-ops/saas-operator/pkg/util"
+	"github.com/3scale-sre/saas-operator/pkg/redis/client"
+	redis "github.com/3scale-sre/saas-operator/pkg/redis/server"
+	operatorutils "github.com/3scale-sre/saas-operator/pkg/util"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 

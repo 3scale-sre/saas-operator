@@ -129,7 +129,7 @@ test-e2e: manifests ginkgo kind-create $(foreach elem,$(TEST_E2E_DEPLOY),install
 
 assets: go-bindata ## assets: Generate embedded assets
 	@echo Generate Go embedded assets files by processing source
-	PATH=$$PATH:$$PWD/bin go generate github.com/3scale-ops/saas-operator/pkg/assets
+	PATH=$$PATH:$$PWD/bin go generate github.com/3scale-sre/saas-operator/pkg/assets
 
 ##@ Build
 

@@ -3,7 +3,7 @@ package templates
 import (
 	"time"
 
-	saasv1alpha1 "github.com/3scale-ops/saas-operator/api/v1alpha1"
+	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	"github.com/3scale-sre/marin3r/api/envoy"
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"

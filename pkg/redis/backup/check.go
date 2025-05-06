@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sort"
 
-	operatorutils "github.com/3scale-ops/saas-operator/pkg/util"
+	operatorutils "github.com/3scale-sre/saas-operator/pkg/util"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"sigs.k8s.io/controller-runtime/pkg/log"

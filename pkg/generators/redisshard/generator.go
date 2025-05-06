@@ -3,8 +3,8 @@ package redisshard
 import (
 	"fmt"
 
-	saasv1alpha1 "github.com/3scale-ops/saas-operator/api/v1alpha1"
-	"github.com/3scale-ops/saas-operator/pkg/generators"
+	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
+	"github.com/3scale-sre/saas-operator/pkg/generators"
 	"github.com/3scale-sre/basereconciler/resource"
 )
 

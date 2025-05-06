@@ -3,7 +3,7 @@ package templates
 import (
 	"testing"
 
-	saasv1alpha1 "github.com/3scale-ops/saas-operator/api/v1alpha1"
+	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	envoy_serializer_v3 "github.com/3scale-sre/marin3r/api/envoy/serializer/v3"
 	"github.com/MakeNowJust/heredoc"
 	"sigs.k8s.io/yaml"

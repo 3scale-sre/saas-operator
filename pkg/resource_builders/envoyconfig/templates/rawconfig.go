@@ -1,7 +1,7 @@
 package templates
 
 import (
-	saasv1alpha1 "github.com/3scale-ops/saas-operator/api/v1alpha1"
+	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	"github.com/3scale-sre/marin3r/api/envoy"
 	envoy_serializer_v3 "github.com/3scale-sre/marin3r/api/envoy/serializer/v3"
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"

@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/3scale-ops/saas-operator/pkg/redis/client"
+	"github.com/3scale-sre/saas-operator/pkg/redis/client"
 	"github.com/go-redis/redis/v8"
 )
 

@@ -21,8 +21,8 @@ import (
 	"testing"
 	"time"
 
-	saasv1alpha1 "github.com/3scale-ops/saas-operator/api/v1alpha1"
-	testutil "github.com/3scale-ops/saas-operator/test/util"
+	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
+	testutil "github.com/3scale-sre/saas-operator/test/util"
 	"github.com/3scale-sre/basereconciler/reconciler"
 	"github.com/3scale-sre/basereconciler/util"
 	"github.com/google/go-cmp/cmp"

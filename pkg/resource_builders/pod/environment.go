@@ -5,9 +5,9 @@ import (
 	"reflect"
 	"strings"
 
-	saasv1alpha1 "github.com/3scale-ops/saas-operator/api/v1alpha1"
-	"github.com/3scale-ops/saas-operator/pkg/resource_builders/externalsecret"
-	operatorutil "github.com/3scale-ops/saas-operator/pkg/util"
+	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
+	"github.com/3scale-sre/saas-operator/pkg/resource_builders/externalsecret"
+	operatorutil "github.com/3scale-sre/saas-operator/pkg/util"
 	"github.com/3scale-sre/basereconciler/mutators"
 	"github.com/3scale-sre/basereconciler/resource"
 	"github.com/3scale-sre/basereconciler/util"

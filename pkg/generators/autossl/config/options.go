@@ -3,8 +3,8 @@ package config
 import (
 	"strings"
 
-	saasv1alpha1 "github.com/3scale-ops/saas-operator/api/v1alpha1"
-	"github.com/3scale-ops/saas-operator/pkg/resource_builders/pod"
+	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
+	"github.com/3scale-sre/saas-operator/pkg/resource_builders/pod"
 )
 
 const (

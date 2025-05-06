@@ -3,9 +3,9 @@ package twemproxy
 import (
 	"path/filepath"
 
-	saasv1alpha1 "github.com/3scale-ops/saas-operator/api/v1alpha1"
-	"github.com/3scale-ops/saas-operator/pkg/resource_builders/pod"
 	"github.com/3scale-sre/basereconciler/util"
+	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
+	"github.com/3scale-sre/saas-operator/pkg/resource_builders/pod"
 	pipelinev1beta1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 )

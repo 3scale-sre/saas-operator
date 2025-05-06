@@ -1,8 +1,8 @@
 package config
 
 import (
-	saasv1alpha1 "github.com/3scale-ops/saas-operator/api/v1alpha1"
-	"github.com/3scale-ops/saas-operator/pkg/resource_builders/pod"
+	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
+	"github.com/3scale-sre/saas-operator/pkg/resource_builders/pod"
 )
 
 func NewEnvOptions(spec saasv1alpha1.ApicastEnvironmentSpec, env string) pod.Options {

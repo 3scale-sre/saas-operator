@@ -19,8 +19,8 @@ package controllers
 import (
 	"context"
 
-	saasv1alpha1 "github.com/3scale-ops/saas-operator/api/v1alpha1"
-	"github.com/3scale-ops/saas-operator/pkg/generators/backend"
+	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
+	"github.com/3scale-sre/saas-operator/pkg/generators/backend"
 	"github.com/3scale-sre/basereconciler/reconciler"
 	"github.com/3scale-sre/basereconciler/util"
 	corev1 "k8s.io/api/core/v1"

@@ -5,9 +5,9 @@ import (
 	"reflect"
 	"testing"
 
-	saasv1alpha1 "github.com/3scale-ops/saas-operator/api/v1alpha1"
-	descriptor "github.com/3scale-ops/saas-operator/pkg/resource_builders/envoyconfig/descriptor"
-	"github.com/3scale-ops/saas-operator/pkg/resource_builders/service"
+	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
+	descriptor "github.com/3scale-sre/saas-operator/pkg/resource_builders/envoyconfig/descriptor"
+	"github.com/3scale-sre/saas-operator/pkg/resource_builders/service"
 	"github.com/3scale-sre/basereconciler/mutators"
 	"github.com/3scale-sre/basereconciler/resource"
 	"github.com/3scale-sre/basereconciler/util"

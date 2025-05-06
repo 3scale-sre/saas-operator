@@ -855,7 +855,7 @@ metadata:
       of the Red Hat 3scale API Management on OpenShift.
     operators.operatorframework.io/builder: operator-sdk-v1.27.0
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
-    repository: https://github.com/3scale-ops/saas-operator
+    repository: https://github.com/3scale-sre/saas-operator
     support: Red Hat
   name: saas-operator.v0.25.1
   namespace: placeholder
@@ -6803,13 +6803,13 @@ spec:
 
     ## Documentation
 
-    - [Getting started](https://github.com/3scale-ops/saas-operator/blob/master/docs/getting-started.md)
-    - [Custom Resource Definitions reference](https://github.com/3scale-ops/saas-operator/tree/master/docs/reference)
-    - [Development](https://github.com/3scale-ops/saas-operator/blob/master/docs/development.md)
+    - [Getting started](https://github.com/3scale-sre/saas-operator/blob/master/docs/getting-started.md)
+    - [Custom Resource Definitions reference](https://github.com/3scale-sre/saas-operator/tree/master/docs/reference)
+    - [Development](https://github.com/3scale-sre/saas-operator/blob/master/docs/development.md)
 
     ## License
 
-    3scale SaaS Operator is licensed under the [Apache 2.0 license](https://github.com/3scale-ops/saas-operator/blob/master/LICENSE)
+    3scale SaaS Operator is licensed under the [Apache 2.0 license](https://github.com/3scale-sre/saas-operator/blob/master/LICENSE)
   displayName: 3scale SaaS Operator
   icon:
   - base64data: |
@@ -7398,7 +7398,7 @@ spec:
   - operations
   links:
   - name: GitHub Repository
-    url: https://github.com/3scale-ops/saas-operator
+    url: https://github.com/3scale-sre/saas-operator
   - name: 3scale
     url: https://3scale.net
   maintainers:
