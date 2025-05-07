@@ -848,7 +848,7 @@ metadata:
       ]
     capabilities: Basic Install
     categories: Integration & Delivery
-    containerImage: quay.io/3scale/saas-operator
+    containerImage: quay.io/3scale-sre/saas-operator
     createdAt: "2024-09-06T10:55:08Z"
     description: |-
       The 3scale SaaS Operator creates and maintains a SaaS-ready deployment
@@ -6844,7 +6844,7 @@ spec:
                   valueFrom:
                     fieldRef:
                       fieldPath: metadata.annotations['olm.targetNamespaces']
-                image: quay.io/3scale/saas-operator:v0.25.1
+                image: quay.io/3scale-sre/saas-operator:v0.25.1
                 livenessProbe:
                   httpGet:
                     path: /healthz
