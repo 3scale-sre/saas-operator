@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	descriptor "github.com/3scale-ops/saas-operator/pkg/resource_builders/envoyconfig/descriptor"
+	descriptor "github.com/3scale-sre/saas-operator/pkg/resource_builders/envoyconfig/descriptor"
 	"github.com/3scale-sre/marin3r/api/envoy"
 )
 

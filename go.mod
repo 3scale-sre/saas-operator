@@ -1,4 +1,4 @@
-module github.com/3scale-ops/saas-operator
+module github.com/3scale-sre/saas-operator
 
 go 1.24.2
 

@@ -5,8 +5,8 @@ import (
 	"reflect"
 	"sort"
 
-	envoyconfig "github.com/3scale-ops/saas-operator/pkg/resource_builders/envoyconfig/descriptor"
 	"github.com/3scale-sre/basereconciler/util"
+	envoyconfig "github.com/3scale-sre/saas-operator/pkg/resource_builders/envoyconfig/descriptor"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

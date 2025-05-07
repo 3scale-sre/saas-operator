@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"dario.cat/mergo"
-	saasv1alpha1 "github.com/3scale-ops/saas-operator/api/v1alpha1"
+	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	"github.com/3scale-sre/basereconciler/util"
 	"github.com/google/go-cmp/cmp"
 	corev1 "k8s.io/api/core/v1"

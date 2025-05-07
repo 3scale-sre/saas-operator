@@ -3,9 +3,9 @@ package envoyconfig
 import (
 	"fmt"
 
-	"github.com/3scale-ops/saas-operator/pkg/resource_builders/envoyconfig/auto"
-	descriptor "github.com/3scale-ops/saas-operator/pkg/resource_builders/envoyconfig/descriptor"
-	"github.com/3scale-ops/saas-operator/pkg/resource_builders/envoyconfig/factory"
+	"github.com/3scale-sre/saas-operator/pkg/resource_builders/envoyconfig/auto"
+	descriptor "github.com/3scale-sre/saas-operator/pkg/resource_builders/envoyconfig/descriptor"
+	"github.com/3scale-sre/saas-operator/pkg/resource_builders/envoyconfig/factory"
 	"github.com/3scale-sre/basereconciler/util"
 	"github.com/3scale-sre/marin3r/api/envoy"
 	envoy_serializer "github.com/3scale-sre/marin3r/api/envoy/serializer"

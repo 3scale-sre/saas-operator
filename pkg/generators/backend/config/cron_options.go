@@ -1,9 +1,9 @@
 package config
 
 import (
-	saasv1alpha1 "github.com/3scale-ops/saas-operator/api/v1alpha1"
-	"github.com/3scale-ops/saas-operator/pkg/generators/seed"
-	"github.com/3scale-ops/saas-operator/pkg/resource_builders/pod"
+	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
+	"github.com/3scale-sre/saas-operator/pkg/generators/seed"
+	"github.com/3scale-sre/saas-operator/pkg/resource_builders/pod"
 )
 
 // NewCronOptions returns cron options for the given saasv1alpha1.BackendSpec

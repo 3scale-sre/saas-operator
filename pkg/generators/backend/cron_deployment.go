@@ -3,7 +3,7 @@ package backend
 import (
 	"strings"
 
-	"github.com/3scale-ops/saas-operator/pkg/resource_builders/pod"
+	"github.com/3scale-sre/saas-operator/pkg/resource_builders/pod"
 	"github.com/3scale-sre/basereconciler/util"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"

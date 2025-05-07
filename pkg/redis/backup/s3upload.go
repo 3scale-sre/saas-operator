@@ -10,8 +10,8 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/3scale-ops/saas-operator/pkg/ssh"
-	operatorutils "github.com/3scale-ops/saas-operator/pkg/util"
+	"github.com/3scale-sre/saas-operator/pkg/ssh"
+	operatorutils "github.com/3scale-sre/saas-operator/pkg/util"
 	"github.com/MakeNowJust/heredoc"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"

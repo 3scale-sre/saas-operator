@@ -7,7 +7,7 @@
 The operator controller image lifecycle is managed with the `docker-build` and `docker-push`
 targets using the `IMG` and `VERSION` environment variables.
 
-By default, the image is [quay.io/3scale/saas-operator](https://quay.io/3scale/saas-operator) and the version is the one hardcoded in the Makefile, which should be changed for release of new versions.
+By default, the image is [quay.io/3scale-sre/saas-operator](https://quay.io/3scale-sre/saas-operator) and the version is the one hardcoded in the Makefile, which should be changed for release of new versions.
 
 ## Bundle image
 
@@ -58,7 +58,7 @@ make kind-deploy
 
 ## Debugging the operator
 
-In [3scale-ops/saas-operator#180](https://github.com/3scale-ops/saas-operator/pull/180),
+In [3scale-sre/saas-operator#180](https://github.com/3scale-sre/saas-operator/pull/180),
 the support for `pprof` was added and now can be set by the `PROFILER_*` environment variables.
 
 | Variable              | Format | Default | Information                                    |

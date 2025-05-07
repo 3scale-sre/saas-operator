@@ -5,8 +5,8 @@ import (
 	"reflect"
 
 	"dario.cat/mergo"
-	saasv1alpha1 "github.com/3scale-ops/saas-operator/api/v1alpha1"
-	"github.com/3scale-ops/saas-operator/pkg/util"
+	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
+	"github.com/3scale-sre/saas-operator/pkg/util"
 	"github.com/samber/lo"
 )
 

@@ -1,8 +1,8 @@
 package templates
 
 import (
-	saasv1alpha1 "github.com/3scale-ops/saas-operator/api/v1alpha1"
 	"github.com/3scale-sre/marin3r/api/envoy"
+	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	envoy_service_runtime_v3 "github.com/envoyproxy/go-control-plane/envoy/service/runtime/v3"
 	"google.golang.org/protobuf/types/known/structpb"
 )

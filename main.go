@@ -28,7 +28,7 @@ import (
 
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
-	operatorutils "github.com/3scale-ops/saas-operator/pkg/util"
+	operatorutils "github.com/3scale-sre/saas-operator/pkg/util"
 	"github.com/3scale-sre/basereconciler/reconciler"
 	marin3rv1alpha1 "github.com/3scale-sre/marin3r/api/marin3r/v1alpha1"
 	externalsecretsv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
@@ -43,11 +43,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
-	saasv1alpha1 "github.com/3scale-ops/saas-operator/api/v1alpha1"
-	"github.com/3scale-ops/saas-operator/controllers"
-	"github.com/3scale-ops/saas-operator/pkg/reconcilers/threads"
-	redis "github.com/3scale-ops/saas-operator/pkg/redis/server"
-	"github.com/3scale-ops/saas-operator/pkg/version"
+	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
+	"github.com/3scale-sre/saas-operator/controllers"
+	"github.com/3scale-sre/saas-operator/pkg/reconcilers/threads"
+	redis "github.com/3scale-sre/saas-operator/pkg/redis/server"
+	"github.com/3scale-sre/saas-operator/pkg/version"
 	// +kubebuilder:scaffold:imports
 )
 

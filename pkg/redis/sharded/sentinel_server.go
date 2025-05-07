@@ -4,8 +4,8 @@ import (
 	"context"
 	"sort"
 
-	redis "github.com/3scale-ops/saas-operator/pkg/redis/server"
-	operatorutils "github.com/3scale-ops/saas-operator/pkg/util"
+	redis "github.com/3scale-sre/saas-operator/pkg/redis/server"
+	operatorutils "github.com/3scale-sre/saas-operator/pkg/util"
 )
 
 const (

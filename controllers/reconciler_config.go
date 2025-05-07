@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	saasv1alpha1 "github.com/3scale-ops/saas-operator/api/v1alpha1"
 	"github.com/3scale-sre/basereconciler/config"
+	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 

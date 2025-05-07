@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	saasv1alpha1 "github.com/3scale-ops/saas-operator/api/v1alpha1"
-	testutil "github.com/3scale-ops/saas-operator/test/util"
+	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
+	testutil "github.com/3scale-sre/saas-operator/test/util"
 	"github.com/3scale-sre/basereconciler/util"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
