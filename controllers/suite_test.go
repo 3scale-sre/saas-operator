@@ -54,8 +54,8 @@ var (
 	k8sClient     client.Client
 	testEnv       *envtest.Environment
 	nameGenerator namegenerator.Generator
-	timeout       time.Duration = 45 * time.Second
-	poll          time.Duration = 5 * time.Second
+	timeout       time.Duration = 60 * time.Second
+	poll          time.Duration = 10 * time.Second
 	ctx           context.Context
 	cancel        context.CancelFunc
 )

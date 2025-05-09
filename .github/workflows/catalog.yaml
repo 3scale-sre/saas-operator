@@ -1,0 +1,24 @@
+name: catalog
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - catalog/saas-operator/stable-channel.yaml
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to quay.io/3scale
+        uses: redhat-actions/podman-login@v1
+        with:
+          registry: quay.io
+          username: ${{ secrets.REGISTRY_USER }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Build & push catalog
+        run: make catalog-publish

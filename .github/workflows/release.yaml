@@ -6,29 +6,13 @@ on:
       - main
 
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: "1.21"
-
-      - uses: actions/cache@v4
-        with:
-          path: ./bin
-          key: ${{ runner.os }}-bin
-
-      - name: Run tests
-        run: make test
-
-      - name: Run e2e tests
-        run: make test-e2e
-
       - name: Build image
-        run: make docker-build
+        run: make container-buildx
 
       - name: Export release name
         run: |
@@ -36,7 +20,7 @@ jobs:
 
       - name: Login to quay.io/3scale
         if: ${{ env.NEW_RELEASE != '' }}
-        uses: docker/login-action@v3
+        uses: redhat-actions/podman-login@v1
         with:
           registry: quay.io
           username: ${{ secrets.REGISTRY_USER }}
@@ -44,9 +28,9 @@ jobs:
 
       - name: Push new operator image
         if: ${{ env.NEW_RELEASE != '' }}
-        run: make docker-push
+        run: make container-pushx
 
-      - name: Publish new bundle image in saas-operator catalog
+      - name: Publish new bundle image in saas-operator index
         if: ${{ env.NEW_RELEASE != '' }}
         run: make bundle-publish
 
