@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	operatorutils "github.com/3scale-sre/saas-operator/pkg/util"
 	"github.com/3scale-sre/basereconciler/util"
+	operatorutils "github.com/3scale-sre/saas-operator/pkg/util"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"

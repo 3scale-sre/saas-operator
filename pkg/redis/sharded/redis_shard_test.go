@@ -7,9 +7,9 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/3scale-sre/basereconciler/util"
 	"github.com/3scale-sre/saas-operator/pkg/redis/client"
 	redis "github.com/3scale-sre/saas-operator/pkg/redis/server"
-	"github.com/3scale-sre/basereconciler/util"
 	"github.com/go-test/deep"
 )
 

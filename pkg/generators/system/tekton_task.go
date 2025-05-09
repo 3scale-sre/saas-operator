@@ -3,8 +3,8 @@ package system
 import (
 	"fmt"
 
-	"github.com/3scale-sre/saas-operator/pkg/resource_builders/twemproxy"
 	"github.com/3scale-sre/basereconciler/util"
+	"github.com/3scale-sre/saas-operator/pkg/resource_builders/twemproxy"
 	pipelinev1beta1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

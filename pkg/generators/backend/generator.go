@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/3scale-sre/basereconciler/mutators"
+	"github.com/3scale-sre/basereconciler/resource"
 	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	"github.com/3scale-sre/saas-operator/pkg/generators"
 	"github.com/3scale-sre/saas-operator/pkg/generators/backend/config"
@@ -13,8 +15,6 @@ import (
 	"github.com/3scale-sre/saas-operator/pkg/resource_builders/service"
 	operatorutil "github.com/3scale-sre/saas-operator/pkg/util"
 	deployment_workload "github.com/3scale-sre/saas-operator/pkg/workloads/deployment"
-	"github.com/3scale-sre/basereconciler/mutators"
-	"github.com/3scale-sre/basereconciler/resource"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	appsv1 "k8s.io/api/apps/v1"
 )

@@ -19,10 +19,10 @@ package controllers
 import (
 	"context"
 
-	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
-	"github.com/3scale-sre/saas-operator/pkg/generators/mappingservice"
 	"github.com/3scale-sre/basereconciler/reconciler"
 	"github.com/3scale-sre/basereconciler/util"
+	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
+	"github.com/3scale-sre/saas-operator/pkg/generators/mappingservice"
 	corev1 "k8s.io/api/core/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"

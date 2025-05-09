@@ -7,14 +7,14 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/3scale-sre/basereconciler/mutators"
+	"github.com/3scale-sre/basereconciler/resource"
 	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	"github.com/3scale-sre/saas-operator/pkg/generators"
 	"github.com/3scale-sre/saas-operator/pkg/resource_builders/grafanadashboard"
 	"github.com/3scale-sre/saas-operator/pkg/resource_builders/pdb"
 	"github.com/3scale-sre/saas-operator/pkg/resource_builders/pod"
 	operatorutils "github.com/3scale-sre/saas-operator/pkg/util"
-	"github.com/3scale-sre/basereconciler/mutators"
-	"github.com/3scale-sre/basereconciler/resource"
 	corev1 "k8s.io/api/core/v1"
 )
 

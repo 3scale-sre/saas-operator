@@ -21,6 +21,8 @@ import (
 	"errors"
 	"time"
 
+	"github.com/3scale-sre/basereconciler/reconciler"
+	"github.com/3scale-sre/basereconciler/util"
 	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	"github.com/3scale-sre/saas-operator/pkg/generators/sentinel"
 	"github.com/3scale-sre/saas-operator/pkg/reconcilers/threads"
@@ -28,8 +30,6 @@ import (
 	"github.com/3scale-sre/saas-operator/pkg/redis/metrics"
 	redis "github.com/3scale-sre/saas-operator/pkg/redis/server"
 	"github.com/3scale-sre/saas-operator/pkg/redis/sharded"
-	"github.com/3scale-sre/basereconciler/reconciler"
-	"github.com/3scale-sre/basereconciler/util"
 	"github.com/go-logr/logr"
 	"golang.org/x/time/rate"
 	"k8s.io/apimachinery/pkg/api/equality"

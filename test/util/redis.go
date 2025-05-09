@@ -9,9 +9,9 @@ import (
 	"os"
 	"strings"
 
+	"github.com/3scale-sre/basereconciler/util"
 	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	redis "github.com/3scale-sre/saas-operator/pkg/redis/server"
-	"github.com/3scale-sre/basereconciler/util"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 )

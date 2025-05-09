@@ -21,10 +21,10 @@ import (
 	"testing"
 	"time"
 
-	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
-	testutil "github.com/3scale-sre/saas-operator/test/util"
 	"github.com/3scale-sre/basereconciler/reconciler"
 	"github.com/3scale-sre/basereconciler/util"
+	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
+	testutil "github.com/3scale-sre/saas-operator/test/util"
 	"github.com/google/go-cmp/cmp"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )

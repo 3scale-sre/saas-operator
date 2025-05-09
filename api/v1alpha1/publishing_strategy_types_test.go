@@ -5,8 +5,8 @@ import (
 	"reflect"
 	"testing"
 
-	envoyconfig "github.com/3scale-sre/saas-operator/pkg/resource_builders/envoyconfig/descriptor"
 	"github.com/3scale-sre/basereconciler/util"
+	envoyconfig "github.com/3scale-sre/saas-operator/pkg/resource_builders/envoyconfig/descriptor"
 	"github.com/google/go-cmp/cmp"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
