@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	"github.com/3scale-sre/basereconciler/util"
+	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	externalsecretsv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
 	"github.com/google/go-cmp/cmp"
 	corev1 "k8s.io/api/core/v1"

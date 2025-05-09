@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	"github.com/3scale-sre/basereconciler/util"
+	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"

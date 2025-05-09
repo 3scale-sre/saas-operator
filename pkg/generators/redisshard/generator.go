@@ -3,9 +3,9 @@ package redisshard
 import (
 	"fmt"
 
+	"github.com/3scale-sre/basereconciler/resource"
 	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	"github.com/3scale-sre/saas-operator/pkg/generators"
-	"github.com/3scale-sre/basereconciler/resource"
 )
 
 const (
