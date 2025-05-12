@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/3scale-sre/basereconciler/util"
 	"github.com/3scale-sre/saas-operator/pkg/resource_builders/pod"
 	"github.com/3scale-sre/saas-operator/pkg/resource_builders/twemproxy"
-	"github.com/3scale-sre/basereconciler/util"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"

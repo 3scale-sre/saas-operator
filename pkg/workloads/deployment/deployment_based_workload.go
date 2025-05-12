@@ -3,6 +3,10 @@ package deployment
 import (
 	"fmt"
 
+	"github.com/3scale-sre/basereconciler/mutators"
+	"github.com/3scale-sre/basereconciler/resource"
+	"github.com/3scale-sre/basereconciler/util"
+	marin3rv1alpha1 "github.com/3scale-sre/marin3r/api/marin3r/v1alpha1"
 	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	"github.com/3scale-sre/saas-operator/pkg/resource_builders/envoyconfig"
 	"github.com/3scale-sre/saas-operator/pkg/resource_builders/envoyconfig/factory"
@@ -10,10 +14,6 @@ import (
 	"github.com/3scale-sre/saas-operator/pkg/resource_builders/pdb"
 	"github.com/3scale-sre/saas-operator/pkg/resource_builders/podmonitor"
 	"github.com/3scale-sre/saas-operator/pkg/resource_builders/service"
-	"github.com/3scale-sre/basereconciler/mutators"
-	"github.com/3scale-sre/basereconciler/resource"
-	"github.com/3scale-sre/basereconciler/util"
-	marin3rv1alpha1 "github.com/3scale-sre/marin3r/api/marin3r/v1alpha1"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/samber/lo"
 	appsv1 "k8s.io/api/apps/v1"
