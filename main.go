@@ -34,7 +34,7 @@ import (
 	externalsecretsv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
 	grafanav1beta1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
-	pipelinev1beta1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
+	pipelinev1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1"
 	apimachineryruntime "k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -72,7 +72,7 @@ func init() {
 	utilruntime.Must(grafanav1beta1.AddToScheme(scheme))
 	utilruntime.Must(externalsecretsv1beta1.AddToScheme(scheme))
 	utilruntime.Must(marin3rv1alpha1.AddToScheme(scheme))
-	utilruntime.Must(pipelinev1beta1.AddToScheme(scheme))
+	utilruntime.Must(pipelinev1.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
 }
 

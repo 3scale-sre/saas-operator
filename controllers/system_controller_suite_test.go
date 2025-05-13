@@ -13,7 +13,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
-	pipelinev1beta1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
+	pipelinev1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	corev1 "k8s.io/api/core/v1"
@@ -339,8 +339,8 @@ var _ = Describe("System controller", func() {
 				"system-searchd-reindex",
 				"system-backend-sync",
 			} {
-				task := &pipelinev1beta1.Task{}
-				pipeline := &pipelinev1beta1.Pipeline{}
+				task := &pipelinev1.Task{}
+				pipeline := &pipelinev1.Pipeline{}
 
 				By("deploying the system task",
 					(&testutil.ExpectedResource{Name: tr, Namespace: namespace}).
@@ -1000,9 +1000,9 @@ var _ = Describe("System controller", func() {
 						"system-backend-sync",
 					} {
 						rvs[fmt.Sprintf("task/%s", tr)] = testutil.GetResourceVersion(
-							k8sClient, &pipelinev1beta1.Task{}, tr, namespace, timeout, poll)
+							k8sClient, &pipelinev1.Task{}, tr, namespace, timeout, poll)
 						rvs[fmt.Sprintf("pipeline/%s", tr)] = testutil.GetResourceVersion(
-							k8sClient, &pipelinev1beta1.Pipeline{}, tr, namespace, timeout, poll)
+							k8sClient, &pipelinev1.Pipeline{}, tr, namespace, timeout, poll)
 					}
 
 					patch := client.MergeFrom(system.DeepCopy())
@@ -1051,8 +1051,8 @@ var _ = Describe("System controller", func() {
 
 			It("updates the required tekton resources", func() {
 
-				task := &pipelinev1beta1.Task{}
-				pipeline := &pipelinev1beta1.Pipeline{}
+				task := &pipelinev1.Task{}
+				pipeline := &pipelinev1.Pipeline{}
 
 				By("keeping the system-backend-sync task",
 					(&testutil.ExpectedResource{
