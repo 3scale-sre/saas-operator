@@ -49,12 +49,6 @@ endif
 # Image URL to use all building/pushing image targets
 IMG ?= $(IMAGE_TAG_BASE):v$(VERSION)
 
-# ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
-ENVTEST_K8S_VERSION = 1.27
-
-# KIND_K8S_VERSION refers to the version of the kind k8s cluster for e2e testing.
-KIND_K8S_VERSION = v1.27.0
-
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
 GOBIN=$(shell go env GOPATH)/bin
@@ -62,15 +56,17 @@ else
 GOBIN=$(shell go env GOBIN)
 endif
 
+# CONTAINER_TOOL defines the container tool to be used for building images.
+# Be aware that the target commands are only tested with Docker which is
+# scaffolded by default. However, you might want to replace it to use other
+# tools. (i.e. podman)
+CONTAINER_TOOL ?= podman
+
 # Setting SHELL to bash allows bash commands to be executed by recipes.
 # This is a requirement for 'setup-envtest.sh' in the test target.
 # Options are set to exit when a recipe line exits non-zero or a piped command fails.
 SHELL = /usr/bin/env bash -o pipefail
 .SHELLFLAGS = -ec
-
-
-OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
-ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 
 all: build
 
@@ -87,26 +83,54 @@ all: build
 # More info on the awk command:
 # http://linuxcommand.org/lc3_adv_awk.php
 
+.PHONY: help
 help: ## Display this help.
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
 ##@ Development
 
+.PHONY: manifests
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
-	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./api/..." output:crd:artifacts:config=config/crd/bases
-	$(CONTROLLER_GEN)  rbac:roleName=manager-role crd webhook paths="./controllers/..." output:crd:artifacts:config=config/crd/bases
+	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 
+.PHONY: generate
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
+.PHONY: fmt
 fmt: ## Run go fmt against code.
 	go fmt ./...
 
+.PHONY: vet
 vet: ## Run go vet against code.
 	go vet ./...
 
+.PHONY: lint
+lint: golangci-lint ## Run golangci-lint linter
+	$(GOLANGCI_LINT) run
+
+.PHONY: lint-fix
+lint-fix: golangci-lint ## Run golangci-lint linter and perform fixes
+	$(GOLANGCI_LINT) run --fix
+
+.PHONY: lint-config
+lint-config: golangci-lint ## Verify golangci-lint linter configuration
+	$(GOLANGCI_LINT) config verify
+
+.PHONY: vendor
+vendor:
+	go mod tidy && go mod vendor
+
+assets: go-bindata ## assets: Generate embedded assets
+	@echo Generate Go embedded assets files by processing source
+	PATH=$$PATH:$$PWD/bin go generate github.com/3scale-sre/saas-operator/pkg/assets
+
+
+##@ Test
+
 TEST_PKG = ./api/... ./controllers/... ./pkg/...
-KUBEBUILDER_ASSETS = "$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)"
+COVERPKG = $(shell go list ./... | grep -v test | xargs printf '%s,')
+COVERPROFILE = coverprofile.out
 
 test/assets/external-apis/crds.yaml: kustomize
 	mkdir -p $(@D)
@@ -116,85 +140,297 @@ test/assets/external-apis/crds.yaml: kustomize
 	echo "---" >> $@ && $(KUSTOMIZE) build config/dependencies/prometheus-crds >> $@
 	echo "---" >> $@ && $(KUSTOMIZE) build config/dependencies/tekton-crds >> $@
 
-test: manifests generate fmt vet envtest assets ginkgo test/assets/external-apis/crds.yaml ## Run tests.
-	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) $(GINKGO) -p -r -coverprofile cover.out $(TEST_PKG)
+.PHONY: test-assets ## Generate test assets
+test-assets: test/assets/external-apis/crds.yaml
 
-test-debug: manifests generate fmt vet envtest assets ginkgo test/assets/external-apis/crds.yaml ## Run tests.
-	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) $(GINKGO) -v -r -coverprofile cover.out $(TEST_PKG)
+GINKGO_FLAGS =
 
-TEST_E2E_DEPLOY = marin3r-crds prometheus-crds tekton-crds grafana-crds external-secrets-crds minio
-test-e2e: export KUBECONFIG = $(PWD)/kubeconfig
-test-e2e: manifests ginkgo kind-create $(foreach elem,$(TEST_E2E_DEPLOY),install-$(elem)) kind-deploy-controller kind-load-redis-with-ssh ## Runs e2e tests
-	$(GINKGO) -p -r ./test/e2e
+TEST_DEBUG ?= false
+ifeq ($(TEST_DEBUG), true)
+GINKGO_FLAGS += -v
+else
+GINKGO_FLAGS += -p
+endif
+
+TEST_GH_ACTIONS_OUTPUT ?= false
+ifeq ($(TEST_GH_ACTIONS_OUTPUT), true)
+GINKGO_FLAGS += --github-output
+endif
+
+.PHONY: test
+test: manifests generate fmt vet envtest ginkgo assets test-assets ## Run tests.
+	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" \
+		$(GINKGO) $(GINKGO_FLAGS) -procs=$(shell nproc) -coverprofile=$(COVERPROFILE) -coverpkg=$(COVERPKG) $(TEST_PKG) | \
+		grep -v "warning: no packages being tested depend on matches for pattern"
+	$(MAKE) fix-cover && go tool cover -func=$(COVERPROFILE) | awk '/total/{print $$3}'
+
+.PHONY: fix-cover
+fix-cover:
+	tmpfile=$$(mktemp) && grep -v "_generated.deepcopy.go" $(COVERPROFILE) > $${tmpfile} && cat $${tmpfile} > $(COVERPROFILE) && rm -f $${tmpfile}
+
+.PHONY: e2e-test
+e2e-test: export KUBECONFIG = $(PWD)/kubeconfig
+e2e-test: kind-create ## Runs e2e test suite
+	$(MAKE) e2e-envtest-suite
 	$(MAKE) kind-delete
 
-assets: go-bindata ## assets: Generate embedded assets
-	@echo Generate Go embedded assets files by processing source
-	PATH=$$PATH:$$PWD/bin go generate github.com/3scale-sre/saas-operator/pkg/assets
+.PHONY: e2e-envtest-suite
+e2e-envtest-suite: export KUBECONFIG = $(PWD)/kubeconfig
+e2e-envtest-suite: override CONTROLLER_DEPS = marin3r-crds prometheus-crds tekton-crds grafana-crds external-secrets-crds minio
+e2e-envtest-suite: ginkgo container-build kind-load-image kind-load-redis-with-ssh kind-deploy-controller
+	$(GINKGO) $(GINKGO_FLAGS) ./test/e2e
 
 ##@ Build
 
+.PHONY: build
 build: generate fmt vet assets ## Build manager binary.
 	go build -o bin/manager main.go
 
+.PHONY: run
 run: manifests generate fmt vet assets ## Run a controller from your host.
 	LOG_MODE="development" go run ./main.go
 
-docker-build: ## Build docker image with the manager.
-	docker build -t ${IMG} .
+# MULTI-PLATFORM BUILD/PUSH FUNCTIONS
+# NOTE IF USING DOCKER (https://docs.docker.com/build/building/multi-platform/#prerequisites):
+#   The "classic" image store of the Docker Engine does not support multi-platform images. 
+#   Switching to the containerd image store ensures that your Docker Engine can push, pull,
+#   and build multi-platform images.
 
-docker-push: ## Push docker image with the manager.
-	docker push ${IMG}
+# container-build-multiplatform will build a multiarch image using the defined container tool
+# $1 - image tag
+# $2 - container tool: docker/podman
+# $3 - dockerfile path
+# $4 - build context path
+# $5 - platforms
+define container-build-multiplatform
+@{\
+set -e; \
+echo "Building $1 for $5 using $2"; \
+if [ "$2" = "docker" ]; then \
+	docker buildx build --platform $5 -f $3 --tag $1 $4; \
+elif [ "$2" = "podman" ]; then \
+	podman build --platform $5 -f $3 --manifest $1 $4; \
+else \
+	echo "unknown container tool $2"; exit -1; \
+fi \
+}
+endef
 
-# PLATFORMS defines the target platforms for  the manager image be build to provide support to multiple
-# architectures. (i.e. make docker-buildx IMG=myregistry/mypoperator:0.0.1). To use this option you need to:
-# - able to use docker buildx . More info: https://docs.docker.com/build/buildx/
-# - have enable BuildKit, More info: https://docs.docker.com/develop/develop-images/build_enhancements/
-# - be able to push the image for your registry (i.e. if you do not inform a valid value via IMG=<myregistry/image:<tag>> than the export will fail)
-# To properly provided solutions that supports more than one platform you should use this option.
-PLATFORMS ?= linux/arm64,linux/amd64,linux/s390x,linux/ppc64le
-.PHONY: docker-buildx
-docker-buildx: test ## Build and push docker image for the manager for cross-platform support
-	# copy existing Dockerfile and insert --platform=${BUILDPLATFORM} into Dockerfile.cross, and preserve the original Dockerfile
-	sed -e '1 s/\(^FROM\)/FROM --platform=\$$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$$\{BUILDPLATFORM\}/' Dockerfile > Dockerfile.cross
-	- docker buildx create --name project-v3-builder
-	docker buildx use project-v3-builder
-	- docker buildx build --push --platform=$(PLATFORMS) --tag ${IMG} -f Dockerfile.cross
-	- docker buildx rm project-v3-builder
-	rm Dockerfile.cross
+# container-push-multiplatform will push a multiarch image using the defined container tool
+# $1 - image tag
+# $2 - container tool: docker/podman
+define container-push-multiplatform
+@{\
+set -e; \
+echo "Pushing $1 using $2"; \
+if [ "$2" = "docker" ]; then \
+	docker push $1; \
+elif [ "$2" = "podman" ]; then \
+	podman manifest push --all $1; \
+else \
+	echo "unknown container tool $2"; exit -1; \
+fi \
+}
+endef
+
+# LOCAL PLATFORM BUILD
+
+.PHONY: container-build
+container-build: manifests generate fmt vet vendor ## local platfrom build
+	$(call container-build-multiplatform,$(IMG),$(CONTAINER_TOOL),Dockerfile,.,$(shell go env GOARCH))
+	$(CONTAINER_TOOL) tag $(IMG) $(IMAGE_TAG_BASE):test
+
+.PHONY: container-push
+container-push:
+	$(call container-push-multiplatform,$(IMG),$(CONTAINER_TOOL))
+
+# MULTIPLATFORM BUILD
+
+# PLATFORMS defines the target platforms for mult-platform build.
+PLATFORMS ?= linux/arm64,linux/amd64
+
+.PHONY: container-buildx
+container-buildx: manifests generate fmt vet vendor ## cross-platfrom build
+	$(call container-build-multiplatform,$(IMG),$(CONTAINER_TOOL),Dockerfile,.,$(PLATFORMS))
+	
+.PHONY: container-pushx
+container-pushx:
+	$(call container-push-multiplatform,$(IMG),$(CONTAINER_TOOL))
 
 ##@ Deployment
 
+ifndef ignore-not-found
+  ignore-not-found = false
+endif
+
+.PHONY: install
 install: manifests kustomize ## Install CRDs into the K8s cluster specified in ~/.kube/config.
-	$(KUSTOMIZE) build config/crd | kubectl apply -f -
+	$(KUSTOMIZE) build config/crd | $(KUBECTL) apply -f -
 
-uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified in ~/.kube/config.
-	$(KUSTOMIZE) build config/crd | kubectl delete -f -
+.PHONY: uninstall
+uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
+	$(KUSTOMIZE) build config/crd | $(KUBECTL) delete --ignore-not-found=$(ignore-not-found) -f -
 
+.PHONY: deploy
 deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
-	$(KUSTOMIZE) build config/default | kubectl apply -f -
+	$(KUSTOMIZE) build config/default | $(KUBECTL) apply -f -
 
-undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config.
-	$(KUSTOMIZE) build config/default | kubectl delete -f -
+.PHONY: undeploy
+undeploy: kustomize ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
+	$(KUSTOMIZE) build config/default | $(KUBECTL) delete --ignore-not-found=$(ignore-not-found) -f -
+
+
+##@ Dependencies
+
+## Location to install dependencies to
+LOCALBIN ?= $(shell pwd)/bin
+$(LOCALBIN):
+	mkdir -p $(LOCALBIN)
+
+## Tool Binaries
+KUBECTL ?= kubectl
+KUSTOMIZE ?= $(LOCALBIN)/kustomize
+CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
+ENVTEST ?= $(LOCALBIN)/setup-envtest
+GINKGO ?= $(LOCALBIN)/ginkgo
+CRD_REFDOCS ?= $(LOCALBIN)/crd-ref-docs
+KIND ?= $(LOCALBIN)/kind
+GOBINDATA ?= $(LOCALBIN)/go-bindata
+GOLANGCI_LINT = $(LOCALBIN)/golangci-lint
+YQ ?= $(LOCALBIN)/yq
+HELM ?= $(LOCALBIN)/helm
+
+## Tool Versions
+KUSTOMIZE_VERSION ?= v5.6.0
+CONTROLLER_TOOLS_VERSION ?= v0.17.1
+#ENVTEST_VERSION is the version of controller-runtime release branch to fetch the envtest setup script (i.e. release-0.20)
+ENVTEST_VERSION ?= $(shell go list -m -f "{{ .Version }}" sigs.k8s.io/controller-runtime | awk -F'[v.]' '{printf "release-%d.%d", $$2, $$3}')
+#ENVTEST_K8S_VERSION is the version of Kubernetes to use for setting up ENVTEST binaries (i.e. 1.31)
+ENVTEST_K8S_VERSION ?= $(shell go list -m -f "{{ .Version }}" k8s.io/api | awk -F'[v.]' '{printf "1.%d", $$3}')
+GOLANGCI_LINT_VERSION ?= v1.63.4
+GINKGO_VERSION ?= $(shell go list -m -f "{{ .Version }}" github.com/onsi/ginkgo/v2)
+CRD_REFDOCS_VERSION ?= v0.1.0
+KIND_VERSION ?= v0.27.0
+GOBINDATA_VERSION ?= latest
+YQ_VERSION ?= v4.45.2
+HELM_VERSION ?= v3.17.3
+
+.PHONY: kustomize
+kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary.
+$(KUSTOMIZE): $(LOCALBIN)
+	$(call go-install-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v5,$(KUSTOMIZE_VERSION))
+
+.PHONY: controller-gen
+controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessary.
+$(CONTROLLER_GEN): $(LOCALBIN)
+	$(call go-install-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen,$(CONTROLLER_TOOLS_VERSION))
+.PHONY: setup-envtest
+setup-envtest: envtest ## Download the binaries required for ENVTEST in the local bin directory.
+	@echo "Setting up envtest binaries for Kubernetes version $(ENVTEST_K8S_VERSION)..."
+	@$(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path || { \
+		echo "Error: Failed to set up envtest binaries for version $(ENVTEST_K8S_VERSION)."; \
+		exit 1; \
+	}
+
+.PHONY: envtest
+envtest: $(ENVTEST) ## Download setup-envtest locally if necessary.
+$(ENVTEST): $(LOCALBIN)
+	$(call go-install-tool,$(ENVTEST),sigs.k8s.io/controller-runtime/tools/setup-envtest,$(ENVTEST_VERSION))
+
+.PHONY: ginkgo
+ginkgo: $(GINKGO) ## Download ginkgo locally if necessary
+$(GINKGO):
+	$(call go-install-tool,$(GINKGO),github.com/onsi/ginkgo/v2/ginkgo,$(GINKGO_VERSION))
+
+.PHONY: crd-ref-docs
+crd-ref-docs: ## Download crd-ref-docs locally if necessary
+	$(call go-install-tool,$(CRD_REFDOCS),github.com/elastic/crd-ref-docs,$(CRD_REFDOCS_VERSION))
+
+.PHONY: golangci-lint
+golangci-lint: $(GOLANGCI_LINT) ## Download golangci-lint locally if necessary.
+$(GOLANGCI_LINT): $(LOCALBIN)
+	$(call go-install-tool,$(GOLANGCI_LINT),github.com/golangci/golangci-lint/cmd/golangci-lint,$(GOLANGCI_LINT_VERSION))
+
+.PHONY: kind
+kind: $(KIND) ## Download kind locally if necessary
+$(KIND):
+	$(call go-install-tool,$(KIND),sigs.k8s.io/kind,$(KIND_VERSION))
+
+.PHONY: go-bindata
+go-bindata: $(GOBINDATA) ## Download go-bindata locally if necessary.
+$(GOBINDATA):
+	$(call go-install-tool,$(GOBINDATA),github.com/go-bindata/go-bindata/...,$(GOBINDATA_VERSION))
+
+.PHONY: yq
+yq: $(YQ)
+$(YQ):
+	$(call go-install-tool,$(YQ),github.com/mikefarah/yq/v4,$(YQ_VERSION))
+
+HELM_INSTALL_SCRIPT ?= "https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3"
+.PHONY: helm
+helm: $(HELM)
+$(HELM):
+	curl -s $(HELM_INSTALL_SCRIPT) | HELM_INSTALL_DIR=$(LOCALBIN) bash -s -- --no-sudo --version $(HELM_VERSION)
+
+# go-install-tool will 'go install' any package with custom target and name of binary, if it doesn't exist
+# $1 - target path with name of binary
+# $2 - package url which can be installed
+# $3 - specific version of package
+define go-install-tool
+@[ -f "$(1)-$(3)" ] || { \
+set -e; \
+package=$(2)@$(3) ;\
+echo "Downloading $${package}" ;\
+rm -f $(1) || true ;\
+GOBIN=$(LOCALBIN) go install $${package} ;\
+mv $(1) $(1)-$(3) ;\
+} ;\
+ln -sf $(1)-$(3) $(1)
+endef
+
+
+##@ Operator SDK related targets
+
+.PHONY: operator-sdk
+OPERATOR_SDK = bin/operator-sdk-$(OPERATOR_SDK_RELEASE)
+OPERATOR_SDK_RELEASE = v1.39.0
+operator-sdk: ## Download operator-sdk locally if necessary.
+ifeq (,$(wildcard $(OPERATOR_SDK)))
+ifeq (,$(shell which $(OPERATOR_SDK) 2>/dev/null))
+	@{ \
+	set -e ;\
+	mkdir -p $(dir $(OPERATOR_SDK)) ;\
+	OS=$(shell go env GOOS) && ARCH=$(shell go env GOARCH) && \
+	curl -sSLo $(OPERATOR_SDK) https://github.com/operator-framework/operator-sdk/releases/download/${OPERATOR_SDK_RELEASE}/operator-sdk_$${OS}_$${ARCH};\
+	chmod +x $(OPERATOR_SDK) ;\
+	}
+else
+OPERATOR_SDK = $(shell which $(OPERATOR_SDK))
+endif
+endif
 
 .PHONY: bundle
 bundle: manifests kustomize operator-sdk ## Generate bundle manifests and metadata, then validate generated files.
 	$(OPERATOR_SDK) generate kustomize manifests -q
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
 	$(KUSTOMIZE) build config/manifests | $(OPERATOR_SDK) generate bundle $(BUNDLE_GEN_FLAGS)
-	$(OPERATOR_SDK) bundle validate ./bundle
 
 .PHONY: bundle-build
 bundle-build: ## Build the bundle image.
-	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
+	$(CONTAINER_TOOL) build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
 
 .PHONY: bundle-push
 bundle-push: ## Push the bundle image.
-	$(MAKE) docker-push IMG=$(BUNDLE_IMG)
+	$(CONTAINER_TOOL) push $(BUNDLE_IMG)
+
+.PHONY: bundle-validate ## Validate the bundle. Bundle needs to be pushed to the registry beforehand.
+bundle-validate: operator-sdk
+	$(OPERATOR_SDK) bundle validate ./bundle --select-optional name=multiarch
 
 .PHONY: opm
-OPM = ./bin/opm
+OPM = $(LOCALBIN)/opm-$(OPM_RELEASE)
+OPM_RELEASE = v1.23.0
 opm: ## Download opm locally if necessary.
 ifeq (,$(wildcard $(OPM)))
 ifeq (,$(shell which opm 2>/dev/null))
@@ -202,11 +438,11 @@ ifeq (,$(shell which opm 2>/dev/null))
 	set -e ;\
 	mkdir -p $(dir $(OPM)) ;\
 	OS=$(shell go env GOOS) && ARCH=$(shell go env GOARCH) && \
-	curl -sSLo $(OPM) https://github.com/operator-framework/operator-registry/releases/download/v1.23.0/$${OS}-$${ARCH}-opm ;\
+	curl -sSLo $(OPM) https://github.com/operator-framework/operator-registry/releases/download/$(OPM_RELEASE)/$${OS}-$${ARCH}-opm ;\
 	chmod +x $(OPM) ;\
 	}
 else
-OPM = $(shell which opm)
+OPM = $(shell which $(OPM))
 endif
 endif
 
@@ -225,42 +461,43 @@ ifneq ($(origin CATALOG_BASE_IMG), undefined)
 FROM_INDEX_OPT := --from-index $(CATALOG_BASE_IMG)
 endif
 
-# Build a catalog image by adding bundle images to an empty catalog using the operator package manager tool, 'opm'.
-# This recipe invokes 'opm' in 'semver' bundle add mode. For more information on add modes, see:
-# https://github.com/operator-framework/community-operators/blob/7f1438c/docs/packaging-operator.md#updating-your-existing-operator
+.PHONY: catalog-validate
+catalog-validate: ## Validate the file based catalog.
+	$(OPM) validate catalog/saas-operator
+
 .PHONY: catalog-build
-catalog-build: opm ## Build a catalog image.
-	$(OPM) index add --container-tool docker --mode semver --tag $(CATALOG_IMG) --bundles $(BUNDLE_IMGS) $(FROM_INDEX_OPT)
+catalog-build: opm catalog-validate ## Build the file based catalog image.
+	$(call container-build-multiplatform,$(CATALOG_IMG),$(CONTAINER_TOOL),catalog/saas-operator.Dockerfile,catalog/,$(PLATFORMS))
+
+.PHONY: catalog-run
+catalog-run: catalog-build ## Run the catalog image locally.
+	$(CONTAINER_TOOL) run --rm -p 50051:50051 $(CATALOG_IMG)
 
 # Push the catalog image.
 .PHONY: catalog-push
 catalog-push: ## Push a catalog image.
-	$(MAKE) docker-push IMG=$(CATALOG_IMG)
+	$(call container-push-multiplatform,$(CATALOG_IMG),$(CONTAINER_TOOL))
 
-##@ Release
+.PHONY: catalog-add-bundle-to-alpha
+catalog-add-bundle-to-alpha: opm ## Adds a bundle to a file based catalog
+	$(OPM) render $(BUNDLE_IMGS) -oyaml > catalog/saas-operator/objects/saas-operator.v$(VERSION).clusterserviceversion.yaml
+	yq -i '.entries += {"name": "saas-operator.v$(VERSION)","replaces":"$(shell yq '.entries[-1].name' catalog/saas-operator/alpha-channel.yaml)"}' catalog/saas-operator/alpha-channel.yaml
 
-prepare-alpha-release: bump-release generate fmt vet manifests assets bundle ## Generates bundle manifests for alpha channel release
-
-prepare-stable-release: bump-release generate fmt vet manifests assets bundle refdocs ## Generates bundle manifests for stable channel release
-	$(MAKE) bundle CHANNELS=alpha,stable DEFAULT_CHANNEL=alpha
-
-bump-release: ## Write release name to "pkg/version" package
-	sed -i 's/version string = "v\(.*\)"/version string = "v$(VERSION)"/g' pkg/version/version.go
-
-bundle-publish: bundle-build bundle-push catalog-build catalog-push catalog-retag-latest ## Generates and pushes all required images for a release
-
-get-new-release:
-	@hack/new-release.sh v$(VERSION)
-
-catalog-retag-latest:
-	docker tag $(CATALOG_IMG) $(IMAGE_TAG_BASE)-catalog:latest
-	$(MAKE) docker-push IMG=$(IMAGE_TAG_BASE)-catalog:latest
+.PHONY: catalog-add-bundle-to-stable
+catalog-add-bundle-to-stable: opm ## Adds a bundle to a file based catalog
+	$(OPM) render $(BUNDLE_IMGS) -oyaml > catalog/saas-operator/objects/saas-operator.v$(VERSION).clusterserviceversion.yaml
+	yq -i '.entries += {"name": "saas-operator.v$(VERSION)","replaces":"$(shell yq '.entries[-1].name' catalog/saas-operator/alpha-channel.yaml)"}' catalog/saas-operator/alpha-channel.yaml
+	yq -i '.entries += {"name": "saas-operator.v$(VERSION)","replaces":"$(shell yq '.entries[-1].name' catalog/saas-operator/stable-channel.yaml)"}' catalog/saas-operator/stable-channel.yaml
 
 ##@ Kind Deployment
 
+export KIND_K8S_VERSION=v1.32.0
+export KIND_EXPERIMENTAL_PROVIDER=$(CONTAINER_TOOL)
+
+.PHONY: kind-create
 kind-create: export KUBECONFIG = $(PWD)/kubeconfig
 kind-create: kind ## Runs a k8s kind cluster
-	docker inspect kind-saas-operator > /dev/null || docker network create -d bridge --subnet 172.27.27.0/24 kind-saas-operator
+	${CONTAINER_TOOL} inspect kind-saas-operator > /dev/null || ${CONTAINER_TOOL} network create -d bridge --subnet 172.27.27.0/24 kind-saas-operator
 	KIND_EXPERIMENTAL_DOCKER_NETWORK=kind-saas-operator $(KIND) create cluster --wait 5m --image kindest/node:$(KIND_K8S_VERSION)
 
 install-%: export KUBECONFIG = $(PWD)/kubeconfig
@@ -268,165 +505,93 @@ install-%: kustomize yq helm
 	echo
 	KUSTOMIZE_BIN=$(KUSTOMIZE) YQ_BIN=$(YQ) BASE_PATH=config/dependencies hack/apply-kustomize.sh $*
 
+.PHONY: kind-delete
 kind-delete: ## Deletes the kind cluster and the registry
 kind-delete: kind
 	$(KIND) delete cluster
 
-CONTROLLER_DEPS = prometheus-crds grafana-crds marin3r-crds external-secrets-crds tekton-crds
-kind-deploy-controller: export KUBECONFIG = $(PWD)/kubeconfig
-kind-deploy-controller: manifests kustomize docker-build $(foreach elem,$(CONTROLLER_DEPS),install-$(elem)) ## Deploy operator to the Kind K8s cluster
-	$(KIND) load docker-image $(IMG)
-	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
-	$(KUSTOMIZE) build config/test --load-restrictor LoadRestrictionsNone | kubectl apply -f -
+.PHONY: kind-load-image
+kind-load-image: export KUBECONFIG = $(PWD)/kubeconfig
+kind-load-image: kind ## Load the saas-operator image into the cluster
+	tmpfile=$$(mktemp) && \
+		$(CONTAINER_TOOL) save -o $${tmpfile}  $(IMG) && \
+		$(KIND) load image-archive $${tmpfile} --name kind && \
+		rm $${tmpfile}
 
+CONTROLLER_DEPS = prometheus-crds grafana-crds marin3r-crds external-secrets-crds tekton-crds
+
+.PHONY: kind-deploy-controller
+kind-deploy-controller: export KUBECONFIG = $(PWD)/kubeconfig
+kind-deploy-controller: ## Deploy operator to the Kind K8s cluster with its declared dependencies (declared using the CONTROLLER_DEPS variable)
+kind-deploy-controller: manifests kustomize container-build
+	$(MAKE) $(foreach elem,$(CONTROLLER_DEPS),install-$(elem))
+	$(MAKE) kind-load-image
+	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
+	$(KUSTOMIZE) build config/test --load-restrictor LoadRestrictionsNone | $(KUBECTL) apply -f -
+
+.PHONY: kind-refresh-controller
 kind-refresh-controller: export KUBECONFIG = ${PWD}/kubeconfig
-kind-refresh-controller: manifests kind docker-build ## Reloads the controller image into the K8s cluster and deletes the old Pod
-	$(KIND) load docker-image $(IMG)
-	kubectl delete pod -l control-plane=controller-manager
+kind-refresh-controller: manifests kind container-build ## Reloads the controller image into the K8s cluster and deletes the old Pod
+	$(MAKE) kind-load-image
+	$(KUBECTL) delete pod -l control-plane=controller-manager
+
+.PHONY: kind-undeploy
+kind-undeploy-controller: export KUBECONFIG = $(PWD)/kubeconfig
+kind-undeploy-controller: ## Undeploy controller from the Kind K8s cluster
+	$(KUSTOMIZE) build config/test | $(KUBECTL) delete -f -
 
 LOCAL_SETUP_INPUTS_PATH=config/local-setup/env-inputs
 $(LOCAL_SETUP_INPUTS_PATH)/seed-secret.yaml: $(LOCAL_SETUP_INPUTS_PATH)/seed.env
-	source $(@D)/seed.env && envsubst < $@.envsubst > $@
+	@env $(shell cat $(@D)/seed.env | xargs) envsubst < $@.envsubst > $@
 
+.PHONY: kind-deploy-saas-inputs
 kind-deploy-saas-inputs: export KUBECONFIG = $(PWD)/kubeconfig
-kind-deploy-saas-inputs: $(LOCAL_SETUP_INPUTS_PATH)/seed-secret.yaml $(LOCAL_SETUP_INPUTS_PATH)/pull-secrets.json
-	$(KUSTOMIZE) build $(LOCAL_SETUP_INPUTS_PATH) | kubectl apply -f -
+kind-deploy-saas-inputs: $(LOCAL_SETUP_INPUTS_PATH)/seed-secret.yaml $(LOCAL_SETUP_INPUTS_PATH)/pull-secrets.json ## Deploys the 3scale SaaS dev environment secrets
+	$(KUSTOMIZE) build $(LOCAL_SETUP_INPUTS_PATH) | $(KUBECTL) apply -f -
 
-kind-deploy-databases: export KUBECONFIG = $(PWD)/kubeconfig
-kind-deploy-databases: kind-deploy-controller kind-deploy-saas-inputs
-	$(KUSTOMIZE) build config/local-setup/databases | kubectl apply -f -
+.PHONY: kind-load-redis-with-ssh
+kind-load-redis-with-ssh: REDIS_WITH_SSH_IMG = localhost/redis-with-ssh:6.2.13-alpine
+kind-load-redis-with-ssh: ## Builds and loads into the cluster the redis with ssh image
+	$(CONTAINER_TOOL) build -t $(REDIS_WITH_SSH_IMG) test/assets/redis-with-ssh
+	$(MAKE) kind-load-image IMG=$(REDIS_WITH_SSH_IMG)
+
+.PHONY: kind-deploy-saas
+kind-deploy-saas: export KUBECONFIG = ${PWD}/kubeconfig
+kind-deploy-saas: override CONTROLLER_DEPS = metallb cert-manager marin3r prometheus-crds tekton grafana-crds external-secrets-crds minio
+kind-deploy-saas: kind-deploy-controller kind-deploy-saas-inputs kind-load-redis-with-ssh ## Deploys the 3scale SaaS dev environment databases & workloads
+	# Deploy databases first
+	$(KUSTOMIZE) build config/local-setup/databases | $(KUBECTL) apply -f -
 	sleep 10
-	kubectl wait --for condition=ready --timeout=300s pod --all
-
-kind-undeploy: export KUBECONFIG = $(PWD)/kubeconfig
-kind-undeploy: ## Undeploy controller from the Kind K8s cluster
-	$(KUSTOMIZE) build config/test | kubectl delete -f -
-
-REDIS_WITH_SSH_IMG = redis-with-ssh:6.2.13-alpine
-kind-load-redis-with-ssh:
-	docker build -t $(REDIS_WITH_SSH_IMG) test/assets/redis-with-ssh
-	$(KIND) load docker-image $(REDIS_WITH_SSH_IMG)
-
-kind-deploy-saas-workloads: export KUBECONFIG = ${PWD}/kubeconfig
-kind-deploy-saas-workloads: kind-deploy-controller $(LOCAL_SETUP_INPUTS_PATH)/seed-secret.yaml $(LOCAL_SETUP_INPUTS_PATH)/pull-secrets.json kind-load-redis-with-ssh ## Deploys the 3scale SaaS dev environment workloads
-	$(KUSTOMIZE) build config/local-setup | $(YQ) 'select(.kind!="Zync")' | kubectl apply -f -
+	$(KUBECTL) wait --for condition=ready --timeout=300s pod --all
+	# Deploy all but System
+	$(KUSTOMIZE) build config/local-setup | $(YQ) 'select(.kind!="System")' | $(KUBECTL) apply -f -
 	sleep 10
-	kubectl get pods --no-headers -o name | grep -v system | xargs kubectl wait --for condition=ready --timeout=300s
-	$(KUSTOMIZE) build config/local-setup | $(YQ) 'select(.kind=="Zync")' | kubectl apply -f -
-	kubectl get pods --no-headers -o name | grep -v system | xargs kubectl wait --for condition=ready --timeout=300s
+	$(KUBECTL) get pods --no-headers -o name | xargs $(KUBECTL) wait --for condition=ready --timeout=300s
+	# Deploy System
+	$(KUSTOMIZE) build config/local-setup | $(YQ) 'select(.kind=="System")' | $(KUBECTL) apply -f -
 
+.PHONY: kind-deploy-saas-run-db-setup
 kind-deploy-saas-run-db-setup: export KUBECONFIG = ${PWD}/kubeconfig
 kind-deploy-saas-run-db-setup:
-	 kubectl create -f config/local-setup/workloads/db-setup-pipelinerun.yaml
+	 $(KUBECTL) create -f config/local-setup/workloads/db-setup-pipelinerun.yaml
 
+.PHONY: kind-cleanup-saas
 kind-cleanup-saas: export KUBECONFIG = ${PWD}/kubeconfig
-kind-cleanup-saas:
-	-$(KUSTOMIZE) build config/local-setup | kubectl delete -f -
-	-kubectl get pod --no-headers -o name | grep -v saas-operator | xargs kubectl delete --grace-period=0 --force
-	-kubectl get pvc --no-headers -o name | xargs kubectl delete
+kind-cleanup-saas: ## Runs the 3scale SaaS dev environment database setup using the values configured in seed.env
+	-$(KUSTOMIZE) build config/local-setup | $(KUBECTL) delete -f -
+	-$(KUBECTL) get pod --no-headers -o name | grep -v saas-operator | xargs $(KUBECTL) delete --grace-period=0 --force
+	-$(KUBECTL) get pvc --no-headers -o name | xargs $(KUBECTL) delete
 
-LOCAL_SETUP_DEPS = metallb cert-manager marin3r prometheus-crds tekton grafana-crds external-secrets-crds minio
+.PHONY: kind-local-setup
 kind-local-setup: export KUBECONFIG = ${PWD}/kubeconfig
-kind-local-setup: $(foreach elem,$(LOCAL_SETUP_DEPS),install-$(elem)) kind-deploy-controller kind-deploy-saas-workloads kind-deploy-saas-run-db-setup
-
-##@ Build Dependencies
-
-## Location to install dependencies to
-LOCALBIN ?= $(shell pwd)/bin
-$(LOCALBIN):
-	mkdir -p $(LOCALBIN)
-
-export PATH := $(LOCALBIN):$(PATH)
-
-## Tool Binaries
-KUSTOMIZE ?= $(LOCALBIN)/kustomize
-CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
-ENVTEST ?= $(LOCALBIN)/setup-envtest
-GINKGO ?= $(LOCALBIN)/ginkgo
-CRD_REFDOCS ?= $(LOCALBIN)/crd-ref-docs
-KIND ?= $(LOCALBIN)/kind
-GOBINDATA ?= $(LOCALBIN)/go-bindata
-YQ ?= $(LOCALBIN)/yq
-HELM ?= $(LOCALBIN)/helm
-
-## Tool Versions
-KUSTOMIZE_VERSION ?= v5.1.1
-CONTROLLER_TOOLS_VERSION ?= v0.17.1
-GINKGO_VERSION ?= v2.23.4
-CRD_REFDOCS_VERSION ?= v0.0.8
-KIND_VERSION ?= v0.16.0
-ENVTEST_VERSION ?= release-0.17
-GOBINDATA_VERSION ?= latest
-TEKTON_VERSION ?= v0.49.0
-YQ_VERSION ?= v4.40.5
-HELM_VERSION ?= v3.14.0
-
-KUSTOMIZE_INSTALL_SCRIPT ?= "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"
-.PHONY: kustomize
-kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary.
-$(KUSTOMIZE): $(LOCALBIN)
-	test -s $(KUSTOMIZE) || curl -s $(KUSTOMIZE_INSTALL_SCRIPT) | bash -s -- $(subst v,,$(KUSTOMIZE_VERSION)) $(LOCALBIN)
-
-.PHONY: controller-gen
-controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessary.
-$(CONTROLLER_GEN): $(LOCALBIN)
-	test -s $(CONTROLLER_GEN) || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-tools/cmd/controller-gen@$(CONTROLLER_TOOLS_VERSION)
-
-.PHONY: envtest
-envtest: $(ENVTEST) ## Download envtest-setup locally if necessary.
-$(ENVTEST): $(LOCALBIN)
-	test -s $(ENVTEST) || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@$(ENVTEST_VERSION)
-
-.PHONY: ginkgo
-ginkgo: $(GINKGO) ## Download ginkgo locally if necessary
-$(GINKGO):
-	test -s $(GINKGO) || GOBIN=$(LOCALBIN) go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo@$(GINKGO_VERSION)
-
-.PHONY: crd-ref-docs
-crd-ref-docs: ## Download crd-ref-docs locally if necessary
-	test -s $(CRD_REFDOCS) || GOBIN=$(LOCALBIN) go install github.com/elastic/crd-ref-docs@$(CRD_REFDOCS_VERSION)
-
-.PHONY: kind
-kind: $(KIND) ## Download kind locally if necessary
-$(KIND):
-	test -s $(KIND) || GOBIN=$(LOCALBIN) go install sigs.k8s.io/kind@$(KIND_VERSION)
-
-go-bindata: $(GOBINDATA) ## Download go-bindata locally if necessary.
-$(GOBINDATA):
-	test -s $(GOBINDATA) || GOBIN=$(LOCALBIN) go install github.com/go-bindata/go-bindata/...@$(GOBINDATA_VERSION)
-
-.PHONY: yq
-yq: $(YQ)
-$(YQ):
-	test -s $(YQ) || GOBIN=$(LOCALBIN) go install github.com/mikefarah/yq/v4@$(YQ_VERSION)
-
-HELM_INSTALL_SCRIPT ?= "https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3"
-.PHONY: helm
-helm: $(HELM)
-$(HELM):
-	curl -s $(HELM_INSTALL_SCRIPT) | HELM_INSTALL_DIR=$(LOCALBIN) bash -s -- --no-sudo --version $(HELM_VERSION)
+kind-local-setup:
+	@[ $(CONTAINER_TOOL) == "podman" ] && echo "podman not supported with 'kind-local-setup', please use docker instead" && exit -1
+	$(MAKE) kind-deploy-saas
+	$(MAKE) kind-deploy-saas-run-db-setup
 
 ##@ Other
 
-.PHONY: operator-sdk
-OPERATOR_SDK_RELEASE = v1.27.0
-OPERATOR_SDK = bin/operator-sdk-$(OPERATOR_SDK_RELEASE)
-operator-sdk: ## Download operator-sdk locally if necessary.
-ifeq (,$(wildcard $(OPERATOR_SDK)))
-ifeq (,$(shell which $(OPERATOR_SDK) 2>/dev/null))
-	@{ \
-	set -e ;\
-	mkdir -p $(dir $(OPERATOR_SDK)) ;\
-	OS=$(shell go env GOOS) && ARCH=$(shell go env GOARCH) && \
-	curl -sSLo $(OPERATOR_SDK) https://github.com/operator-framework/operator-sdk/releases/download/$(OPERATOR_SDK_RELEASE)/operator-sdk_$${OS}_$${ARCH};\
-	chmod +x $(OPERATOR_SDK) ;\
-	}
-else
-OPERATOR_SDK = $(shell which $(OPERATOR_SDK))
-endif
-endif
-
-
+.PHONY: refdocs
 refdocs: ## Generates api reference documentation from code
 refdocs: crd-ref-docs
 	$(CRD_REFDOCS) \
@@ -435,3 +600,7 @@ refdocs: crd-ref-docs
 		--config=docs/api-reference/config.yaml \
 		--renderer=asciidoctor \
 		--output-path=docs/api-reference/reference.asciidoc
+
+.PHONY: clean
+clean: ## Clean project directory
+	rm -rf $(LOCALBIN) $(COVERPROFILE) kubeconfig

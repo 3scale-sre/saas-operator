@@ -13,7 +13,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
-	pipelinev1beta1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
+	pipelinev1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	corev1 "k8s.io/api/core/v1"
@@ -25,27 +25,11 @@ import (
 )
 
 var _ = Describe("System controller", func() {
-	var namespace string
 	var system *saasv1alpha1.System
+	namespace := *(new(string))
 
 	BeforeEach(func() {
-		// Create a namespace for each block
-		namespace = "test-ns-" + nameGenerator.Generate()
-
-		// Add any setup steps that needs to be executed before each test
-		testNamespace := &corev1.Namespace{
-			TypeMeta:   metav1.TypeMeta{APIVersion: "v1", Kind: "Namespace"},
-			ObjectMeta: metav1.ObjectMeta{Name: namespace},
-		}
-
-		err := k8sClient.Create(context.Background(), testNamespace)
-		Expect(err).ToNot(HaveOccurred())
-
-		n := &corev1.Namespace{}
-		Eventually(func() error {
-			return k8sClient.Get(context.Background(), types.NamespacedName{Name: namespace}, n)
-		}, timeout, poll).ShouldNot(HaveOccurred())
-
+		namespace = testutil.CreateNamespace(nameGenerator, k8sClient, timeout, poll)
 	})
 
 	When("deploying a defaulted system instance", func() {
@@ -355,8 +339,8 @@ var _ = Describe("System controller", func() {
 				"system-searchd-reindex",
 				"system-backend-sync",
 			} {
-				task := &pipelinev1beta1.Task{}
-				pipeline := &pipelinev1beta1.Pipeline{}
+				task := &pipelinev1.Task{}
+				pipeline := &pipelinev1.Pipeline{}
 
 				By("deploying the system task",
 					(&testutil.ExpectedResource{Name: tr, Namespace: namespace}).
@@ -1016,9 +1000,9 @@ var _ = Describe("System controller", func() {
 						"system-backend-sync",
 					} {
 						rvs[fmt.Sprintf("task/%s", tr)] = testutil.GetResourceVersion(
-							k8sClient, &pipelinev1beta1.Task{}, tr, namespace, timeout, poll)
+							k8sClient, &pipelinev1.Task{}, tr, namespace, timeout, poll)
 						rvs[fmt.Sprintf("pipeline/%s", tr)] = testutil.GetResourceVersion(
-							k8sClient, &pipelinev1beta1.Pipeline{}, tr, namespace, timeout, poll)
+							k8sClient, &pipelinev1.Pipeline{}, tr, namespace, timeout, poll)
 					}
 
 					patch := client.MergeFrom(system.DeepCopy())
@@ -1067,8 +1051,8 @@ var _ = Describe("System controller", func() {
 
 			It("updates the required tekton resources", func() {
 
-				task := &pipelinev1beta1.Task{}
-				pipeline := &pipelinev1beta1.Pipeline{}
+				task := &pipelinev1.Task{}
+				pipeline := &pipelinev1.Pipeline{}
 
 				By("keeping the system-backend-sync task",
 					(&testutil.ExpectedResource{

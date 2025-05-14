@@ -6,7 +6,7 @@ import (
 	"github.com/3scale-sre/basereconciler/util"
 	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	"github.com/3scale-sre/saas-operator/pkg/resource_builders/pod"
-	pipelinev1beta1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
+	pipelinev1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -87,9 +87,9 @@ func AddTwemproxySidecar(podTemplateSpec corev1.PodTemplateSpec, twemproxySpec *
 	return podTemplateSpec
 }
 
-func AddTwemproxyTaskSidecar(taskSpec pipelinev1beta1.TaskSpec, twemproxySpec *saasv1alpha1.TwemproxySpec) pipelinev1beta1.TaskSpec {
+func AddTwemproxyTaskSidecar(taskSpec pipelinev1.TaskSpec, twemproxySpec *saasv1alpha1.TwemproxySpec) pipelinev1.TaskSpec {
 
-	twemproxySidecar := pipelinev1beta1.Sidecar{}
+	twemproxySidecar := pipelinev1.Sidecar{}
 	twemproxySidecar.SetContainerFields(TwemproxyContainer(twemproxySpec))
 
 	// Twemproxy container

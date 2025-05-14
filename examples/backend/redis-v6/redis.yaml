@@ -5,7 +5,7 @@ metadata:
 spec:
   command: /entrypoint.sh
   image:
-    name: redis-with-ssh
+    name: localhost/redis-with-ssh
     tag: 6.2.13-alpine
 ---
 apiVersion: saas.3scale.net/v1alpha1
@@ -15,7 +15,7 @@ metadata:
 spec:
   command: /entrypoint.sh
   image:
-    name: redis-with-ssh
+    name: localhost/redis-with-ssh
     tag: 6.2.13-alpine
 ---
 apiVersion: saas.3scale.net/v1alpha1

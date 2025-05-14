@@ -63,7 +63,7 @@ var _ = Describe("shardedredisbackup e2e suite", func() {
 					SlaveCount:  util.Pointer[int32](2),
 					Command:     util.Pointer("/entrypoint.sh"),
 					Image: &saasv1alpha1.ImageSpec{
-						Name: util.Pointer("redis-with-ssh"),
+						Name: util.Pointer("localhost/redis-with-ssh"),
 						Tag:  util.Pointer("6.2.13-alpine"),
 					},
 				},

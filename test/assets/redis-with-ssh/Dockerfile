@@ -1,5 +1,4 @@
-# Use the redis:4.0.11-alpine as the base image
-FROM redis:6.2.13-alpine
+FROM docker.io/library/redis:6.2.13-alpine
 
 # update the image and install necessary tools
 RUN apk update && apk upgrade

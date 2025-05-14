@@ -26,8 +26,8 @@ function deploy_crds() {
     local FILTER=".kind == \"CustomResourceDefinition\""
     if [[ $(resource_names ${RESFILE} "${FILTER}") != "/" ]]; then
         echo; echo "#################### > Deploying CRDs for ${NAME}"
-        filter_resources ${RESFILE} "${FILTER}" | kubectl apply --server-side -f -
-        resource_names ${RESFILE} "${FILTER}" | cut -f2 -d/ | xargs kubectl wait --for condition=established --timeout=60s crd
+        filter_resources ${RESFILE} "${FILTER}" | kubectl apply --server-side --force-conflicts -f -
+        resource_names ${RESFILE} "${FILTER}" | cut -f2 -d/ | xargs kubectl wait --for condition=established --timeout=${TIMEOUT} crd
     fi
 }
 
@@ -40,7 +40,7 @@ function wait_for() {
             local NS=${ITEM%/*}
             echo; echo "#################### > Waiting for ${KIND} ${NAME} in namespace ${NS}"
             local SELECTOR=$(kubectl -n ${NS} describe ${KIND} ${NAME} | awk '/^Selector:/{print $2}')
-            kubectl -n ${NS} get pods -l ${SELECTOR} --no-headers -o name | xargs kubectl -n ${NS} wait --for condition=ready
+            kubectl -n ${NS} get pods -l ${SELECTOR} --no-headers -o name | xargs kubectl -n ${NS} wait --for condition=ready --timeout=${TIMEOUT}
         done
     fi
 }
@@ -50,7 +50,7 @@ function deploy_controller() {
     local FILTER=".kind != \"CustomResourceDefinition\" and .apiVersion != \"*${NAME}*\""
     if [[ $(resource_names ${RESFILE} "${FILTER}") != "/" ]]; then
         echo; echo "#################### > Deploying controller for ${NAME}"
-        filter_resources ${RESFILE} "${FILTER}" | kubectl apply --server-side -f -
+        filter_resources ${RESFILE} "${FILTER}" | kubectl apply --server-side --force-conflicts -f -
         for KIND in "Deployment" "StatefulSet"; do wait_for ${KIND}; done
     fi
 }
@@ -60,7 +60,7 @@ function deploy_custom_resources() {
     local FILTER=".kind != \"CustomResourceDefinition\" and .apiVersion == \"*${NAME}*\""
     if [[ $(resource_names ${RESFILE} "${FILTER}") != "/" ]]; then
         echo; echo "#################### > Deploying custom resources for ${NAME}"
-        filter_resources ${RESFILE} "${FILTER}" | kubectl apply --server-side -f -
+        filter_resources ${RESFILE} "${FILTER}" | kubectl apply --server-side --force-conflicts -f -
     fi
 }
 
@@ -69,6 +69,7 @@ test -n "${KUSTOMIZE_BIN}" || (echo "KUSTOMIZE_BIN envvar must be set" && exit -
 test -n "${YQ_BIN}" || (echo "YQ_BIN envvar must be set" && exit -1)
 test -n "${BASE_PATH}" || (echo "BASE_PATH envvar must be set" && exit -1)
 
+TIMEOUT="${WAIT_TIMEOUT:-120s}" 
 KUSTOMIZE_OPTIONS="--enable-helm"
 NAME=${1}
 RESFILE=$(generate_resources ${BASE_PATH}/${NAME})

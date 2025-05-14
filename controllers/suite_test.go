@@ -43,7 +43,7 @@ import (
 	externalsecretsv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
 	grafanav1beta1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
-	pipelinev1beta1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
+	pipelinev1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -54,8 +54,8 @@ var (
 	k8sClient     client.Client
 	testEnv       *envtest.Environment
 	nameGenerator namegenerator.Generator
-	timeout       time.Duration = 45 * time.Second
-	poll          time.Duration = 5 * time.Second
+	timeout       time.Duration = 60 * time.Second
+	poll          time.Duration = 10 * time.Second
 	ctx           context.Context
 	cancel        context.CancelFunc
 )
@@ -95,7 +95,7 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 	err = marin3rv1alpha1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
-	err = pipelinev1beta1.AddToScheme(scheme.Scheme)
+	err = pipelinev1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
 	mgr, err := ctrl.NewManager(cfg, ctrl.Options{

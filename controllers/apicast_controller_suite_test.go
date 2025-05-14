@@ -20,27 +20,11 @@ import (
 )
 
 var _ = Describe("Apicast controller", func() {
-	var namespace string
 	var apicast *saasv1alpha1.Apicast
+	namespace := *(new(string))
 
 	BeforeEach(func() {
-		// Create a namespace for each block
-		namespace = "test-ns-" + nameGenerator.Generate()
-
-		// Add any setup steps that needs to be executed before each test
-		testNamespace := &corev1.Namespace{
-			TypeMeta:   metav1.TypeMeta{APIVersion: "v1", Kind: "Namespace"},
-			ObjectMeta: metav1.ObjectMeta{Name: namespace},
-		}
-
-		err := k8sClient.Create(context.Background(), testNamespace)
-		Expect(err).ToNot(HaveOccurred())
-
-		n := &corev1.Namespace{}
-		Eventually(func() error {
-			return k8sClient.Get(context.Background(), types.NamespacedName{Name: namespace}, n)
-		}, timeout, poll).ShouldNot(HaveOccurred())
-
+		namespace = testutil.CreateNamespace(nameGenerator, k8sClient, timeout, poll)
 	})
 
 	When("deploying a defaulted Apicast instance", func() {
@@ -58,32 +42,14 @@ var _ = Describe("Apicast controller", func() {
 								ConfigurationCache:       30,
 								ThreescalePortalEndpoint: "http://example/config",
 							},
-							PublishingStrategies: &saasv1alpha1.PublishingStrategies{
-								// Endpoints: []saasv1alpha1.PublishingStrategy{{
-								// 	Strategy:     "Simple",
-								// 	EndpointName: "Gateway",
-								// 	Simple: &saasv1alpha1.Simple{
-								// 		ExternalDnsHostnames: []string{"apicast-staging.example.com"},
-								// 		ServiceType:          util.Pointer(saasv1alpha1.ServiceTypeELB),
-								// 	},
-								// }},
-							},
+							PublishingStrategies: &saasv1alpha1.PublishingStrategies{},
 						},
 						Production: saasv1alpha1.ApicastEnvironmentSpec{
 							Config: saasv1alpha1.ApicastConfig{
 								ConfigurationCache:       300,
 								ThreescalePortalEndpoint: "http://example/config",
 							},
-							// PublishingStrategies: &saasv1alpha1.PublishingStrategies{
-							// 	Endpoints: []saasv1alpha1.PublishingStrategy{{
-							// 		Strategy:     "Simple",
-							// 		EndpointName: "Gateway",
-							// 		Simple: &saasv1alpha1.Simple{
-							// 			ExternalDnsHostnames: []string{"apicast-production.example.com"},
-							// 			ServiceType:          util.Pointer(saasv1alpha1.ServiceTypeELB),
-							// 		},
-							// 	}},
-							// },
+							PublishingStrategies: &saasv1alpha1.PublishingStrategies{},
 						},
 					},
 				}
@@ -153,18 +119,6 @@ var _ = Describe("Apicast controller", func() {
 
 			Expect(svc.Spec.Selector["deployment"]).To(Equal("apicast-production"))
 			Expect(svc.Spec.Selector["saas.3scale.net/traffic"]).To(Equal("apicast-production"))
-			// Expect(
-			// 	svc.Annotations["external-dns.alpha.kubernetes.io/hostname"],
-			// ).To(Equal("apicast-production.example.com"))
-			// Expect(
-			// 	svc.Annotations["service.beta.kubernetes.io/aws-load-balancer-proxy-protocol"],
-			// ).To(Equal("*"))
-			// Expect(
-			// 	svc.Annotations["service.beta.kubernetes.io/aws-load-balancer-connection-draining-enabled"],
-			// ).To(Equal("true"))
-			// Expect(
-			// 	svc.Annotations["service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled"],
-			// ).To(Equal("true"))
 
 			By("deploying the apicast-production-management service",
 				(&testutil.ExpectedResource{Name: "apicast-production-management-svc", Namespace: namespace}).
@@ -182,18 +136,6 @@ var _ = Describe("Apicast controller", func() {
 
 			Expect(svc.Spec.Selector["deployment"]).To(Equal("apicast-staging"))
 			Expect(svc.Spec.Selector["saas.3scale.net/traffic"]).To(Equal("apicast-staging"))
-			// Expect(
-			// 	svc.Annotations["external-dns.alpha.kubernetes.io/hostname"],
-			// ).To(Equal("apicast-staging.example.com"))
-			// Expect(
-			// 	svc.Annotations["service.beta.kubernetes.io/aws-load-balancer-proxy-protocol"],
-			// ).To(Equal("*"))
-			// Expect(
-			// 	svc.Annotations["service.beta.kubernetes.io/aws-load-balancer-connection-draining-enabled"],
-			// ).To(Equal("true"))
-			// Expect(
-			// 	svc.Annotations["service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled"],
-			// ).To(Equal("true"))
 
 			By("deploying the apicast-staging-management service",
 				(&testutil.ExpectedResource{Name: "apicast-staging-management-svc", Namespace: namespace}).
@@ -263,25 +205,11 @@ var _ = Describe("Apicast controller", func() {
 							ConfigurationCache:       42,
 							ThreescalePortalEndpoint: "http://updated-example/config",
 						},
-						// Endpoint: &saasv1alpha1.Endpoint{
-						// 	DNS: []string{"updated-apicast-production.example.com"},
-						// },
 						HPA: &saasv1alpha1.HorizontalPodAutoscalerSpec{
 							MinReplicas: util.Pointer[int32](3),
 						},
 						LivenessProbe:  &saasv1alpha1.ProbeSpec{},
 						ReadinessProbe: &saasv1alpha1.ProbeSpec{},
-						// Marin3r: &saasv1alpha1.Marin3rSidecarSpec{
-						// 	NodeID: util.Pointer("apicast-production"),
-						// 	EnvoyDynamicConfig: saasv1alpha1.MapOfEnvoyDynamicConfig{
-						// 		"http": {
-						// 			GeneratorVersion: util.Pointer("v1"),
-						// 			ListenerHttp: &saasv1alpha1.ListenerHttp{
-						// 				Port:            8080,
-						// 				RouteConfigName: "route",
-						// 			},
-						// 		}},
-						// },
 						PublishingStrategies: &saasv1alpha1.PublishingStrategies{
 							Endpoints: []saasv1alpha1.PublishingStrategy{{
 								Strategy:     "Marin3rSidecar",
@@ -309,9 +237,6 @@ var _ = Describe("Apicast controller", func() {
 							ConfigurationCache:       42,
 							ThreescalePortalEndpoint: "http://updated-example/config",
 						},
-						// Endpoint: &saasv1alpha1.Endpoint{
-						// 	DNS: []string{"updated-apicast-staging.example.com"},
-						// },
 						HPA: &saasv1alpha1.HorizontalPodAutoscalerSpec{
 							MinReplicas: util.Pointer[int32](3),
 						},
