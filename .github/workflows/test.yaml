@@ -25,12 +25,12 @@ jobs:
         run: |
           make test TEST_GH_ACTIONS_OUTPUT=true
 
-  # test-e2e:
-  #   runs-on: ubuntu-latest
+  test-e2e:
+    runs-on: ubuntu-latest
 
-  #   steps:
-  #     - uses: actions/checkout@v4
+    steps:
+      - uses: actions/checkout@v4
 
-  #     - name: Run e2e tests
-  #       run: |
-  #         make e2e-test TEST_GH_ACTIONS_OUTPUT=true
+      - name: Run e2e tests
+        run: |
+          make e2e-test TEST_GH_ACTIONS_OUTPUT=true
