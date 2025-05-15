@@ -589,6 +589,33 @@ kind-local-setup:
 	$(MAKE) kind-deploy-saas
 	$(MAKE) kind-deploy-saas-run-db-setup
 
+##@ Release
+
+.PHONY: prepare-alpha-release
+prepare-alpha-release: bump-release generate fmt vet manifests assets bundle ## Generates bundle manifests for alpha channel release
+
+.PHONY: prepare-stable-release
+prepare-stable-release: bump-release generate fmt vet manifests assets bundle refdocs ## Generates bundle manifests for stable channel release
+	$(MAKE) bundle CHANNELS=alpha,stable DEFAULT_CHANNEL=stable
+
+bump-release: ## Write release name to "pkg/version" package
+	sed -i 's/version string = "v\(.*\)"/version string = "v$(VERSION)"/g' pkg/version/version.go
+
+.PHONY: bundle-publish
+bundle-publish: container-buildx container-pushx bundle-build bundle-push bundle-validate ## Builds and pushes operator and bundle images
+
+.PHONY: catalog-publish
+catalog-publish: catalog-build catalog-push catalog-retag-latest ## Builds and pushes the catalog image
+
+.PHONY: get-new-release
+get-new-release: ## Checks if a release with the name $(VERSION) already exists in https://github.com/3scale-sre/marin3r/releases
+	@hack/new-release.sh v$(VERSION)
+
+.PHONY: catalog-retag-latest
+catalog-retag-latest:
+	$(CONTAINER_TOOL) tag $(CATALOG_IMG) $(IMAGE_TAG_BASE)-catalog:latest
+	$(call container-push-multiplatform,$(IMAGE_TAG_BASE)-catalog:latest,$(CONTAINER_TOOL))
+
 ##@ Other
 
 .PHONY: refdocs
