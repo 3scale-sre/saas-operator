@@ -123,12 +123,12 @@ vendor:
 
 assets: go-bindata ## assets: Generate embedded assets
 	@echo Generate Go embedded assets files by processing source
-	PATH=$$PATH:$$PWD/bin go generate github.com/3scale-sre/saas-operator/pkg/assets
+	PATH=$$PATH:$$PWD/bin go generate github.com/3scale-sre/saas-operator/internal/pkg/assets
 
 
 ##@ Test
 
-TEST_PKG = ./api/... ./controllers/... ./pkg/...
+TEST_PKG = ./api/... ./internal/...
 COVERPKG = $(shell go list ./... | grep -v test | xargs printf '%s,')
 COVERPROFILE = coverprofile.out
 
@@ -183,12 +183,12 @@ e2e-envtest-suite: ginkgo container-build kind-load-image kind-load-redis-with-s
 ##@ Build
 
 .PHONY: build
-build: generate fmt vet assets ## Build manager binary.
-	go build -o bin/manager main.go
+build: generate fmt vet assets vendor ## Build manager binary.
+	go build -o bin/manager cmd/main.go
 
 .PHONY: run
 run: manifests generate fmt vet assets ## Run a controller from your host.
-	LOG_MODE="development" go run ./main.go
+	LOG_MODE="development" go run ./cmd/main.go
 
 # MULTI-PLATFORM BUILD/PUSH FUNCTIONS
 # NOTE IF USING DOCKER (https://docs.docker.com/build/building/multi-platform/#prerequisites):
@@ -592,14 +592,14 @@ kind-local-setup:
 ##@ Release
 
 .PHONY: prepare-alpha-release
-prepare-alpha-release: bump-release generate fmt vet manifests assets bundle ## Generates bundle manifests for alpha channel release
+prepare-alpha-release: bump-release generate fmt vet manifests assets vendor bundle ## Generates bundle manifests for alpha channel release
 
 .PHONY: prepare-stable-release
-prepare-stable-release: bump-release generate fmt vet manifests assets bundle refdocs ## Generates bundle manifests for stable channel release
+prepare-stable-release: bump-release generate fmt vet manifests assets vendor bundle refdocs ## Generates bundle manifests for stable channel release
 	$(MAKE) bundle CHANNELS=alpha,stable DEFAULT_CHANNEL=stable
 
 bump-release: ## Write release name to "pkg/version" package
-	sed -i 's/version string = "v\(.*\)"/version string = "v$(VERSION)"/g' pkg/version/version.go
+	sed -i 's/version string = "v\(.*\)"/version string = "v$(VERSION)"/g' internal/pkg/version/version.go
 
 .PHONY: bundle-publish
 bundle-publish: container-buildx container-pushx bundle-build bundle-push bundle-validate ## Builds and pushes operator and bundle images
