@@ -11,7 +11,7 @@ import (
 
 	"github.com/3scale-sre/basereconciler/util"
 	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
-	redis "github.com/3scale-sre/saas-operator/pkg/redis/server"
+	redis "github.com/3scale-sre/saas-operator/internal/pkg/redis/server"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 )
