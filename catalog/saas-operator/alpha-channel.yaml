@@ -1,0 +1,10 @@
+---
+entries:
+  - name: saas-operator.v0.25.0
+  - name: saas-operator.v0.25.1
+    replaces: saas-operator.v0.25.0
+  - name: saas-operator.v0.26.0-alpha.1
+    replaces: saas-operator.v0.25.1
+name: alpha
+package: saas-operator
+schema: olm.channel

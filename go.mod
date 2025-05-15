@@ -8,7 +8,7 @@ go 1.24.2
 require (
 	dario.cat/mergo v1.0.1
 	github.com/3scale-sre/basereconciler v0.5.6
-	github.com/3scale-sre/marin3r/api v0.0.0-20250506091451-4577914a6b3c
+	github.com/3scale-sre/marin3r/api v0.13.2
 	github.com/MakeNowJust/heredoc v1.0.0
 	github.com/aws/aws-sdk-go-v2 v1.36.3
 	github.com/aws/aws-sdk-go-v2/config v1.29.14
@@ -99,8 +99,6 @@ require (
 	github.com/gorilla/websocket v1.5.4-0.20250319132907-e064f32e3674 // indirect
 	github.com/grafana/grafana-openapi-client-go v0.0.0-20250428202209-be3a35ff1dac // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.3 // indirect
-	github.com/hashicorp/errwrap v1.1.0 // indirect
-	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/huandu/go-clone v1.7.3 // indirect
 	github.com/huandu/go-clone/generic v1.7.3
 	github.com/josharian/intern v1.0.0 // indirect
