@@ -8,7 +8,7 @@ import (
 
 	"github.com/3scale-sre/basereconciler/util"
 	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
-	"github.com/3scale-sre/saas-operator/pkg/resource_builders/twemproxy"
+	"github.com/3scale-sre/saas-operator/internal/pkg/resource_builders/twemproxy"
 	testutil "github.com/3scale-sre/saas-operator/test/util"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
