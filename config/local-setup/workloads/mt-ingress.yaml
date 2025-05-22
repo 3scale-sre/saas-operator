@@ -224,3 +224,15 @@ spec:
                 route:
                   cluster: system_app
                   timeout: 120s
+                  retry_policy:
+                    retry_on: connect-failure,reset,refused-stream,unavailable,cancelled,retriable-status-codes
+                    retriable_status_codes:
+                    - 503
+                    num_retries: 10
+                    retry_back_off:
+                      base_interval: 1s
+                    retry_host_predicate:
+                    - name: envoy.retry_host_predicates.previous_hosts
+                      typed_config:
+                        "@type": type.googleapis.com/envoy.extensions.retry.host.previous_hosts.v3.PreviousHostsPredicate
+                    host_selection_retry_max_attempts: 5

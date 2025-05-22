@@ -44,7 +44,7 @@ spec:
       endpoints:
         - marin3rSidecar:
             dynamicConfigs:
-              gateway_cluster:
+              gateway_cluster_production:
                 cluster:
                   host: 127.0.0.1
                   isHttp2: false
@@ -78,7 +78,7 @@ spec:
                         - match:
                             prefix: /
                           route:
-                            cluster: gateway_cluster
+                            cluster: gateway_cluster_production
                             timeout: 30s
             elasticLoadBalancerConfig:
               proxyProtocol: false
@@ -125,7 +125,7 @@ spec:
           strategy: Marin3rSidecar
           marin3rSidecar:
             dynamicConfigs:
-              gateway_cluster:
+              gateway_cluster_staging:
                 cluster:
                   host: 127.0.0.1
                   isHttp2: false
@@ -165,7 +165,7 @@ spec:
                         - match:
                             prefix: /
                           route:
-                            cluster: gateway_cluster
+                            cluster: gateway_cluster_staging
                             timeout: 30s
             elasticLoadBalancerConfig:
               proxyProtocol: false
