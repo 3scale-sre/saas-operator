@@ -71,7 +71,7 @@ metadata:
   name: mt-ingress
 spec:
   podMetricsEndpoints:
-    - interval: 30s
+    - interval: 60s
       path: /stats/prometheus
       port: admin
       scheme: http
