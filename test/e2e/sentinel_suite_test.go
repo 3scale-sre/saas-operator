@@ -9,7 +9,7 @@ import (
 
 	"github.com/3scale-sre/basereconciler/util"
 	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
-	redisclient "github.com/3scale-sre/saas-operator/pkg/redis/client"
+	redisclient "github.com/3scale-sre/saas-operator/internal/pkg/redis/client"
 	testutil "github.com/3scale-sre/saas-operator/test/util"
 	"github.com/google/go-cmp/cmp"
 	. "github.com/onsi/ginkgo/v2"

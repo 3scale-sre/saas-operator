@@ -849,7 +849,7 @@ metadata:
     capabilities: Basic Install
     categories: Integration & Delivery
     containerImage: quay.io/3scale-sre/saas-operator
-    createdAt: "2025-05-14T15:22:24Z"
+    createdAt: "2025-05-27T13:42:16Z"
     description: |-
       The 3scale SaaS Operator creates and maintains a SaaS-ready deployment
       of the Red Hat 3scale API Management on OpenShift.
@@ -7188,19 +7188,40 @@ spec:
     mediatype: image/png
   install:
     spec:
+      clusterPermissions:
+      - rules:
+        - apiGroups:
+          - authentication.k8s.io
+          resources:
+          - tokenreviews
+          verbs:
+          - create
+        - apiGroups:
+          - authorization.k8s.io
+          resources:
+          - subjectaccessreviews
+          verbs:
+          - create
+        serviceAccountName: saas-operatorcontroller-manager
       deployments:
       - label:
+          app.kubernetes.io/managed-by: kustomize
+          app.kubernetes.io/name: saas-operator
           control-plane: controller-manager
-        name: saas-operator-controller-manager
+        name: saas-operatorcontroller-manager
         spec:
           replicas: 1
           selector:
             matchLabels:
+              app.kubernetes.io/name: saas-operator
               control-plane: controller-manager
           strategy: {}
           template:
             metadata:
+              annotations:
+                kubectl.kubernetes.io/default-container: manager
               labels:
+                app.kubernetes.io/name: saas-operator
                 control-plane: controller-manager
             spec:
               containers:
@@ -7242,9 +7263,14 @@ spec:
                     memory: 550Mi
                 securityContext:
                   allowPrivilegeEscalation: false
+                  capabilities:
+                    drop:
+                    - ALL
               securityContext:
                 runAsNonRoot: true
-              serviceAccountName: saas-operator-controller-manager
+                seccompProfile:
+                  type: RuntimeDefault
+              serviceAccountName: saas-operatorcontroller-manager
               terminationGracePeriodSeconds: 10
       permissions:
       - rules:
@@ -7279,194 +7305,7 @@ spec:
           verbs:
           - create
           - patch
-        - apiGroups:
-          - ""
-          resources:
-          - configmaps
-          - services
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        - apiGroups:
-          - ""
-          resources:
-          - pods
-          verbs:
-          - get
-          - list
-          - patch
-          - watch
-        - apiGroups:
-          - ""
-          resources:
-          - secrets
-          verbs:
-          - get
-          - list
-          - watch
-        - apiGroups:
-          - apps
-          resources:
-          - deployments
-          - statefulsets
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        - apiGroups:
-          - autoscaling
-          resources:
-          - horizontalpodautoscalers
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        - apiGroups:
-          - external-secrets.io
-          resources:
-          - externalsecrets
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        - apiGroups:
-          - grafana.integreatly.org
-          resources:
-          - grafanadashboards
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        - apiGroups:
-          - marin3r.3scale.net
-          resources:
-          - envoyconfigs
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        - apiGroups:
-          - monitoring.coreos.com
-          resources:
-          - podmonitors
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        - apiGroups:
-          - policy
-          resources:
-          - poddisruptionbudgets
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        - apiGroups:
-          - saas.3scale.net
-          resources:
-          - apicasts
-          - autossls
-          - backends
-          - corsproxies
-          - echoapis
-          - mappingservices
-          - redisshards
-          - sentinels
-          - shardedredisbackups
-          - systems
-          - twemproxyconfigs
-          - zyncs
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        - apiGroups:
-          - saas.3scale.net
-          resources:
-          - apicasts/finalizers
-          - autossls/finalizers
-          - backends/finalizers
-          - corsproxies/finalizers
-          - echoapis/finalizers
-          - mappingservices/finalizers
-          - redisshards/finalizers
-          - sentinels/finalizers
-          - shardedredisbackups/finalizers
-          - systems/finalizers
-          - twemproxyconfigs/finalizers
-          - zyncs/finalizers
-          verbs:
-          - update
-        - apiGroups:
-          - saas.3scale.net
-          resources:
-          - apicasts/status
-          - autossls/status
-          - backends/status
-          - corsproxies/status
-          - echoapis/status
-          - mappingservices/status
-          - redisshards/status
-          - sentinels/status
-          - shardedredisbackups/status
-          - systems/status
-          - twemproxyconfigs/status
-          - zyncs/status
-          verbs:
-          - get
-          - patch
-          - update
-        - apiGroups:
-          - tekton.dev
-          resources:
-          - pipelines
-          - tasks
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        serviceAccountName: saas-operator-controller-manager
+        serviceAccountName: saas-operatorcontroller-manager
     strategy: deployment
   installModes:
   - supported: true

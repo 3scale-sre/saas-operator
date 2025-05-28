@@ -21,9 +21,9 @@ import (
 	"testing"
 
 	"github.com/3scale-sre/basereconciler/util"
-	"github.com/3scale-sre/saas-operator/pkg/redis/client"
-	redis "github.com/3scale-sre/saas-operator/pkg/redis/server"
-	"github.com/3scale-sre/saas-operator/pkg/redis/sharded"
+	"github.com/3scale-sre/saas-operator/internal/pkg/redis/client"
+	redis "github.com/3scale-sre/saas-operator/internal/pkg/redis/server"
+	"github.com/3scale-sre/saas-operator/internal/pkg/redis/sharded"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
