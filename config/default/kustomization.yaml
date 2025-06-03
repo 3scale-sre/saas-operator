@@ -1,12 +1,12 @@
 # Adds namespace to all resources.
-namespace: saas-operatorsystem
+namespace: saas-operator-system
 
 # Value of this field is prepended to the
 # names of all resources, e.g. a deployment named
 # "wordpress" becomes "alices-wordpress".
 # Note that it should also match with the prefix (text before '-') of the namespace
 # field above.
-namePrefix: saas-operator
+namePrefix: saas-operator-
 
 # Labels to add to all resources and selectors.
 #labels:
@@ -37,12 +37,34 @@ resources:
 patches:
 # [METRICS] The following patch will enable the metrics endpoint using HTTPS and the port :8443.
 # More info: https://book.kubebuilder.io/reference/metrics
-- path: manager_metrics_patch.yaml
+# - path: manager_metrics_patch.yaml
+#   target:
+#     kind: Deployment
+
+# [CUSTOM] Modify manager settings
+- path: custom/manager_patch.yaml
   target:
     kind: Deployment
-
-# [CUSTOM] Custom changes specific to saas-operator
-- path: custom/manager_patch.yaml
+    name: controller-manager
+- path: custom/metrics_service_patch.yaml
+  target:
+    group: ""
+    kind: Service
+    name: controller-manager-metrics-service
+    version: v1
+# [CUSTOM] Use ClusterRole and ClusterRoleBinding
+- path: custom/clusterrole_patch.yaml
+  target:
+    group: rbac.authorization.k8s.io
+    kind: Role
+    name: manager-role
+    version: v1
+- path: custom/clusterrolebinding_patch.yaml
+  target:
+    group: rbac.authorization.k8s.io
+    kind: RoleBinding
+    name: manager-rolebinding
+    version: v1
 
 # Uncomment the patches line if you enable Metrics and CertManager
 # [METRICS-WITH-CERTS] To enable metrics protected with certManager, uncomment the following line.
