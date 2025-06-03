@@ -6,6 +6,7 @@ import (
 	"github.com/3scale-sre/basereconciler/resource"
 	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	"github.com/3scale-sre/saas-operator/internal/pkg/generators"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 const (
@@ -19,6 +20,15 @@ type Generator struct {
 	MasterIndex int32
 	Replicas    int32
 	Command     string
+}
+
+// GetKey returns a types.NamespacedName for the RedisShard StatefulSet
+// Overwrites the default GetKey method
+func (gen *Generator) GetKey() types.NamespacedName {
+	return types.NamespacedName{
+		Name:      fmt.Sprintf("%s-%s", gen.GetComponent(), gen.GetInstanceName()),
+		Namespace: gen.GetNamespace(),
+	}
 }
 
 // Override the GetSelector function as it needs to be different in this case

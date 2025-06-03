@@ -24,6 +24,7 @@ import (
 	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	"github.com/3scale-sre/saas-operator/internal/pkg/generators/system"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -69,7 +70,25 @@ func (r *SystemReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		return ctrl.Result{}, err
 	}
 
+	// reconcile all resources
 	result = r.ReconcileOwnedResources(ctx, instance, resources)
+	if result.ShouldReturn() {
+		return result.Values()
+	}
+
+	// reconcile the status
+	result = r.ReconcileStatus(ctx, instance,
+		[]types.NamespacedName{
+			gen.App.GetKey(),
+			gen.SidekiqDefault.GetKey(),
+			gen.SidekiqBilling.GetKey(),
+			gen.SidekiqLow.GetKey(),
+		},
+		[]types.NamespacedName{
+			gen.Console.GetKey(),
+			gen.Searchd.GetKey(),
+		},
+	)
 	if result.ShouldReturn() {
 		return result.Values()
 	}

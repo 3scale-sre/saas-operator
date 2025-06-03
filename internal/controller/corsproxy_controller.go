@@ -24,6 +24,7 @@ import (
 	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	"github.com/3scale-sre/saas-operator/internal/pkg/generators/corsproxy"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -64,7 +65,16 @@ func (r *CORSProxyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		return ctrl.Result{}, err
 	}
 
+	// reconcile all resources
 	result = r.ReconcileOwnedResources(ctx, instance, resources)
+	if result.ShouldReturn() {
+		return result.Values()
+	}
+
+	// reconcile the status
+	result = r.ReconcileStatus(ctx, instance, []types.NamespacedName{
+		gen.GetKey(),
+	}, nil)
 	if result.ShouldReturn() {
 		return result.Values()
 	}
