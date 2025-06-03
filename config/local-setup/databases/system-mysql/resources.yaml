@@ -21,6 +21,7 @@ spec:
             - mysqld
             - --default-authentication-plugin=mysql_native_password
             - --disable-log-bin
+            - --max_connections=300
           env:
             - name: MYSQL_ROOT_PASSWORD
               valueFrom:
