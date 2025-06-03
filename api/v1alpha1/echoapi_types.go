@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"github.com/3scale-sre/basereconciler/reconciler"
 	"github.com/3scale-sre/basereconciler/util"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -140,7 +141,9 @@ func (spec *EchoAPISpec) Default() {
 }
 
 // EchoAPIStatus defines the observed state of EchoAPI
-type EchoAPIStatus struct{}
+type EchoAPIStatus struct {
+	AggregatedStatus `json:",inline"`
+}
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
@@ -157,6 +160,12 @@ type EchoAPI struct {
 // Default implements defaulting for the EchoAPI resource
 func (e *EchoAPI) Default() {
 	e.Spec.Default()
+}
+
+var _ reconciler.ObjectWithAppStatus = &EchoAPI{}
+
+func (d *EchoAPI) GetStatus() any {
+	return &d.Status
 }
 
 // +kubebuilder:object:root=true
