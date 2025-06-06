@@ -61,23 +61,28 @@ func (r *ZyncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		return result.Values()
 	}
 
-	// Reconcile all resources
 	gen := zync.NewGenerator(instance.GetName(), instance.GetNamespace(), instance.Spec)
 	resources, err := gen.Resources()
 	if err != nil {
 		return ctrl.Result{}, err
 	}
 
-	// reconcile the status
-	result = r.ReconcileStatus(ctx, instance,
-		[]types.NamespacedName{gen.API.GetKey(), gen.Que.GetKey()},
-		[]types.NamespacedName{gen.Console.GetKey()},
-	)
+	// reconcile all resources
+	result = r.ReconcileOwnedResources(ctx, instance, resources)
 	if result.ShouldReturn() {
 		return result.Values()
 	}
 
-	result = r.ReconcileOwnedResources(ctx, instance, resources)
+	// reconcile the status
+	result = r.ReconcileStatus(ctx, instance,
+		[]types.NamespacedName{gen.API.GetKey(), gen.Que.GetKey()},
+		func() []types.NamespacedName {
+			if gen.Console.Enabled {
+				return []types.NamespacedName{gen.Console.GetKey()}
+			}
+			return nil
+		}(),
+	)
 	if result.ShouldReturn() {
 		return result.Values()
 	}

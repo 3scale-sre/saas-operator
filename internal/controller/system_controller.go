@@ -84,10 +84,12 @@ func (r *SystemReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			gen.SidekiqBilling.GetKey(),
 			gen.SidekiqLow.GetKey(),
 		},
-		[]types.NamespacedName{
-			gen.Console.GetKey(),
-			gen.Searchd.GetKey(),
-		},
+		func() []types.NamespacedName {
+			if gen.Console.Enabled {
+				return []types.NamespacedName{gen.Console.GetKey(), gen.Searchd.GetKey()}
+			}
+			return []types.NamespacedName{gen.Searchd.GetKey()}
+		}(),
 	)
 	if result.ShouldReturn() {
 		return result.Values()
