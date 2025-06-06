@@ -14,8 +14,8 @@ import (
 func (gen *Generator) statefulSet() *appsv1.StatefulSet {
 	return &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s-%s", gen.GetComponent(), gen.GetInstanceName()),
-			Namespace: gen.Namespace,
+			Name:      gen.GetKey().Name,
+			Namespace: gen.GetKey().Namespace,
 			Labels:    gen.GetLabels(),
 		},
 		Spec: appsv1.StatefulSetSpec{

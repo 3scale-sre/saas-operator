@@ -85,10 +85,11 @@ var _ = Describe("Zync controller", func() {
 					Namespace:     namespace,
 					Replicas:      2,
 					ContainerName: "zync",
+					Health:        "Progressing",
 					PDB:           true,
 					HPA:           true,
 					PodMonitor:    true,
-				}).Assert(k8sClient, dep, timeout, poll))
+				}).Assert(k8sClient, zync, dep, timeout, poll))
 
 			for _, env := range dep.Spec.Template.Spec.Containers[0].Env {
 				switch env.Name {
@@ -113,7 +114,7 @@ var _ = Describe("Zync controller", func() {
 					PDB:           true,
 					HPA:           true,
 					PodMonitor:    true,
-				}).Assert(k8sClient, dep, timeout, poll))
+				}).Assert(k8sClient, zync, dep, timeout, poll))
 
 			for _, env := range dep.Spec.Template.Spec.Containers[0].Env {
 				switch env.Name {
@@ -248,7 +249,7 @@ var _ = Describe("Zync controller", func() {
 						HPA:           true,
 						PodMonitor:    true,
 						LastVersion:   rvs["deployment/zync"],
-					}).Assert(k8sClient, dep, timeout, poll))
+					}).Assert(k8sClient, zync, dep, timeout, poll))
 
 				for _, env := range dep.Spec.Template.Spec.Containers[0].Env {
 					switch env.Name {
@@ -278,7 +279,7 @@ var _ = Describe("Zync controller", func() {
 						HPA:         true,
 						PodMonitor:  true,
 						LastVersion: rvs["deployment/zync-que"],
-					}).Assert(k8sClient, dep, timeout, poll))
+					}).Assert(k8sClient, zync, dep, timeout, poll))
 
 				for _, env := range dep.Spec.Template.Spec.Containers[0].Env {
 					switch env.Name {
@@ -420,7 +421,7 @@ var _ = Describe("Zync controller", func() {
 						PDB:         false,
 						PodMonitor:  true,
 						LastVersion: rvs["deployment/zync"],
-					}).Assert(k8sClient, &appsv1.Deployment{}, timeout, poll))
+					}).Assert(k8sClient, zync, &appsv1.Deployment{}, timeout, poll))
 
 				By("updating the Zync-Que workload",
 					(&testutil.ExpectedWorkload{
@@ -431,7 +432,7 @@ var _ = Describe("Zync controller", func() {
 						PDB:         false,
 						PodMonitor:  true,
 						LastVersion: rvs["deployment/zync-que"],
-					}).Assert(k8sClient, &appsv1.Deployment{}, timeout, poll))
+					}).Assert(k8sClient, zync, &appsv1.Deployment{}, timeout, poll))
 
 			})
 

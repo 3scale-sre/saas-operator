@@ -3,15 +3,18 @@ kind: Service
 metadata:
   creationTimestamp: null
   labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: saas-operator
     control-plane: controller-manager
   name: saas-operator-controller-manager-metrics-service
 spec:
   ports:
-  - name: http
+  - name: metrics
     port: 8080
     protocol: TCP
     targetPort: metrics
   selector:
+    app.kubernetes.io/name: saas-operator
     control-plane: controller-manager
 status:
   loadBalancer: {}

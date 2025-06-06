@@ -115,10 +115,11 @@ var _ = Describe("Backend controller", func() {
 						"-p", "3000",
 						"-x", "/dev/stdout",
 					},
+					Health:     "Progressing",
 					PDB:        true,
 					HPA:        true,
 					PodMonitor: true,
-				}).Assert(k8sClient, dep, timeout, poll))
+				}).Assert(k8sClient, backend, dep, timeout, poll))
 
 			svc := &corev1.Service{}
 			By("deploying the backend-listener-http-svc service",
@@ -140,7 +141,7 @@ var _ = Describe("Backend controller", func() {
 					PDB:        true,
 					HPA:        true,
 					PodMonitor: true,
-				}).Assert(k8sClient, dep, timeout, poll))
+				}).Assert(k8sClient, backend, dep, timeout, poll))
 
 			Expect(dep.Spec.Template.Spec.Containers[0].Env[12].Name).To(Equal("CONFIG_EVENTS_HOOK"))
 			Expect(dep.Spec.Template.Spec.Containers[0].Env[12].Value).To(Equal("system-app"))
@@ -160,7 +161,7 @@ var _ = Describe("Backend controller", func() {
 					Replicas:       1,
 					ContainerName:  "backend-cron",
 					ContainterArgs: []string{"backend-cron"},
-				}).Assert(k8sClient, dep, timeout, poll))
+				}).Assert(k8sClient, backend, dep, timeout, poll))
 
 		})
 
@@ -353,7 +354,7 @@ var _ = Describe("Backend controller", func() {
 						PodMonitor:  true,
 						EnvoyConfig: true,
 						LastVersion: rvs["deployment/backend-listener"],
-					}).Assert(k8sClient, dep, timeout, poll))
+					}).Assert(k8sClient, backend, dep, timeout, poll))
 
 				svc := &corev1.Service{}
 
@@ -388,7 +389,7 @@ var _ = Describe("Backend controller", func() {
 						ContainerName:  "backend-cron",
 						ContainerImage: "newImage:newTag",
 						LastVersion:    rvs["deployment/backend-cron"],
-					}).Assert(k8sClient, dep, timeout, poll))
+					}).Assert(k8sClient, backend, dep, timeout, poll))
 
 				esApi := &externalsecretsv1beta1.ExternalSecret{}
 				By("updating the backend-internal-api external secret",
@@ -523,7 +524,7 @@ var _ = Describe("Backend controller", func() {
 						},
 						PodMonitor:  true,
 						LastVersion: rvs["deployment/backend-listener"],
-					}).Assert(k8sClient, dep, timeout, poll))
+					}).Assert(k8sClient, backend, dep, timeout, poll))
 
 				svc := &corev1.Service{}
 				By("keeps the backend-listener-http-svc service deployment label selector",
@@ -546,7 +547,7 @@ var _ = Describe("Backend controller", func() {
 							"bin/3scale_backend_worker", "run",
 						},
 						PodMonitor: true,
-					}).Assert(k8sClient, dep, timeout, poll))
+					}).Assert(k8sClient, backend, dep, timeout, poll))
 
 				Expect(dep.Spec.Template.Spec.Containers[0].Env[0].Name).To(Equal("RACK_ENV"))
 				Expect(dep.Spec.Template.Spec.Containers[0].Env[0].Value).To(Equal("test"))
@@ -604,7 +605,7 @@ var _ = Describe("Backend controller", func() {
 							Replicas:    3,
 							PodMonitor:  true,
 							LastVersion: rvs["deployment/backend-listener-canary"],
-						}).Assert(k8sClient, dep, timeout, poll))
+						}).Assert(k8sClient, backend, dep, timeout, poll))
 
 					Expect(dep.Spec.Replicas).To(Equal(util.Pointer[int32](3)))
 
@@ -626,7 +627,7 @@ var _ = Describe("Backend controller", func() {
 							Replicas:    3,
 							PodMonitor:  true,
 							LastVersion: rvs["deployment/backend-worker-canary"],
-						}).Assert(k8sClient, dep, timeout, poll))
+						}).Assert(k8sClient, backend, dep, timeout, poll))
 
 				})
 
@@ -739,7 +740,7 @@ var _ = Describe("Backend controller", func() {
 						HPA:         true,
 						PodMonitor:  true,
 						LastVersion: rvs["deployment/backend-listener"],
-					}).Assert(k8sClient, dep, timeout, poll))
+					}).Assert(k8sClient, backend, dep, timeout, poll))
 
 				Expect(dep.Spec.Template.Spec.Volumes[0].Name).To(Equal("twemproxy-config"))
 				Expect(dep.Spec.Template.Spec.Volumes[0].VolumeSource.ConfigMap.LocalObjectReference.Name).To(Equal("backend-twemproxyconfig"))
@@ -753,7 +754,7 @@ var _ = Describe("Backend controller", func() {
 						Replicas:   2,
 						Namespace:  namespace,
 						PodMonitor: true,
-					}).Assert(k8sClient, dep, timeout, poll))
+					}).Assert(k8sClient, backend, dep, timeout, poll))
 
 				Expect(dep.Spec.Template.Spec.Volumes[0].Name).To(Equal("twemproxy-config"))
 				Expect(dep.Spec.Template.Spec.Volumes[0].VolumeSource.ConfigMap.LocalObjectReference.Name).To(Equal("backend-canary-twemproxyconfig"))
@@ -772,7 +773,7 @@ var _ = Describe("Backend controller", func() {
 						HPA:         true,
 						PodMonitor:  true,
 						LastVersion: rvs["deployment/backend-worker"],
-					}).Assert(k8sClient, dep, timeout, poll))
+					}).Assert(k8sClient, backend, dep, timeout, poll))
 
 				Expect(dep.Spec.Template.Spec.Volumes[0].Name).To(Equal("twemproxy-config"))
 				Expect(dep.Spec.Template.Spec.Volumes[0].VolumeSource.ConfigMap.LocalObjectReference.Name).To(Equal("backend-twemproxyconfig"))
@@ -786,7 +787,7 @@ var _ = Describe("Backend controller", func() {
 						Replicas:   2,
 						Namespace:  namespace,
 						PodMonitor: true,
-					}).Assert(k8sClient, dep, timeout, poll))
+					}).Assert(k8sClient, backend, dep, timeout, poll))
 
 				Expect(dep.Spec.Template.Spec.Volumes[0].Name).To(Equal("twemproxy-config"))
 				Expect(dep.Spec.Template.Spec.Volumes[0].VolumeSource.ConfigMap.LocalObjectReference.Name).To(Equal("backend-twemproxyconfig"))
@@ -801,7 +802,7 @@ var _ = Describe("Backend controller", func() {
 						Name:      "backend-cron",
 						Namespace: namespace,
 						Replicas:  1,
-					}).Assert(k8sClient, dep, timeout, poll))
+					}).Assert(k8sClient, backend, dep, timeout, poll))
 
 				Expect(dep.GetResourceVersion()).To(Equal(rvs["deployment/backend-cron"]))
 				Expect(dep.Spec.Template.Spec.Containers).To(HaveLen(1))

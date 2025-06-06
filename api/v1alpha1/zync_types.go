@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"github.com/3scale-sre/basereconciler/reconciler"
 	"github.com/3scale-sre/basereconciler/util"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -353,7 +354,9 @@ func (spec *ZyncRailsConsoleSpec) Default(zyncDefaultImage *ImageSpec) {
 }
 
 // ZyncStatus defines the observed state of Zync
-type ZyncStatus struct{}
+type ZyncStatus struct {
+	AggregatedStatus `json:",inline"`
+}
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
@@ -370,6 +373,12 @@ type Zync struct {
 // Default implements defaulting for the Zync resource
 func (z *Zync) Default() {
 	z.Spec.Default()
+}
+
+var _ reconciler.ObjectWithAppStatus = &Zync{}
+
+func (d *Zync) GetStatus() any {
+	return &d.Status
 }
 
 // +kubebuilder:object:root=true

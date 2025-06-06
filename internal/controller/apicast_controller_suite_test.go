@@ -70,10 +70,11 @@ var _ = Describe("Apicast controller", func() {
 					Namespace:     namespace,
 					Replicas:      2,
 					ContainerName: "apicast",
+					Health:        "Progressing",
 					PDB:           true,
 					HPA:           true,
 					PodMonitor:    true,
-				}).Assert(k8sClient, dep, timeout, poll),
+				}).Assert(k8sClient, apicast, dep, timeout, poll),
 			)
 			for _, env := range dep.Spec.Template.Spec.Containers[0].Env {
 				switch env.Name {
@@ -97,7 +98,7 @@ var _ = Describe("Apicast controller", func() {
 					PDB:           true,
 					HPA:           true,
 					PodMonitor:    true,
-				}).Assert(k8sClient, dep, timeout, poll),
+				}).Assert(k8sClient, apicast, dep, timeout, poll),
 			)
 			for _, env := range dep.Spec.Template.Spec.Containers[0].Env {
 				switch env.Name {
@@ -297,7 +298,7 @@ var _ = Describe("Apicast controller", func() {
 						PodMonitor:    true,
 						EnvoyConfig:   true,
 						LastVersion:   rvs["deployment/apicast-production"],
-					}).Assert(k8sClient, dep, timeout, poll))
+					}).Assert(k8sClient, apicast, dep, timeout, poll))
 
 				for _, env := range dep.Spec.Template.Spec.Containers[0].Env {
 					switch env.Name {
@@ -323,7 +324,7 @@ var _ = Describe("Apicast controller", func() {
 						PodMonitor:    true,
 						EnvoyConfig:   true,
 						LastVersion:   rvs["deployment/apicast-staging"],
-					}).Assert(k8sClient, dep, timeout, poll))
+					}).Assert(k8sClient, apicast, dep, timeout, poll))
 
 				for _, env := range dep.Spec.Template.Spec.Containers[0].Env {
 					switch env.Name {
@@ -428,7 +429,7 @@ var _ = Describe("Apicast controller", func() {
 						Replicas:      1,
 						ContainerName: "apicast",
 						PodMonitor:    true,
-					}).Assert(k8sClient, dep, timeout, poll))
+					}).Assert(k8sClient, apicast, dep, timeout, poll))
 
 				for _, env := range dep.Spec.Template.Spec.Containers[0].Env {
 					switch env.Name {
@@ -448,7 +449,7 @@ var _ = Describe("Apicast controller", func() {
 						Replicas:      1,
 						ContainerName: "apicast",
 						PodMonitor:    true,
-					}).Assert(k8sClient, dep, timeout, poll))
+					}).Assert(k8sClient, apicast, dep, timeout, poll))
 
 				for _, env := range dep.Spec.Template.Spec.Containers[0].Env {
 					switch env.Name {
@@ -639,7 +640,7 @@ var _ = Describe("Apicast controller", func() {
 						PDB:         false,
 						PodMonitor:  true,
 						LastVersion: rvs["deployment/apicast-production"],
-					}).Assert(k8sClient, dep, timeout, poll),
+					}).Assert(k8sClient, apicast, dep, timeout, poll),
 				)
 				By("updating the Apicast Staging workload",
 					(&testutil.ExpectedWorkload{
@@ -650,7 +651,7 @@ var _ = Describe("Apicast controller", func() {
 						PDB:         false,
 						PodMonitor:  true,
 						LastVersion: rvs["deployment/apicast-staging"],
-					}).Assert(k8sClient, dep, timeout, poll))
+					}).Assert(k8sClient, apicast, dep, timeout, poll))
 
 			})
 

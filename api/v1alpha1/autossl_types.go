@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"github.com/3scale-sre/basereconciler/reconciler"
 	"github.com/3scale-sre/basereconciler/util"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -218,8 +219,7 @@ func (cfg *AutoSSLConfig) Default() {
 
 // AutoSSLStatus defines the observed state of AutoSSL
 type AutoSSLStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	AggregatedStatus `json:",inline"`
 }
 
 // +kubebuilder:object:root=true
@@ -237,6 +237,12 @@ type AutoSSL struct {
 // Default implements defaulting for the AutoSSL resource
 func (a *AutoSSL) Default() {
 	a.Spec.Default()
+}
+
+var _ reconciler.ObjectWithAppStatus = &AutoSSL{}
+
+func (d *AutoSSL) GetStatus() any {
+	return &d.Status
 }
 
 // +kubebuilder:object:root=true

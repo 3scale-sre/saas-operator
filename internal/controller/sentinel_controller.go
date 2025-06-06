@@ -33,6 +33,7 @@ import (
 	"github.com/go-logr/logr"
 	"golang.org/x/time/rate"
 	"k8s.io/apimachinery/pkg/api/equality"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/util/workqueue"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -127,16 +128,20 @@ func (r *SentinelReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, err
 	}
 
-	// Reconcile status of the Sentinel resource
-	if err := r.reconcileStatus(ctx, instance, shardedCluster, logger); err != nil {
-		return ctrl.Result{}, err
+	// reconcile the status
+	result = r.ReconcileStatus(ctx, instance,
+		nil, []types.NamespacedName{gen.GetKey()},
+		func() (bool, error) { return sentinelStatusReconciler(ctx, instance, shardedCluster, logger) },
+	)
+	if result.ShouldReturn() {
+		return result.Values()
 	}
 
 	return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
 }
 
-func (r *SentinelReconciler) reconcileStatus(ctx context.Context, instance *saasv1alpha1.Sentinel, cluster *sharded.Cluster,
-	log logr.Logger) error {
+func sentinelStatusReconciler(ctx context.Context,
+	instance *saasv1alpha1.Sentinel, cluster *sharded.Cluster, log logr.Logger) (bool, error) {
 
 	// sentinels info to the status
 	sentinels := make([]string, len(cluster.Sentinels))
@@ -152,7 +157,7 @@ func (r *SentinelReconciler) reconcileStatus(ctx context.Context, instance *saas
 	// other errors
 	sentinelError := &sharded.DiscoveryError_Sentinel_Failure{}
 	if errors.As(merr, sentinelError) {
-		return merr
+		return false, merr
 	}
 	// We don't want the controller to keep failing while things reconfigure as
 	// this makes controller throttling to kick in. Instead, just log the errors
@@ -185,20 +190,15 @@ func (r *SentinelReconciler) reconcileStatus(ctx context.Context, instance *saas
 		}
 	}
 
-	status := saasv1alpha1.SentinelStatus{
-		Sentinels:       sentinels,
-		MonitoredShards: shards,
+	if !equality.Semantic.DeepEqual(sentinels, instance.Status.Sentinels) ||
+		!equality.Semantic.DeepEqual(shards, instance.Status.MonitoredShards) {
+		// update required
+		instance.Status.Sentinels = sentinels
+		instance.Status.MonitoredShards = shards
+		return true, nil
 	}
 
-	if !equality.Semantic.DeepEqual(status, instance.Status) {
-		instance.Status = status
-		if err := r.Client.Status().Update(ctx, instance); err != nil {
-			return err
-		}
-		log.Info("status updated")
-	}
-
-	return nil
+	return false, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.

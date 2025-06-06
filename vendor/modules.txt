@@ -10,7 +10,7 @@ contrib.go.opencensus.io/exporter/prometheus
 # dario.cat/mergo v1.0.1
 ## explicit; go 1.13
 dario.cat/mergo
-# github.com/3scale-sre/basereconciler v0.5.6
+# github.com/3scale-sre/basereconciler v0.6.0
 ## explicit; go 1.24
 github.com/3scale-sre/basereconciler/config
 github.com/3scale-sre/basereconciler/mutators

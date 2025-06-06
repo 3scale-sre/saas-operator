@@ -21,6 +21,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/3scale-sre/basereconciler/reconciler"
 	"github.com/3scale-sre/basereconciler/util"
 	"github.com/3scale-sre/saas-operator/internal/pkg/redis/client"
 	redis "github.com/3scale-sre/saas-operator/internal/pkg/redis/server"
@@ -172,6 +173,7 @@ func (spec *SentinelSpec) Default() {
 
 // SentinelStatus defines the observed state of Sentinel
 type SentinelStatus struct {
+	AggregatedStatus `json:",inline"`
 	// Addresses of the sentinel instances currently running
 	// +operator-sdk:csv:customresourcedefinitions:type=status
 	// +optional
@@ -270,6 +272,12 @@ type Sentinel struct {
 // Default implements defaulting for the Sentinel resource
 func (s *Sentinel) Default() {
 	s.Spec.Default()
+}
+
+var _ reconciler.ObjectWithAppStatus = &Sentinel{}
+
+func (d *Sentinel) GetStatus() any {
+	return &d.Status
 }
 
 //+kubebuilder:object:root=true

@@ -849,7 +849,7 @@ metadata:
     capabilities: Basic Install
     categories: Integration & Delivery
     containerImage: quay.io/3scale-sre/saas-operator
-    createdAt: "2025-05-27T13:42:16Z"
+    createdAt: "2025-06-04T13:48:56Z"
     description: |-
       The 3scale SaaS Operator creates and maintains a SaaS-ready deployment
       of the Red Hat 3scale API Management on OpenShift.
@@ -857,7 +857,11 @@ metadata:
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v4
     repository: https://github.com/3scale-sre/saas-operator
     support: Red Hat
-  name: saas-operator.v0.26.0-alpha.1
+  labels:
+    operatorframework.io/arch.amd64: supported
+    operatorframework.io/arch.arm64: supported
+    operatorframework.io/os.linux: supported
+  name: saas-operator.v0.26.0-alpha.2
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -1907,6 +1911,26 @@ spec:
           More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
         displayName: Requests
         path: staging.resources.requests
+      statusDescriptors:
+      - description: Health is the overall health of the custom resource
+        displayName: Health
+        path: health
+      - description: OwnedWorkloads is a map with the health statuses of individual
+          owned workloads
+        displayName: Owned Workloads
+        path: ownedWorkloads
+      - description: DeploymentStatus is a copy of the status of the owned Deployment
+        displayName: Deployment Status
+        path: ownedWorkloads.deploymentStatus
+      - description: HealthMessage holds the message describing the health status
+        displayName: Health Message
+        path: ownedWorkloads.healthMessage
+      - description: HealthStatus holds the status of the individual workload
+        displayName: Health Status
+        path: ownedWorkloads.healthStatus
+      - description: StatefulSetStatus is a copy of the status of the owned Deployment
+        displayName: Stateful Set Status
+        path: ownedWorkloads.statefulsetStatus
       version: v1alpha1
     - description: AutoSSL is the Schema for the autossls API
       displayName: Auto SSL
@@ -2336,6 +2360,26 @@ spec:
           More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
         displayName: Requests
         path: resources.requests
+      statusDescriptors:
+      - description: Health is the overall health of the custom resource
+        displayName: Health
+        path: health
+      - description: OwnedWorkloads is a map with the health statuses of individual
+          owned workloads
+        displayName: Owned Workloads
+        path: ownedWorkloads
+      - description: DeploymentStatus is a copy of the status of the owned Deployment
+        displayName: Deployment Status
+        path: ownedWorkloads.deploymentStatus
+      - description: HealthMessage holds the message describing the health status
+        displayName: Health Message
+        path: ownedWorkloads.healthMessage
+      - description: HealthStatus holds the status of the individual workload
+        displayName: Health Status
+        path: ownedWorkloads.healthStatus
+      - description: StatefulSetStatus is a copy of the status of the owned Deployment
+        displayName: Stateful Set Status
+        path: ownedWorkloads.statefulsetStatus
       version: v1alpha1
     - description: Backend is the Schema for the backends API
       displayName: Backend
@@ -3287,6 +3331,26 @@ spec:
       - description: If specified, the pod's tolerations.
         displayName: Tolerations
         path: worker.tolerations
+      statusDescriptors:
+      - description: Health is the overall health of the custom resource
+        displayName: Health
+        path: health
+      - description: OwnedWorkloads is a map with the health statuses of individual
+          owned workloads
+        displayName: Owned Workloads
+        path: ownedWorkloads
+      - description: DeploymentStatus is a copy of the status of the owned Deployment
+        displayName: Deployment Status
+        path: ownedWorkloads.deploymentStatus
+      - description: HealthMessage holds the message describing the health status
+        displayName: Health Message
+        path: ownedWorkloads.healthMessage
+      - description: HealthStatus holds the status of the individual workload
+        displayName: Health Status
+        path: ownedWorkloads.healthStatus
+      - description: StatefulSetStatus is a copy of the status of the owned Deployment
+        displayName: Stateful Set Status
+        path: ownedWorkloads.statefulsetStatus
       version: v1alpha1
     - description: CORSProxy is the Schema for the corsproxies API
       displayName: CORSProxy
@@ -3666,6 +3730,26 @@ spec:
           More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
         displayName: Requests
         path: resources.requests
+      statusDescriptors:
+      - description: Health is the overall health of the custom resource
+        displayName: Health
+        path: health
+      - description: OwnedWorkloads is a map with the health statuses of individual
+          owned workloads
+        displayName: Owned Workloads
+        path: ownedWorkloads
+      - description: DeploymentStatus is a copy of the status of the owned Deployment
+        displayName: Deployment Status
+        path: ownedWorkloads.deploymentStatus
+      - description: HealthMessage holds the message describing the health status
+        displayName: Health Message
+        path: ownedWorkloads.healthMessage
+      - description: HealthStatus holds the status of the individual workload
+        displayName: Health Status
+        path: ownedWorkloads.healthStatus
+      - description: StatefulSetStatus is a copy of the status of the owned Deployment
+        displayName: Stateful Set Status
+        path: ownedWorkloads.statefulsetStatus
       version: v1alpha1
     - description: EchoAPI is the Schema for the echoapis API
       displayName: Echo API
@@ -4138,6 +4222,26 @@ spec:
           More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
         displayName: Requests
         path: resources.requests
+      statusDescriptors:
+      - description: Health is the overall health of the custom resource
+        displayName: Health
+        path: health
+      - description: OwnedWorkloads is a map with the health statuses of individual
+          owned workloads
+        displayName: Owned Workloads
+        path: ownedWorkloads
+      - description: DeploymentStatus is a copy of the status of the owned Deployment
+        displayName: Deployment Status
+        path: ownedWorkloads.deploymentStatus
+      - description: HealthMessage holds the message describing the health status
+        displayName: Health Message
+        path: ownedWorkloads.healthMessage
+      - description: HealthStatus holds the status of the individual workload
+        displayName: Health Status
+        path: ownedWorkloads.healthStatus
+      - description: StatefulSetStatus is a copy of the status of the owned Deployment
+        displayName: Stateful Set Status
+        path: ownedWorkloads.statefulsetStatus
       version: v1alpha1
     - description: MappingService is the Schema for the mappingservices API
       displayName: Mapping Service
@@ -4526,6 +4630,26 @@ spec:
           More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
         displayName: Requests
         path: resources.requests
+      statusDescriptors:
+      - description: Health is the overall health of the custom resource
+        displayName: Health
+        path: health
+      - description: OwnedWorkloads is a map with the health statuses of individual
+          owned workloads
+        displayName: Owned Workloads
+        path: ownedWorkloads
+      - description: DeploymentStatus is a copy of the status of the owned Deployment
+        displayName: Deployment Status
+        path: ownedWorkloads.deploymentStatus
+      - description: HealthMessage holds the message describing the health status
+        displayName: Health Message
+        path: ownedWorkloads.healthMessage
+      - description: HealthStatus holds the status of the individual workload
+        displayName: Health Status
+        path: ownedWorkloads.healthStatus
+      - description: StatefulSetStatus is a copy of the status of the owned Deployment
+        displayName: Stateful Set Status
+        path: ownedWorkloads.statefulsetStatus
       version: v1alpha1
     - description: RedisShard is the Schema for the redisshards API
       displayName: Redis Shard
@@ -4561,6 +4685,25 @@ spec:
         displayName: Slave Count
         path: slaveCount
       statusDescriptors:
+      - description: Health is the overall health of the custom resource
+        displayName: Health
+        path: health
+      - description: OwnedWorkloads is a map with the health statuses of individual
+          owned workloads
+        displayName: Owned Workloads
+        path: ownedWorkloads
+      - description: DeploymentStatus is a copy of the status of the owned Deployment
+        displayName: Deployment Status
+        path: ownedWorkloads.deploymentStatus
+      - description: HealthMessage holds the message describing the health status
+        displayName: Health Message
+        path: ownedWorkloads.healthMessage
+      - description: HealthStatus holds the status of the individual workload
+        displayName: Health Status
+        path: ownedWorkloads.healthStatus
+      - description: StatefulSetStatus is a copy of the status of the owned Deployment
+        displayName: Stateful Set Status
+        path: ownedWorkloads.statefulsetStatus
       - description: ShardNodes describes the nodes in the redis shard
         displayName: Shard Nodes
         path: shardNodes
@@ -4707,11 +4850,30 @@ spec:
         displayName: Requests
         path: resources.requests
       statusDescriptors:
+      - description: Health is the overall health of the custom resource
+        displayName: Health
+        path: health
       - description: |-
           MonitoredShards is the list of shards that the Sentinel
           resource is currently monitoring
         displayName: Monitored Shards
         path: monitoredShards
+      - description: OwnedWorkloads is a map with the health statuses of individual
+          owned workloads
+        displayName: Owned Workloads
+        path: ownedWorkloads
+      - description: DeploymentStatus is a copy of the status of the owned Deployment
+        displayName: Deployment Status
+        path: ownedWorkloads.deploymentStatus
+      - description: HealthMessage holds the message describing the health status
+        displayName: Health Message
+        path: ownedWorkloads.healthMessage
+      - description: HealthStatus holds the status of the individual workload
+        displayName: Health Status
+        path: ownedWorkloads.healthStatus
+      - description: StatefulSetStatus is a copy of the status of the owned Deployment
+        displayName: Stateful Set Status
+        path: ownedWorkloads.statefulsetStatus
       - description: Addresses of the sentinel instances currently running
         displayName: Sentinels
         path: sentinels
@@ -6477,6 +6639,26 @@ spec:
           resource in the same Namespace
         displayName: Twemproxy Config Ref
         path: twemproxy.twemproxyConfigRef
+      statusDescriptors:
+      - description: Health is the overall health of the custom resource
+        displayName: Health
+        path: health
+      - description: OwnedWorkloads is a map with the health statuses of individual
+          owned workloads
+        displayName: Owned Workloads
+        path: ownedWorkloads
+      - description: DeploymentStatus is a copy of the status of the owned Deployment
+        displayName: Deployment Status
+        path: ownedWorkloads.deploymentStatus
+      - description: HealthMessage holds the message describing the health status
+        displayName: Health Message
+        path: ownedWorkloads.healthMessage
+      - description: HealthStatus holds the status of the individual workload
+        displayName: Health Status
+        path: ownedWorkloads.healthStatus
+      - description: StatefulSetStatus is a copy of the status of the owned Deployment
+        displayName: Stateful Set Status
+        path: ownedWorkloads.statefulsetStatus
       version: v1alpha1
     - description: TwemproxyConfig is the Schema for the twemproxyconfigs API
       displayName: Twemproxy Config
@@ -7152,6 +7334,26 @@ spec:
           More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
         displayName: Requests
         path: que.resources.requests
+      statusDescriptors:
+      - description: Health is the overall health of the custom resource
+        displayName: Health
+        path: health
+      - description: OwnedWorkloads is a map with the health statuses of individual
+          owned workloads
+        displayName: Owned Workloads
+        path: ownedWorkloads
+      - description: DeploymentStatus is a copy of the status of the owned Deployment
+        displayName: Deployment Status
+        path: ownedWorkloads.deploymentStatus
+      - description: HealthMessage holds the message describing the health status
+        displayName: Health Message
+        path: ownedWorkloads.healthMessage
+      - description: HealthStatus holds the status of the individual workload
+        displayName: Health Status
+        path: ownedWorkloads.healthStatus
+      - description: StatefulSetStatus is a copy of the status of the owned Deployment
+        displayName: Stateful Set Status
+        path: ownedWorkloads.statefulsetStatus
       version: v1alpha1
   description: |
     The 3scale SaaS Operator creates and maintains SaaS-ready deployments
@@ -7191,6 +7393,193 @@ spec:
       clusterPermissions:
       - rules:
         - apiGroups:
+          - ""
+          resources:
+          - configmaps
+          - services
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - ""
+          resources:
+          - pods
+          verbs:
+          - get
+          - list
+          - patch
+          - watch
+        - apiGroups:
+          - ""
+          resources:
+          - secrets
+          verbs:
+          - get
+          - list
+          - watch
+        - apiGroups:
+          - apps
+          resources:
+          - deployments
+          - statefulsets
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - autoscaling
+          resources:
+          - horizontalpodautoscalers
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - external-secrets.io
+          resources:
+          - externalsecrets
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - grafana.integreatly.org
+          resources:
+          - grafanadashboards
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - marin3r.3scale.net
+          resources:
+          - envoyconfigs
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - monitoring.coreos.com
+          resources:
+          - podmonitors
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - policy
+          resources:
+          - poddisruptionbudgets
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - saas.3scale.net
+          resources:
+          - apicasts
+          - autossls
+          - backends
+          - corsproxies
+          - echoapis
+          - mappingservices
+          - redisshards
+          - sentinels
+          - shardedredisbackups
+          - systems
+          - twemproxyconfigs
+          - zyncs
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - saas.3scale.net
+          resources:
+          - apicasts/finalizers
+          - autossls/finalizers
+          - backends/finalizers
+          - corsproxies/finalizers
+          - echoapis/finalizers
+          - mappingservices/finalizers
+          - redisshards/finalizers
+          - sentinels/finalizers
+          - shardedredisbackups/finalizers
+          - systems/finalizers
+          - twemproxyconfigs/finalizers
+          - zyncs/finalizers
+          verbs:
+          - update
+        - apiGroups:
+          - saas.3scale.net
+          resources:
+          - apicasts/status
+          - autossls/status
+          - backends/status
+          - corsproxies/status
+          - echoapis/status
+          - mappingservices/status
+          - redisshards/status
+          - sentinels/status
+          - shardedredisbackups/status
+          - systems/status
+          - twemproxyconfigs/status
+          - zyncs/status
+          verbs:
+          - get
+          - patch
+          - update
+        - apiGroups:
+          - tekton.dev
+          resources:
+          - pipelines
+          - tasks
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
           - authentication.k8s.io
           resources:
           - tokenreviews
@@ -7202,13 +7591,13 @@ spec:
           - subjectaccessreviews
           verbs:
           - create
-        serviceAccountName: saas-operatorcontroller-manager
+        serviceAccountName: saas-operator-controller-manager
       deployments:
       - label:
           app.kubernetes.io/managed-by: kustomize
           app.kubernetes.io/name: saas-operator
           control-plane: controller-manager
-        name: saas-operatorcontroller-manager
+        name: saas-operator-controller-manager
         spec:
           replicas: 1
           selector:
@@ -7224,6 +7613,20 @@ spec:
                 app.kubernetes.io/name: saas-operator
                 control-plane: controller-manager
             spec:
+              affinity:
+                nodeAffinity:
+                  requiredDuringSchedulingIgnoredDuringExecution:
+                    nodeSelectorTerms:
+                    - matchExpressions:
+                      - key: kubernetes.io/arch
+                        operator: In
+                        values:
+                        - amd64
+                        - arm64
+                      - key: kubernetes.io/os
+                        operator: In
+                        values:
+                        - linux
               containers:
               - args:
                 - operator
@@ -7236,7 +7639,7 @@ spec:
                   valueFrom:
                     fieldRef:
                       fieldPath: metadata.annotations['olm.targetNamespaces']
-                image: quay.io/3scale-sre/saas-operator:v0.26.0-alpha.1
+                image: quay.io/3scale-sre/saas-operator:v0.26.0-alpha.2
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -7270,7 +7673,7 @@ spec:
                 runAsNonRoot: true
                 seccompProfile:
                   type: RuntimeDefault
-              serviceAccountName: saas-operatorcontroller-manager
+              serviceAccountName: saas-operator-controller-manager
               terminationGracePeriodSeconds: 10
       permissions:
       - rules:
@@ -7305,7 +7708,7 @@ spec:
           verbs:
           - create
           - patch
-        serviceAccountName: saas-operatorcontroller-manager
+        serviceAccountName: saas-operator-controller-manager
     strategy: deployment
   installModes:
   - supported: true
@@ -7332,4 +7735,4 @@ spec:
   provider:
     name: Red Hat
     url: https://www.3scale.net/
-  version: 0.26.0-alpha.1
+  version: 0.26.0-alpha.2

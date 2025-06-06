@@ -25,6 +25,7 @@ import (
 	"github.com/3scale-sre/saas-operator/internal/pkg/generators/zync"
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -66,7 +67,22 @@ func (r *ZyncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		return ctrl.Result{}, err
 	}
 
+	// reconcile all resources
 	result = r.ReconcileOwnedResources(ctx, instance, resources)
+	if result.ShouldReturn() {
+		return result.Values()
+	}
+
+	// reconcile the status
+	result = r.ReconcileStatus(ctx, instance,
+		[]types.NamespacedName{gen.API.GetKey(), gen.Que.GetKey()},
+		func() []types.NamespacedName {
+			if gen.Console.Enabled {
+				return []types.NamespacedName{gen.Console.GetKey()}
+			}
+			return nil
+		}(),
+	)
 	if result.ShouldReturn() {
 		return result.Values()
 	}

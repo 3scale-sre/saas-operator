@@ -67,10 +67,11 @@ var _ = Describe("MappingService controller", func() {
 					Namespace:     namespace,
 					Replicas:      2,
 					ContainerName: "mapping-service",
+					Health:        "Progressing",
 					PDB:           true,
 					HPA:           true,
 					PodMonitor:    true,
-				}).Assert(k8sClient, dep, timeout, poll))
+				}).Assert(k8sClient, mappingservice, dep, timeout, poll))
 
 			for _, env := range dep.Spec.Template.Spec.Containers[0].Env {
 				switch env.Name {
@@ -172,7 +173,7 @@ var _ = Describe("MappingService controller", func() {
 						HPA:           true,
 						PodMonitor:    true,
 						LastVersion:   rvs["deployment/mappingservice"],
-					}).Assert(k8sClient, dep, timeout, poll))
+					}).Assert(k8sClient, mappingservice, dep, timeout, poll))
 
 				for _, env := range dep.Spec.Template.Spec.Containers[0].Env {
 					switch env.Name {
@@ -257,7 +258,7 @@ var _ = Describe("MappingService controller", func() {
 						PDB:         false,
 						PodMonitor:  true,
 						LastVersion: rvs["deployment/mappingservice"],
-					}).Assert(k8sClient, dep, timeout, poll))
+					}).Assert(k8sClient, mappingservice, dep, timeout, poll))
 
 			})
 

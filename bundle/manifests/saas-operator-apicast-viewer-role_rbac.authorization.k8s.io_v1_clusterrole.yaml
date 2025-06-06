@@ -1,0 +1,23 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: saas-operator
+  name: saas-operator-apicast-viewer-role
+rules:
+- apiGroups:
+  - saas.3scale.net
+  resources:
+  - apicasts
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - saas.3scale.net
+  resources:
+  - apicasts/status
+  verbs:
+  - get

@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"github.com/3scale-sre/basereconciler/reconciler"
 	"github.com/3scale-sre/basereconciler/util"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -167,8 +168,7 @@ func (cfg *MappingServiceConfig) Default() {
 
 // MappingServiceStatus defines the observed state of MappingService
 type MappingServiceStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	AggregatedStatus `json:",inline"`
 }
 
 // +kubebuilder:object:root=true
@@ -186,6 +186,12 @@ type MappingService struct {
 // Default implements defaulting for the MappingService resource
 func (ms *MappingService) Default() {
 	ms.Spec.Default()
+}
+
+var _ reconciler.ObjectWithAppStatus = &MappingService{}
+
+func (d *MappingService) GetStatus() any {
+	return &d.Status
 }
 
 // +kubebuilder:object:root=true

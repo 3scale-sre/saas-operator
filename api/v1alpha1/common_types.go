@@ -22,12 +22,14 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/3scale-sre/basereconciler/reconciler"
 	"github.com/3scale-sre/basereconciler/util"
 	jsonpatch "github.com/evanphx/json-patch"
 	appsv1 "k8s.io/api/apps/v1"
 	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
@@ -683,7 +685,7 @@ type Canary struct {
 	// Patches to apply for the canary Deployment. Patches are expected
 	// to be JSON documents as an RFC 6902 patches.
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
-	// + optional
+	// +optional
 	Patches []string `json:"patches,omitempty"`
 }
 
@@ -711,6 +713,113 @@ func (c *Canary) PatchSpec(spec, canarySpec interface{}) error {
 	}
 
 	return nil
+}
+
+type WorkloadStatus struct {
+	// HealthStatus holds the status of the individual workload
+	// +operator-sdk:csv:customresourcedefinitions:type=status
+	// +optional
+	HealthStatus string `json:"healthStatus,omitempty"`
+	// HealthMessage holds the message describing the health status
+	// +operator-sdk:csv:customresourcedefinitions:type=status
+	// +optional
+	HealthMessage string `json:"healthMessage,omitempty"`
+	// DeploymentStatus is a copy of the status of the owned Deployment
+	// +operator-sdk:csv:customresourcedefinitions:type=status
+	// +optional
+	DeploymentStatus *appsv1.DeploymentStatus `json:"deploymentStatus,omitempty"`
+	// StatefulSetStatus is a copy of the status of the owned Deployment
+	// +operator-sdk:csv:customresourcedefinitions:type=status
+	// +optional
+	StatefulSetStatus *appsv1.StatefulSetStatus `json:"statefulsetStatus,omitempty"`
+}
+
+var _ reconciler.AppStatusWithAggregatedHealth = &AggregatedStatus{}
+
+type AggregatedStatus struct {
+	// Health is the overall health of the custom resource
+	// +operator-sdk:csv:customresourcedefinitions:type=status
+	// +optional
+	Health string `json:"health,omitempty"`
+	// OwnedWorkloads is a map with the health statuses of individual owned workloads
+	// +operator-sdk:csv:customresourcedefinitions:type=status
+	// +optional
+	OwnedWorkloads map[string]*WorkloadStatus `json:"ownedWorkloads,omitempty"`
+}
+
+func (status *AggregatedStatus) Init(key types.NamespacedName) {
+	if status.OwnedWorkloads == nil {
+		status.OwnedWorkloads = map[string]*WorkloadStatus{}
+	}
+	if _, ok := status.OwnedWorkloads[key.Name]; !ok {
+		status.OwnedWorkloads[key.Name] = &WorkloadStatus{
+			HealthStatus:  "Unknown",
+			HealthMessage: "Unable to determine health",
+		}
+	}
+}
+
+func (status *AggregatedStatus) GetDeploymentStatus(key types.NamespacedName) *appsv1.DeploymentStatus {
+	if w, ok := status.OwnedWorkloads[key.Name]; !ok {
+		return nil
+	} else {
+		return w.DeploymentStatus
+	}
+}
+
+func (status *AggregatedStatus) SetDeploymentStatus(key types.NamespacedName, s *appsv1.DeploymentStatus) {
+	status.Init(key)
+	status.OwnedWorkloads[key.Name].DeploymentStatus = s
+}
+
+func (status *AggregatedStatus) GetStatefulSetStatus(key types.NamespacedName) *appsv1.StatefulSetStatus {
+	if w, ok := status.OwnedWorkloads[key.Name]; !ok {
+		return nil
+	} else {
+		return w.StatefulSetStatus
+	}
+}
+func (status *AggregatedStatus) SetStatefulSetStatus(key types.NamespacedName, s *appsv1.StatefulSetStatus) {
+	status.Init(key)
+	status.OwnedWorkloads[key.Name].StatefulSetStatus = s
+}
+
+func (status *AggregatedStatus) GetHealthStatus(key types.NamespacedName) string {
+	if w, ok := status.OwnedWorkloads[key.Name]; !ok {
+		return "Unknown"
+	} else {
+		return w.HealthStatus
+	}
+}
+
+func (status *AggregatedStatus) SetHealthStatus(key types.NamespacedName, s string) {
+	status.Init(key)
+	status.OwnedWorkloads[key.Name].HealthStatus = s
+}
+
+func (status *AggregatedStatus) GetHealthMessage(key types.NamespacedName) string {
+	if w, ok := status.OwnedWorkloads[key.Name]; !ok {
+		return "Unable to determine health"
+	} else {
+		return w.HealthMessage
+	}
+}
+
+func (status *AggregatedStatus) SetHealthMessage(key types.NamespacedName, msg string) {
+	status.Init(key)
+	status.OwnedWorkloads[key.Name].HealthMessage = msg
+}
+
+func (status *AggregatedStatus) GetAggregatedHealthStatus() string {
+	if status.Health == "" {
+		return "Unknown"
+	} else {
+		return status.Health
+	}
+}
+
+func (status *AggregatedStatus) SetAggregatedHealthStatus(s string) {
+	status.Health = s
 }
 
 func stringOrDefault(value *string, defValue *string) *string {

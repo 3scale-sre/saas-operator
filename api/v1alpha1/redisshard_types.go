@@ -20,6 +20,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/3scale-sre/basereconciler/reconciler"
 	"github.com/3scale-sre/basereconciler/util"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -122,6 +123,7 @@ func (rsn *RedisShardNodes) GetIndexByHostPort(hostport string) int {
 
 // RedisShardStatus defines the observed state of RedisShard
 type RedisShardStatus struct {
+	AggregatedStatus `json:",inline"`
 	// ShardNodes describes the nodes in the redis shard
 	// +operator-sdk:csv:customresourcedefinitions:type=status
 	// +optional
@@ -145,6 +147,12 @@ type RedisShard struct {
 // Default implements defaulting for the RedisShard resource
 func (rs *RedisShard) Default() {
 	rs.Spec.Default()
+}
+
+var _ reconciler.ObjectWithAppStatus = &RedisShard{}
+
+func (d *RedisShard) GetStatus() any {
+	return &d.Status
 }
 
 //+kubebuilder:object:root=true

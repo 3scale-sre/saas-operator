@@ -62,6 +62,7 @@ func (r *RedisShardReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 
 	gen := redisshard.NewGenerator(instance.GetName(), instance.GetNamespace(), instance.Spec)
 
+	// reconcile all resources
 	result = r.ReconcileOwnedResources(ctx, instance, gen.Resources())
 	if result.ShouldReturn() {
 		return result.Values()
@@ -73,8 +74,13 @@ func (r *RedisShardReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		return result.Values()
 	}
 
-	if err := r.updateStatus(ctx, shard, instance, logger); err != nil {
-		return ctrl.Result{}, err
+	// reconcile the status
+	result = r.ReconcileStatus(ctx, instance,
+		nil, []types.NamespacedName{gen.GetKey()},
+		func() (bool, error) { return redisShardStatusReconciler(shard, instance) },
+	)
+	if result.ShouldReturn() {
+		return result.Values()
 	}
 
 	return ctrl.Result{}, nil
@@ -126,25 +132,21 @@ func (r *RedisShardReconciler) setRedisRoles(ctx context.Context, key types.Name
 	return shard, reconciler.Result{}
 }
 
-func (r *RedisShardReconciler) updateStatus(ctx context.Context, shard *sharded.Shard, instance *saasv1alpha1.RedisShard, log logr.Logger) error {
-
-	status := saasv1alpha1.RedisShardStatus{
-		ShardNodes: &saasv1alpha1.RedisShardNodes{Master: map[string]string{}, Slaves: map[string]string{}},
-	}
+func redisShardStatusReconciler(shard *sharded.Shard, instance *saasv1alpha1.RedisShard) (bool, error) {
+	shardNodes := &saasv1alpha1.RedisShardNodes{Master: map[string]string{}, Slaves: map[string]string{}}
 
 	for _, server := range shard.Servers {
 		if server.Role == client.Master {
-			status.ShardNodes.Master[server.GetAlias()] = server.ID()
+			shardNodes.Master[server.GetAlias()] = server.ID()
 		} else if server.Role == client.Slave {
-			status.ShardNodes.Slaves[server.GetAlias()] = server.ID()
-		}
-	}
-	if !equality.Semantic.DeepEqual(status, instance.Status) {
-		instance.Status = status
-		if err := r.Client.Status().Update(ctx, instance); err != nil {
-			return err
+			shardNodes.Slaves[server.GetAlias()] = server.ID()
 		}
 	}
 
-	return nil
+	if !equality.Semantic.DeepEqual(instance.Status.ShardNodes, shardNodes) {
+		instance.Status.ShardNodes = shardNodes
+		return true, nil
+	}
+
+	return false, nil
 }

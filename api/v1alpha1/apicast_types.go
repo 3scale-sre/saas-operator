@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"github.com/3scale-sre/basereconciler/reconciler"
 	"github.com/3scale-sre/basereconciler/util"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -231,7 +232,9 @@ func (cfg *ApicastConfig) Default() {
 }
 
 // ApicastStatus defines the observed state of Apicast
-type ApicastStatus struct{}
+type ApicastStatus struct {
+	AggregatedStatus `json:",inline"`
+}
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
@@ -248,6 +251,12 @@ type Apicast struct {
 // Default implements defaulting for the Apicast resource
 func (a *Apicast) Default() {
 	a.Spec.Default()
+}
+
+var _ reconciler.ObjectWithAppStatus = &Apicast{}
+
+func (d *Apicast) GetStatus() any {
+	return &d.Status
 }
 
 // +kubebuilder:object:root=true
