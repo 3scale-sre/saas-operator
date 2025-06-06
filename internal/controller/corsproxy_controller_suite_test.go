@@ -68,10 +68,11 @@ var _ = Describe("CORSProxy controller", func() {
 					Namespace:     namespace,
 					Replicas:      2,
 					ContainerName: "cors-proxy",
+					Health:        "Progressing",
 					PDB:           true,
 					HPA:           true,
 					PodMonitor:    true,
-				}).Assert(k8sClient, dep, timeout, poll))
+				}).Assert(k8sClient, corsproxy, dep, timeout, poll))
 
 			Expect(dep.Spec.Template.Spec.Volumes).To(HaveLen(0))
 			Expect(dep.Spec.Template.Spec.Containers[0].Env[0].Name).To(Equal("DATABASE_URL"))
@@ -174,7 +175,7 @@ var _ = Describe("CORSProxy controller", func() {
 						HPA:           true,
 						PodMonitor:    true,
 						LastVersion:   rvs["deployment/corsproxy"],
-					}).Assert(k8sClient, dep, timeout, poll))
+					}).Assert(k8sClient, corsproxy, dep, timeout, poll))
 
 				Expect(dep.Spec.Template.Spec.Containers[0].LivenessProbe).To(BeNil())
 				Expect(dep.Spec.Template.Spec.Containers[0].ReadinessProbe).To(BeNil())
@@ -252,7 +253,7 @@ var _ = Describe("CORSProxy controller", func() {
 						PDB:         false,
 						PodMonitor:  true,
 						LastVersion: rvs["deployment/corsproxy"],
-					}).Assert(k8sClient, dep, timeout, poll))
+					}).Assert(k8sClient, corsproxy, dep, timeout, poll))
 
 			})
 
