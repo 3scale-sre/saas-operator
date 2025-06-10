@@ -2,12 +2,12 @@ package e2e
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math/rand"
 	"strings"
 	"time"
 
-	"github.com/3scale-sre/basereconciler/util"
 	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	redisclient "github.com/3scale-sre/saas-operator/internal/pkg/redis/client"
 	testutil "github.com/3scale-sre/saas-operator/test/util"
@@ -17,6 +17,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -46,11 +47,11 @@ var _ = Describe("sentinel e2e suite", func() {
 		shards = []saasv1alpha1.RedisShard{
 			{
 				ObjectMeta: metav1.ObjectMeta{Name: "rs0", Namespace: ns},
-				Spec:       saasv1alpha1.RedisShardSpec{MasterIndex: util.Pointer[int32](0), SlaveCount: util.Pointer[int32](2)},
+				Spec:       saasv1alpha1.RedisShardSpec{MasterIndex: ptr.To[int32](0), SlaveCount: ptr.To[int32](2)},
 			},
 			{
 				ObjectMeta: metav1.ObjectMeta{Name: "rs1", Namespace: ns},
-				Spec:       saasv1alpha1.RedisShardSpec{MasterIndex: util.Pointer[int32](2), SlaveCount: util.Pointer[int32](2)},
+				Spec:       saasv1alpha1.RedisShardSpec{MasterIndex: ptr.To[int32](2), SlaveCount: ptr.To[int32](2)},
 			},
 		}
 
@@ -67,6 +68,7 @@ var _ = Describe("sentinel e2e suite", func() {
 					// store the resource for later use
 					shards[i] = shard
 					GinkgoWriter.Printf("[debug] Shard %s topology: %+v\n", shard.GetName(), *shard.Status.ShardNodes)
+
 					return nil
 				} else {
 					return fmt.Errorf("RedisShard %s not ready", shard.ObjectMeta.Name)
@@ -108,8 +110,9 @@ var _ = Describe("sentinel e2e suite", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				if len(sentinel.Status.MonitoredShards) != len(shards) {
-					return fmt.Errorf("sentinel not ready")
+					return errors.New("sentinel not ready")
 				}
+
 				return nil
 			}, timeout, poll).ShouldNot(HaveOccurred())
 
@@ -138,6 +141,7 @@ var _ = Describe("sentinel e2e suite", func() {
 					for _, master := range masters {
 						if strings.Contains(shard.Status.ShardNodes.MasterHostPort(), master.IP) {
 							found = true
+
 							break
 						}
 					}
@@ -273,6 +277,7 @@ var _ = Describe("sentinel e2e suite", func() {
 					if role != redisclient.Master {
 						return fmt.Errorf("expected 'master' but got %s", role)
 					}
+
 					return nil
 				}, timeout, poll).ShouldNot(HaveOccurred())
 

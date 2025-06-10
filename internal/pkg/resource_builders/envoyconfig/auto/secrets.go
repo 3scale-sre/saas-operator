@@ -9,20 +9,17 @@ import (
 )
 
 func GenerateSecrets(resources []envoy.Resource) ([]marin3rv1alpha1.EnvoySecretResource, error) {
-
 	refs := []string{}
 
 	for _, res := range resources {
-
 		switch o := res.(type) {
-
 		case *envoy_config_listener_v3.Listener:
 			secrets, err := secretRefsFromListener(o)
 			if err != nil {
 				return nil, err
 			}
-			refs = append(refs, secrets...)
 
+			refs = append(refs, secrets...)
 		}
 	}
 
@@ -35,19 +32,20 @@ func GenerateSecrets(resources []envoy.Resource) ([]marin3rv1alpha1.EnvoySecretR
 }
 
 func secretRefsFromListener(listener *envoy_config_listener_v3.Listener) ([]string, error) {
-
-	if listener.FilterChains[0].TransportSocket == nil {
+	if listener.GetFilterChains()[0].GetTransportSocket() == nil {
 		return nil, nil
 	}
 
 	secrets := []string{}
-	proto, err := listener.FilterChains[0].TransportSocket.GetTypedConfig().UnmarshalNew()
+
+	proto, err := listener.GetFilterChains()[0].GetTransportSocket().GetTypedConfig().UnmarshalNew()
 	if err != nil {
 		return nil, err
 	}
+
 	tlsContext := proto.(*envoy_extensions_transport_sockets_tls_v3.DownstreamTlsContext)
-	for _, sdsConfig := range tlsContext.CommonTlsContext.TlsCertificateSdsSecretConfigs {
-		secrets = append(secrets, sdsConfig.Name)
+	for _, sdsConfig := range tlsContext.GetCommonTlsContext().GetTlsCertificateSdsSecretConfigs() {
+		secrets = append(secrets, sdsConfig.GetName())
 	}
 
 	return lo.Uniq(secrets), nil

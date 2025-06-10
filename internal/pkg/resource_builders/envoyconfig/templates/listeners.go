@@ -22,7 +22,7 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
-func ListenerHTTP_v1(name string, opts interface{}) (envoy.Resource, error) {
+func ListenerHTTP_v1(name string, opts any) (envoy.Resource, error) {
 	o := opts.(*saasv1alpha1.ListenerHttp)
 
 	listener := &envoy_config_listener_v3.Listener{
@@ -34,7 +34,7 @@ func ListenerHTTP_v1(name string, opts interface{}) (envoy.Resource, error) {
 				Name: "envoy.filters.network.http_connection_manager",
 				ConfigType: &envoy_config_listener_v3.Filter_TypedConfig{
 					TypedConfig: func() *anypb.Any {
-						any, err := anypb.New(
+						proto, err := anypb.New(
 							&http_connection_manager_v3.HttpConnectionManager{
 								AccessLog: AccessLogConfig_v1(name, o.CertificateSecretName != nil),
 								CommonHttpProtocolOptions: func() *envoy_config_core_v3.HttpProtocolOptions {
@@ -49,6 +49,7 @@ func ListenerHTTP_v1(name string, opts interface{}) (envoy.Resource, error) {
 									} else {
 										po.HeadersWithUnderscoresAction = envoy_config_core_v3.HttpProtocolOptions_REJECT_REQUEST
 									}
+
 									return po
 								}(),
 
@@ -60,6 +61,7 @@ func ListenerHTTP_v1(name string, opts interface{}) (envoy.Resource, error) {
 											DefaultHostForHttp_10: *o.DefaultHostForHttp10,
 										}
 									}
+
 									return &envoy_config_core_v3.Http1ProtocolOptions{}
 								}(),
 								Http2ProtocolOptions: &envoy_config_core_v3.Http2ProtocolOptions{
@@ -76,7 +78,8 @@ func ListenerHTTP_v1(name string, opts interface{}) (envoy.Resource, error) {
 						if err != nil {
 							panic(err)
 						}
-						return any
+
+						return proto
 					}(),
 				},
 			}},
@@ -99,33 +102,37 @@ func ListenerFilters_v1(tls, proxyProtocol bool) []*envoy_config_listener_v3.Lis
 			Name: "envoy.filters.listener.tls_inspector",
 			ConfigType: &envoy_config_listener_v3.ListenerFilter_TypedConfig{
 				TypedConfig: func() *anypb.Any {
-					any, err := anypb.New(
+					proto, err := anypb.New(
 						&envoy_extensions_filters_listener_tls_inspector_v3.TlsInspector{},
 					)
 					if err != nil {
 						panic(err)
 					}
-					return any
+
+					return proto
 				}(),
 			},
 		})
 	}
+
 	if proxyProtocol {
 		filters = append(filters, &envoy_config_listener_v3.ListenerFilter{
 			Name: "envoy.filters.listener.proxy_protocol",
 			ConfigType: &envoy_config_listener_v3.ListenerFilter_TypedConfig{
 				TypedConfig: func() *anypb.Any {
-					any, err := anypb.New(
+					proto, err := anypb.New(
 						&envoy_extensions_filters_listener_proxy_protocol_v3.ProxyProtocol{},
 					)
 					if err != nil {
 						panic(err)
 					}
-					return any
+
+					return proto
 				}(),
 			},
 		})
 	}
+
 	return filters
 }
 
@@ -144,25 +151,27 @@ func RouteConfigFromAds_v1(name string) *http_connection_manager_v3.HttpConnecti
 }
 
 func HttpFilters_v1(rlOpts *saasv1alpha1.RateLimitOptions) []*http_connection_manager_v3.HttpFilter {
-
 	filters := []*http_connection_manager_v3.HttpFilter{}
 	if rlOpts != nil {
 		filters = append(filters, HttpFilterRateLimit_v1(rlOpts))
 	}
+
 	filters = append(filters, &http_connection_manager_v3.HttpFilter{
 		Name: "envoy.filters.http.router",
 		ConfigType: &http_connection_manager_v3.HttpFilter_TypedConfig{
 			TypedConfig: func() *anypb.Any {
-				any, err := anypb.New(
+				proto, err := anypb.New(
 					&envoy_extensions_filters_http_router_v3.Router{},
 				)
 				if err != nil {
 					panic(err)
 				}
-				return any
+
+				return proto
 			}(),
 		},
 	})
+
 	return filters
 }
 
@@ -171,7 +180,7 @@ func HttpFilterRateLimit_v1(opts *saasv1alpha1.RateLimitOptions) *http_connectio
 		Name: "envoy.filters.http.ratelimit",
 		ConfigType: &http_connection_manager_v3.HttpFilter_TypedConfig{
 			TypedConfig: func() *anypb.Any {
-				any, err := anypb.New(
+				proto, err := anypb.New(
 					&envoy_extensions_filters_http_ratelimit_v3.RateLimit{
 						Domain:          opts.Domain,
 						Timeout:         durationpb.New(opts.Timeout.Duration),
@@ -191,7 +200,8 @@ func HttpFilterRateLimit_v1(opts *saasv1alpha1.RateLimitOptions) *http_connectio
 				if err != nil {
 					panic(err)
 				}
-				return any
+
+				return proto
 			}(),
 		},
 	}
@@ -230,6 +240,7 @@ func AccessLogConfig_v1(name string, tls bool) []*envoy_config_accesslog_v3.Acce
 											m["downstream_tls_cipher"] = structpb.NewStringValue("%DOWNSTREAM_TLS_CIPHER%")
 											m["downstream_tls_version"] = structpb.NewStringValue("%DOWNSTREAM_TLS_VERSION%")
 										}
+
 										return m
 									}(),
 								},
@@ -238,11 +249,12 @@ func AccessLogConfig_v1(name string, tls bool) []*envoy_config_accesslog_v3.Acce
 					},
 				}
 
-				any, err := anypb.New(logfmt)
+				proto, err := anypb.New(logfmt)
 				if err != nil {
 					panic(err)
 				}
-				return any
+
+				return proto
 			}(),
 		},
 	}}
@@ -253,7 +265,7 @@ func TransportSocket_v1(secretName string, http2 bool) *envoy_config_core_v3.Tra
 		Name: "envoy.transport_sockets.tls",
 		ConfigType: &envoy_config_core_v3.TransportSocket_TypedConfig{
 			TypedConfig: func() *anypb.Any {
-				any, err := anypb.New(&envoy_extensions_transport_sockets_tls_v3.DownstreamTlsContext{
+				proto, err := anypb.New(&envoy_extensions_transport_sockets_tls_v3.DownstreamTlsContext{
 					CommonTlsContext: &envoy_extensions_transport_sockets_tls_v3.CommonTlsContext{
 						TlsCertificateSdsSecretConfigs: []*envoy_extensions_transport_sockets_tls_v3.SdsSecretConfig{
 							{
@@ -282,7 +294,8 @@ func TransportSocket_v1(secretName string, http2 bool) *envoy_config_core_v3.Tra
 				if err != nil {
 					panic(err)
 				}
-				return any
+
+				return proto
 			}(),
 		},
 	}

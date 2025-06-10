@@ -24,13 +24,14 @@ import (
 	"github.com/3scale-sre/basereconciler/util"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/ptr"
 )
 
 var (
 	redisShardDefaultImage defaultImageSpec = defaultImageSpec{
-		Name:       util.Pointer("redis"),
-		Tag:        util.Pointer("4.0.11-alpine"),
-		PullPolicy: (*corev1.PullPolicy)(util.Pointer(string(corev1.PullIfNotPresent))),
+		Name:       ptr.To("redis"),
+		Tag:        ptr.To("4.0.11-alpine"),
+		PullPolicy: (*corev1.PullPolicy)(ptr.To(string(corev1.PullIfNotPresent))),
 	}
 	redisShardDefaultMasterIndex int32  = 0
 	redisShardDefaultCommand     string = "redis-server /redis/redis.conf"
@@ -60,10 +61,9 @@ type RedisShardSpec struct {
 
 // Default implements defaulting for RedisShardSpec
 func (spec *RedisShardSpec) Default() {
-
 	spec.Image = InitializeImageSpec(spec.Image, redisShardDefaultImage)
 	spec.MasterIndex = intOrDefault(spec.MasterIndex, &redisShardDefaultMasterIndex)
-	spec.SlaveCount = intOrDefault(spec.SlaveCount, util.Pointer(RedisShardDefaultReplicas-1))
+	spec.SlaveCount = intOrDefault(spec.SlaveCount, ptr.To(RedisShardDefaultReplicas-1))
 	spec.Command = stringOrDefault(spec.Command, &redisShardDefaultCommand)
 }
 
@@ -82,6 +82,7 @@ func (rsn *RedisShardNodes) MasterHostPort() string {
 	for _, hostport := range rsn.Master {
 		return hostport
 	}
+
 	return ""
 }
 
@@ -90,6 +91,7 @@ func (rsn *RedisShardNodes) GetNodeByPodIndex(podIndex int) (string, string) {
 
 	for alias, hostport := range nodes {
 		i := alias[strings.LastIndex(alias, "-")+1:]
+
 		index, _ := strconv.Atoi(i)
 		if index == podIndex {
 			return alias, hostport
@@ -101,11 +103,13 @@ func (rsn *RedisShardNodes) GetNodeByPodIndex(podIndex int) (string, string) {
 
 func (rsn *RedisShardNodes) GetHostPortByPodIndex(podIndex int) string {
 	_, hostport := rsn.GetNodeByPodIndex(podIndex)
+
 	return hostport
 }
 
 func (rsn *RedisShardNodes) GetAliasByPodIndex(podIndex int) string {
 	alias, _ := rsn.GetNodeByPodIndex(podIndex)
+
 	return alias
 }
 
@@ -115,9 +119,11 @@ func (rsn *RedisShardNodes) GetIndexByHostPort(hostport string) int {
 		if hostport == hp {
 			i := alias[strings.LastIndex(alias, "-")+1:]
 			index, _ := strconv.Atoi(i)
+
 			return index
 		}
 	}
+
 	return -1
 }
 
@@ -130,8 +136,8 @@ type RedisShardStatus struct {
 	ShardNodes *RedisShardNodes `json:"shardNodes,omitempty"`
 }
 
-//+kubebuilder:object:root=true
-//+kubebuilder:subresource:status
+// +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
 
 // RedisShard is the Schema for the redisshards API
 // +kubebuilder:printcolumn:JSONPath=".status.shardNodes.master",name=Master,type=string
@@ -155,7 +161,7 @@ func (d *RedisShard) GetStatus() any {
 	return &d.Status
 }
 
-//+kubebuilder:object:root=true
+// +kubebuilder:object:root=true
 
 // RedisShardList contains a list of RedisShard
 type RedisShardList struct {

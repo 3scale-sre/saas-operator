@@ -111,6 +111,7 @@ var _ = BeforeSuite(func() {
 	k8sClient = mgr.GetClient()
 	Expect(k8sClient).ToNot(BeNil())
 
+	// nolint: fatcontext
 	ctx, cancel = context.WithCancel(context.Background())
 
 	go func() {

@@ -2,14 +2,15 @@ package system
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
-	"github.com/3scale-sre/basereconciler/util"
 	"github.com/3scale-sre/saas-operator/internal/pkg/resource_builders/pod"
 	"github.com/3scale-sre/saas-operator/internal/pkg/resource_builders/twemproxy"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
 )
 
 func (gen *SidekiqGenerator) deployment() *appsv1.Deployment {
@@ -23,6 +24,7 @@ func (gen *SidekiqGenerator) deployment() *appsv1.Deployment {
 						if gen.Image.PullSecretName != nil {
 							return []corev1.LocalObjectReference{{Name: *gen.Image.PullSecretName}}
 						}
+
 						return nil
 					}(),
 					Containers: []corev1.Container{
@@ -34,10 +36,11 @@ func (gen *SidekiqGenerator) deployment() *appsv1.Deployment {
 								for _, queue := range queues {
 									args = append(args, "--queue", queue)
 								}
+
 								return args
 							}(gen.Spec.Config.Queues),
 							Env: gen.Options.
-								WithExtraEnv([]corev1.EnvVar{{Name: "RAILS_MAX_THREADS", Value: fmt.Sprintf("%d", *gen.Spec.Config.MaxThreads)}}).
+								WithExtraEnv([]corev1.EnvVar{{Name: "RAILS_MAX_THREADS", Value: strconv.Itoa(int(*gen.Spec.Config.MaxThreads))}}).
 								BuildEnvironment(),
 							Ports: pod.ContainerPorts(
 								pod.ContainerPortTCP("metrics", 9394),
@@ -73,7 +76,7 @@ func (gen *SidekiqGenerator) deployment() *appsv1.Deployment {
 			Name: "system-config",
 			VolumeSource: corev1.VolumeSource{
 				Secret: &corev1.SecretVolumeSource{
-					DefaultMode: util.Pointer[int32](420),
+					DefaultMode: ptr.To[int32](420),
 					SecretName:  gen.ConfigFilesSecret,
 				},
 			},

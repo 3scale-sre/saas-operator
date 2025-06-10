@@ -25,9 +25,11 @@ func TestRedisShardNodes_GetNodeByPodIndex(t *testing.T) {
 		Master map[string]string
 		Slaves map[string]string
 	}
+
 	type args struct {
 		podIndex int
 	}
+
 	tests := []struct {
 		name   string
 		fields fields
@@ -76,10 +78,12 @@ func TestRedisShardNodes_GetNodeByPodIndex(t *testing.T) {
 				Master: tt.fields.Master,
 				Slaves: tt.fields.Slaves,
 			}
+
 			got, got1 := rsn.GetNodeByPodIndex(tt.args.podIndex)
 			if got != tt.want {
 				t.Errorf("RedisShardNodes.GetNodeByPodIndex() got = %v, want %v", got, tt.want)
 			}
+
 			if got1 != tt.want1 {
 				t.Errorf("RedisShardNodes.GetNodeByPodIndex() got1 = %v, want %v", got1, tt.want1)
 			}
@@ -92,6 +96,7 @@ func TestRedisShardNodes_MasterHostPort(t *testing.T) {
 		Master map[string]string
 		Slaves map[string]string
 	}
+
 	tests := []struct {
 		name   string
 		fields fields
@@ -123,9 +128,11 @@ func TestRedisShardNodes_GetHostPortByPodIndex(t *testing.T) {
 		Master map[string]string
 		Slaves map[string]string
 	}
+
 	type args struct {
 		podIndex int
 	}
+
 	tests := []struct {
 		name   string
 		fields fields
@@ -160,9 +167,11 @@ func TestRedisShardNodes_GetAliasByPodIndex(t *testing.T) {
 		Master map[string]string
 		Slaves map[string]string
 	}
+
 	type args struct {
 		podIndex int
 	}
+
 	tests := []struct {
 		name   string
 		fields fields
@@ -197,9 +206,11 @@ func TestRedisShardNodes_GetIndexByHostPort(t *testing.T) {
 		Master map[string]string
 		Slaves map[string]string
 	}
+
 	type args struct {
 		hostport string
 	}
+
 	tests := []struct {
 		name   string
 		fields fields

@@ -9,9 +9,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/3scale-sre/basereconciler/util"
+	reconcilerutil "github.com/3scale-sre/basereconciler/util"
 	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	redis "github.com/3scale-sre/saas-operator/internal/pkg/redis/server"
+	"github.com/3scale-sre/saas-operator/internal/pkg/util"
+	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 )
@@ -45,13 +47,12 @@ func SentinelClient(cfg *rest.Config, podKey types.NamespacedName) (*redis.Serve
 }
 
 func LoadRedisDataset(ctx context.Context, srv *redis.Server, file string) error {
-
 	// read csv file
 	csvfile, err := os.Open(file)
 	if err != nil {
 		return err
 	}
-	defer csvfile.Close()
+	defer util.CloseOrLog(csvfile, file, logr.Discard())
 
 	data, err := CSVToMap(csvfile)
 	if err != nil {
@@ -71,31 +72,37 @@ func LoadRedisDataset(ctx context.Context, srv *redis.Server, file string) error
 func CSVToMap(reader io.Reader) (map[string]string, error) {
 	r := csv.NewReader(reader)
 	m := map[string]string{}
+
 	var headers []string
+
 	for {
 		record, err := r.Read()
 		if err == io.EOF {
 			break
 		}
+
 		if err != nil {
 			return nil, err
 		}
+
 		if headers == nil {
 			headers = record
 		} else {
-			m = util.MergeMaps(m, RecordToKeyValues(headers, record))
+			m = reconcilerutil.MergeMaps(m, RecordToKeyValues(headers, record))
 		}
 	}
+
 	return m, nil
 }
 
 func RecordToKeyValues(headers []string, record []string) map[string]string {
 	m := map[string]string{}
 
-	//skip first header, which is the row key
+	// skip first header, which is the row key
 	for i := range headers[1:] {
 		key := url.QueryEscape(strings.Join([]string{record[0], headers[i]}, "."))
 		m[key] = record[i]
 	}
+
 	return m
 }

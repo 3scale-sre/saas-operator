@@ -1,7 +1,7 @@
 package service
 
 import (
-	"fmt"
+	"strconv"
 	"strings"
 
 	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
@@ -13,13 +13,13 @@ import (
 func ELBServiceAnnotations(cfg saasv1alpha1.ElasticLoadBalancerSpec, hostnames []string) map[string]string {
 	annotations := map[string]string{
 		"external-dns.alpha.kubernetes.io/hostname":                                      strings.Join(hostnames, ","),
-		"service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled": fmt.Sprintf("%t", *cfg.CrossZoneLoadBalancingEnabled),
-		"service.beta.kubernetes.io/aws-load-balancer-connection-draining-enabled":       fmt.Sprintf("%t", *cfg.ConnectionDrainingEnabled),
-		"service.beta.kubernetes.io/aws-load-balancer-connection-draining-timeout":       fmt.Sprintf("%d", *cfg.ConnectionDrainingTimeout),
-		"service.beta.kubernetes.io/aws-load-balancer-healthcheck-healthy-threshold":     fmt.Sprintf("%d", *cfg.HealthcheckHealthyThreshold),
-		"service.beta.kubernetes.io/aws-load-balancer-healthcheck-unhealthy-threshold":   fmt.Sprintf("%d", *cfg.HealthcheckUnhealthyThreshold),
-		"service.beta.kubernetes.io/aws-load-balancer-healthcheck-interval":              fmt.Sprintf("%d", *cfg.HealthcheckInterval),
-		"service.beta.kubernetes.io/aws-load-balancer-healthcheck-timeout":               fmt.Sprintf("%d", *cfg.HealthcheckTimeout),
+		"service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled": strconv.FormatBool(*cfg.CrossZoneLoadBalancingEnabled),
+		"service.beta.kubernetes.io/aws-load-balancer-connection-draining-enabled":       strconv.FormatBool(*cfg.ConnectionDrainingEnabled),
+		"service.beta.kubernetes.io/aws-load-balancer-connection-draining-timeout":       strconv.Itoa(int(*cfg.ConnectionDrainingTimeout)),
+		"service.beta.kubernetes.io/aws-load-balancer-healthcheck-healthy-threshold":     strconv.Itoa(int(*cfg.HealthcheckHealthyThreshold)),
+		"service.beta.kubernetes.io/aws-load-balancer-healthcheck-unhealthy-threshold":   strconv.Itoa(int(*cfg.HealthcheckUnhealthyThreshold)),
+		"service.beta.kubernetes.io/aws-load-balancer-healthcheck-interval":              strconv.Itoa(int(*cfg.HealthcheckInterval)),
+		"service.beta.kubernetes.io/aws-load-balancer-healthcheck-timeout":               strconv.Itoa(int(*cfg.HealthcheckTimeout)),
 	}
 
 	if *cfg.ProxyProtocol {
@@ -27,7 +27,6 @@ func ELBServiceAnnotations(cfg saasv1alpha1.ElasticLoadBalancerSpec, hostnames [
 	}
 
 	return annotations
-
 }
 
 // NLBServiceAnnotations returns annotations for services exposed through AWS Network LoadBalancers
@@ -41,9 +40,11 @@ func NLBServiceAnnotations(cfg saasv1alpha1.NetworkLoadBalancerSpec, hostnames [
 	if *cfg.ProxyProtocol {
 		annotations["service.beta.kubernetes.io/aws-load-balancer-proxy-protocol"] = "*"
 	}
+
 	if len(cfg.EIPAllocations) != 0 {
 		annotations["service.beta.kubernetes.io/aws-load-balancer-eip-allocations"] = strings.Join(cfg.EIPAllocations, ",")
 	}
+
 	if cfg.LoadBalancerName != nil {
 		annotations["service.beta.kubernetes.io/aws-load-balancer-name"] = *cfg.LoadBalancerName
 	}
@@ -54,14 +55,16 @@ func NLBServiceAnnotations(cfg saasv1alpha1.NetworkLoadBalancerSpec, hostnames [
 	} else {
 		attributes = append(attributes, "load_balancing.cross_zone.enabled=false")
 	}
+
 	if *cfg.DeletionProtection {
 		attributes = append(attributes, "deletion_protection.enabled=true")
 	} else {
 		attributes = append(attributes, "deletion_protection.enabled=false")
 	}
-	annotations["service.beta.kubernetes.io/aws-load-balancer-attributes"] = strings.Join(attributes, ",")
-	return annotations
 
+	annotations["service.beta.kubernetes.io/aws-load-balancer-attributes"] = strings.Join(attributes, ",")
+
+	return annotations
 }
 
 // TCPPort returns a TCP corev1.ServicePort
@@ -77,5 +80,6 @@ func TCPPort(name string, port int32, targetPort intstr.IntOrString) corev1.Serv
 // Ports returns a list of corev1.ServicePort
 func Ports(ports ...corev1.ServicePort) []corev1.ServicePort {
 	list := []corev1.ServicePort{}
+
 	return append(list, ports...)
 }

@@ -22,10 +22,10 @@ import (
 	"sort"
 	"time"
 
-	"github.com/3scale-sre/basereconciler/util"
 	"github.com/samber/lo"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/ptr"
 )
 
 const (
@@ -78,17 +78,18 @@ type ShardedRedisBackupSpec struct {
 
 // Default implements defaulting for ShardedRedisBackuppec
 func (spec *ShardedRedisBackupSpec) Default() {
-
 	if spec.Timeout == nil {
 		d, _ := time.ParseDuration(backupDefaultTimeout)
 		spec.Timeout = &metav1.Duration{Duration: d}
 	}
+
 	if spec.PollInterval == nil {
 		d, _ := time.ParseDuration(backupDefaultPollInterval)
 		spec.PollInterval = &metav1.Duration{Duration: d}
 	}
-	spec.HistoryLimit = intOrDefault(spec.HistoryLimit, util.Pointer(backupHistoryLimit))
-	spec.Pause = boolOrDefault(spec.Pause, util.Pointer(backupDefaultPause))
+
+	spec.HistoryLimit = intOrDefault(spec.HistoryLimit, ptr.To(backupHistoryLimit))
+	spec.Pause = boolOrDefault(spec.Pause, ptr.To(backupDefaultPause))
 	spec.SSHOptions.Default()
 }
 
@@ -103,7 +104,7 @@ type SSHOptions struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +optional
 	Port *uint32 `json:"port,omitempty"`
-	// Use sudo to execute commands agains the remote host
+	// Use sudo to execute commands against the remote host
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +optional
 	Sudo *bool `json:"sudo,omitempty"`
@@ -111,10 +112,11 @@ type SSHOptions struct {
 
 func (opts *SSHOptions) Default() {
 	if opts.Port == nil {
-		opts.Port = util.Pointer(backupDefaultSSHPort)
+		opts.Port = ptr.To(backupDefaultSSHPort)
 	}
+
 	if opts.Sudo == nil {
-		opts.Sudo = util.Pointer(false)
+		opts.Sudo = ptr.To(false)
 	}
 }
 
@@ -141,7 +143,7 @@ type S3Options struct {
 
 // ShardedRedisBackupStatus defines the observed state of ShardedRedisBackup
 type ShardedRedisBackupStatus struct {
-	//+optional
+	// +optional
 	Backups BackupStatusList `json:"backups,omitempty"`
 }
 
@@ -161,28 +163,35 @@ func (status *ShardedRedisBackupStatus) FindLastBackup(shardName string, state B
 			return &status.Backups[i], i
 		}
 	}
+
 	return nil, -1
 }
 
 func (status *ShardedRedisBackupStatus) GetRunningBackups() []*BackupStatus {
 	list := []*BackupStatus{}
+
 	for i, b := range status.Backups {
 		if b.State == BackupRunningState {
 			list = append(list, &status.Backups[i])
 		}
 	}
+
 	return list
 }
 
 func (status *ShardedRedisBackupStatus) ApplyHistoryLimit(limit int32, shards []string) bool {
 	truncated := make([][]BackupStatus, len(shards))
+
 	for idx, shard := range shards {
 		var count int32 = 0
+
 		truncated[idx] = make([]BackupStatus, 0, limit)
+
 		for _, bs := range status.Backups {
 			if count == limit {
 				break
 			}
+
 			if bs.Shard == shard {
 				truncated[idx] = append(truncated[idx], bs)
 				count++
@@ -191,10 +200,12 @@ func (status *ShardedRedisBackupStatus) ApplyHistoryLimit(limit int32, shards []
 	}
 
 	var flat BackupStatusList = lo.Flatten(truncated)
+
 	sort.Sort(sort.Reverse(flat))
 
 	if !reflect.DeepEqual(flat, status.Backups) {
 		status.Backups = flat
+
 		return true
 	}
 
@@ -207,6 +218,7 @@ func (bsl BackupStatusList) Len() int { return len(bsl) }
 func (bsl BackupStatusList) Less(i, j int) bool {
 	a := fmt.Sprintf("%d-%s", bsl[i].ScheduledFor.UTC().UnixMilli(), bsl[i].Shard)
 	b := fmt.Sprintf("%d-%s", bsl[j].ScheduledFor.UTC().UnixMilli(), bsl[j].Shard)
+
 	return a < b
 }
 func (bsl BackupStatusList) Swap(i, j int) { bsl[i], bsl[j] = bsl[j], bsl[i] }
@@ -261,8 +273,8 @@ const (
 	BackupUnknownState   BackupState = "Unknown"
 )
 
-//+kubebuilder:object:root=true
-//+kubebuilder:subresource:status
+// +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
 
 // ShardedRedisBackup is the Schema for the shardedredisbackups API
 type ShardedRedisBackup struct {
@@ -278,7 +290,7 @@ func (srb *ShardedRedisBackup) Default() {
 	srb.Spec.Default()
 }
 
-//+kubebuilder:object:root=true
+// +kubebuilder:object:root=true
 
 // ShardedRedisBackupList contains a list of ShardedRedisBackup
 type ShardedRedisBackupList struct {

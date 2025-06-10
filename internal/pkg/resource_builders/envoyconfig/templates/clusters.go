@@ -14,7 +14,7 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
-func Cluster_v1(name string, opts interface{}) (envoy.Resource, error) {
+func Cluster_v1(name string, opts any) (envoy.Resource, error) {
 	o := opts.(*saasv1alpha1.Cluster)
 
 	cluster := &envoy_config_cluster_v3.Cluster{
@@ -44,7 +44,7 @@ func Cluster_v1(name string, opts interface{}) (envoy.Resource, error) {
 	}
 
 	if *o.IsHttp2 {
-		any, err := anypb.New(&envoy_extensions_upstreams_http_v3.HttpProtocolOptions{
+		proto, err := anypb.New(&envoy_extensions_upstreams_http_v3.HttpProtocolOptions{
 			UpstreamProtocolOptions: &envoy_extensions_upstreams_http_v3.HttpProtocolOptions_ExplicitHttpConfig_{
 				ExplicitHttpConfig: &envoy_extensions_upstreams_http_v3.HttpProtocolOptions_ExplicitHttpConfig{
 					ProtocolConfig: &envoy_extensions_upstreams_http_v3.HttpProtocolOptions_ExplicitHttpConfig_Http2ProtocolOptions{
@@ -59,8 +59,9 @@ func Cluster_v1(name string, opts interface{}) (envoy.Resource, error) {
 		if err != nil {
 			panic(err)
 		}
+
 		cluster.TypedExtensionProtocolOptions = map[string]*anypb.Any{
-			"envoy.extensions.upstreams.http.v3.HttpProtocolOptions": any,
+			"envoy.extensions.upstreams.http.v3.HttpProtocolOptions": proto,
 		}
 	}
 

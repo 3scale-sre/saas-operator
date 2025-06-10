@@ -15,6 +15,7 @@ func TestRouteConfiguration_v1(t *testing.T) {
 		name string
 		opts *saasv1alpha1.RouteConfiguration
 	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -67,6 +68,7 @@ func TestRouteConfiguration_v1(t *testing.T) {
 			got, err := RouteConfiguration_v1(tt.args.name, tt.args.opts)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("RouteConfiguration_v1() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
 
@@ -74,10 +76,12 @@ func TestRouteConfiguration_v1(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
+
 			y, err := yaml.JSONToYAML([]byte(j))
 			if err != nil {
 				t.Error(err)
 			}
+
 			if string(y) != tt.want {
 				t.Errorf("RouteConfiguration_v1():\n# got:\n%v\n# want:\n%v", string(y), tt.want)
 			}

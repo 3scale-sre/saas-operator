@@ -1,8 +1,6 @@
 package system
 
 import (
-	"fmt"
-
 	pipelinev1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -22,7 +20,7 @@ func (gen *SystemTektonGenerator) pipeline() *pipelinev1.Pipeline {
 					Name:        "container-image",
 					Description: "Container image for the task",
 					Default: &pipelinev1.ParamValue{
-						StringVal: fmt.Sprint(*gen.Image.Name),
+						StringVal: *gen.Image.Name,
 						Type:      pipelinev1.ParamTypeString,
 					},
 					Type: pipelinev1.ParamTypeString,
@@ -31,7 +29,7 @@ func (gen *SystemTektonGenerator) pipeline() *pipelinev1.Pipeline {
 					Name:        "container-tag",
 					Description: "Container tag for the task",
 					Default: &pipelinev1.ParamValue{
-						StringVal: fmt.Sprint(*gen.Image.Tag),
+						StringVal: *gen.Image.Tag,
 						Type:      pipelinev1.ParamTypeString,
 					},
 					Type: pipelinev1.ParamTypeString,
@@ -64,5 +62,6 @@ func (gen *SystemTektonGenerator) pipeline() *pipelinev1.Pipeline {
 			},
 		},
 	}
+
 	return pipeline
 }

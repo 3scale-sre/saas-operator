@@ -29,6 +29,7 @@ func NewServerPool(servers ...*Server) *ServerPool {
 
 func (pool *ServerPool) GetServer(connectionString string, alias *string) (*Server, error) {
 	var srv *Server
+
 	var err error
 
 	// make sure both reads and writes are consistent
@@ -40,11 +41,13 @@ func (pool *ServerPool) GetServer(connectionString string, alias *string) (*Serv
 	if err != nil {
 		return nil, err
 	}
+
 	if srv = pool.indexByHostPort()[opts.Addr]; srv != nil {
 		// set the alias if it has been passed down
 		if alias != nil && srv.GetAlias() != *alias {
 			srv.SetAlias(*alias)
 		}
+
 		return srv, nil
 	}
 
@@ -52,6 +55,7 @@ func (pool *ServerPool) GetServer(connectionString string, alias *string) (*Serv
 	if srv, err = NewServer(connectionString, alias); err != nil {
 		return nil, err
 	}
+
 	pool.servers = append(pool.servers, srv)
 
 	// sort the slice to obtain consistent results

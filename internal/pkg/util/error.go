@@ -6,7 +6,7 @@ import (
 )
 
 // WrapError can be used to provide information about the
-// context where the error occured
+// context where the error occurred
 func WrapError(context string, err error) error {
 	return fmt.Errorf("[%s] %s", context, err.Error())
 }
@@ -21,13 +21,14 @@ type MultiError []error
 var _ error = MultiError{}
 
 func (me MultiError) Error() string {
-
 	list := make([]string, 0, len(me))
 	for _, err := range me {
 		list = append(list, err.Error())
 	}
 
+	// nolint: errchkjson
 	b, _ := json.Marshal(list)
+
 	return string(b)
 }
 
@@ -39,5 +40,6 @@ func (me MultiError) ErrorOrNil() error {
 	if len(me) > 0 {
 		return me
 	}
+
 	return nil
 }

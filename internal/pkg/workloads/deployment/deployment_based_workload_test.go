@@ -23,6 +23,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
@@ -47,7 +48,7 @@ func (gen *TestWorkloadGenerator) Deployment() *resource.Template[*appsv1.Deploy
 		TemplateBuilder: func(client.Object) (*appsv1.Deployment, error) {
 			return &appsv1.Deployment{
 				Spec: appsv1.DeploymentSpec{
-					Replicas: util.Pointer[int32](1),
+					Replicas: ptr.To[int32](1),
 					Template: corev1.PodTemplateSpec{
 						ObjectMeta: metav1.ObjectMeta{
 							Labels: map[string]string{"orig-key": "orig-value"},
@@ -68,7 +69,7 @@ func (gen *TestWorkloadGenerator) Deployment() *resource.Template[*appsv1.Deploy
 		TemplateMutations: []resource.TemplateMutationFunction{
 			mutators.RolloutTrigger{
 				Name:       "secret",
-				SecretName: util.Pointer("secret"),
+				SecretName: ptr.To("secret"),
 			}.Add(),
 			mutators.SetDeploymentReplicas(true),
 		},
@@ -85,15 +86,15 @@ func (gen *TestWorkloadGenerator) GetSelector() map[string]string {
 }
 func (gen *TestWorkloadGenerator) HPASpec() *saasv1alpha1.HorizontalPodAutoscalerSpec {
 	return &saasv1alpha1.HorizontalPodAutoscalerSpec{
-		MinReplicas:         util.Pointer[int32](1),
-		MaxReplicas:         util.Pointer[int32](2),
-		ResourceUtilization: util.Pointer[int32](90),
-		ResourceName:        util.Pointer("cpu"),
+		MinReplicas:         ptr.To[int32](1),
+		MaxReplicas:         ptr.To[int32](2),
+		ResourceUtilization: ptr.To[int32](90),
+		ResourceName:        ptr.To("cpu"),
 	}
 }
 func (gen *TestWorkloadGenerator) PDBSpec() *saasv1alpha1.PodDisruptionBudgetSpec {
 	return &saasv1alpha1.PodDisruptionBudgetSpec{
-		MaxUnavailable: util.Pointer(intstr.FromInt(1)),
+		MaxUnavailable: ptr.To(intstr.FromInt(1)),
 	}
 }
 func (gen *TestWorkloadGenerator) SendTraffic() bool { return gen.TTraffic }
@@ -110,20 +111,14 @@ func (gen *TestWorkloadGenerator) EnvoyDynamicConfigurations() []descriptor.Envo
 	return nil
 }
 
-var ports = []corev1.ServicePort{{
-	Name:       "http",
-	Port:       80,
-	Protocol:   corev1.ProtocolTCP,
-	TargetPort: intstr.FromInt(80),
-}}
-
-// // TESTS START HERE
+// TESTS START HERE
 
 func TestWorkloadReconciler_NewDeploymentWorkload(t *testing.T) {
 	type args struct {
 		main   DeploymentWorkload
 		canary DeploymentWorkload
 	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -152,7 +147,7 @@ func TestWorkloadReconciler_NewDeploymentWorkload(t *testing.T) {
 							Strategy:     saasv1alpha1.SimpleStrategy,
 							EndpointName: "HTTP",
 							Simple: &saasv1alpha1.Simple{
-								ServiceType: util.Pointer(saasv1alpha1.ServiceTypeClusterIP),
+								ServiceType: ptr.To(saasv1alpha1.ServiceTypeClusterIP),
 							},
 						},
 					}},
@@ -166,7 +161,7 @@ func TestWorkloadReconciler_NewDeploymentWorkload(t *testing.T) {
 						Name: "my-workload", Namespace: "ns",
 						Labels: map[string]string{"l-key": "l-value"}},
 					Spec: appsv1.DeploymentSpec{
-						Replicas: util.Pointer[int32](1),
+						Replicas: ptr.To[int32](1),
 						Selector: &metav1.LabelSelector{MatchLabels: map[string]string{"sel-key": "sel-value"}},
 						Template: corev1.PodTemplateSpec{
 							ObjectMeta: metav1.ObjectMeta{
@@ -193,7 +188,7 @@ func TestWorkloadReconciler_NewDeploymentWorkload(t *testing.T) {
 					},
 					Spec: policyv1.PodDisruptionBudgetSpec{
 						Selector:       &metav1.LabelSelector{MatchLabels: map[string]string{"sel-key": "sel-value"}},
-						MaxUnavailable: util.Pointer(intstr.FromInt(1)),
+						MaxUnavailable: ptr.To(intstr.FromInt(1)),
 					}},
 				&autoscalingv2.HorizontalPodAutoscaler{
 					ObjectMeta: metav1.ObjectMeta{
@@ -206,7 +201,7 @@ func TestWorkloadReconciler_NewDeploymentWorkload(t *testing.T) {
 							Kind:       "Deployment",
 							Name:       "my-workload",
 						},
-						MinReplicas: util.Pointer[int32](1),
+						MinReplicas: ptr.To[int32](1),
 						MaxReplicas: 2,
 						Metrics: []autoscalingv2.MetricSpec{{
 							Type: autoscalingv2.ResourceMetricSourceType,
@@ -214,7 +209,7 @@ func TestWorkloadReconciler_NewDeploymentWorkload(t *testing.T) {
 								Name: corev1.ResourceName("cpu"),
 								Target: autoscalingv2.MetricTarget{
 									Type:               autoscalingv2.UtilizationMetricType,
-									AverageUtilization: util.Pointer[int32](90),
+									AverageUtilization: ptr.To[int32](90),
 								}}}}}},
 				&monitoringv1.PodMonitor{
 					ObjectMeta: metav1.ObjectMeta{
@@ -265,7 +260,7 @@ func TestWorkloadReconciler_NewDeploymentWorkload(t *testing.T) {
 							EndpointName: "HTTP",
 							Marin3rSidecar: &saasv1alpha1.Marin3rSidecarSpec{
 								Simple: &saasv1alpha1.Simple{
-									ServiceType: util.Pointer(saasv1alpha1.ServiceTypeClusterIP),
+									ServiceType: ptr.To(saasv1alpha1.ServiceTypeClusterIP),
 								},
 							},
 						},
@@ -280,7 +275,7 @@ func TestWorkloadReconciler_NewDeploymentWorkload(t *testing.T) {
 						Name: "my-workload", Namespace: "ns",
 						Labels: map[string]string{"l-key": "l-value"}},
 					Spec: appsv1.DeploymentSpec{
-						Replicas: util.Pointer[int32](1),
+						Replicas: ptr.To[int32](1),
 						Selector: &metav1.LabelSelector{MatchLabels: map[string]string{"sel-key": "sel-value"}},
 						Template: corev1.PodTemplateSpec{
 							ObjectMeta: metav1.ObjectMeta{
@@ -310,7 +305,7 @@ func TestWorkloadReconciler_NewDeploymentWorkload(t *testing.T) {
 					},
 					Spec: policyv1.PodDisruptionBudgetSpec{
 						Selector:       &metav1.LabelSelector{MatchLabels: map[string]string{"sel-key": "sel-value"}},
-						MaxUnavailable: util.Pointer(intstr.FromInt(1)),
+						MaxUnavailable: ptr.To(intstr.FromInt(1)),
 					}},
 				&autoscalingv2.HorizontalPodAutoscaler{
 					ObjectMeta: metav1.ObjectMeta{
@@ -323,7 +318,7 @@ func TestWorkloadReconciler_NewDeploymentWorkload(t *testing.T) {
 							Kind:       "Deployment",
 							Name:       "my-workload",
 						},
-						MinReplicas: util.Pointer[int32](1),
+						MinReplicas: ptr.To[int32](1),
 						MaxReplicas: 2,
 						Metrics: []autoscalingv2.MetricSpec{{
 							Type: autoscalingv2.ResourceMetricSourceType,
@@ -331,7 +326,7 @@ func TestWorkloadReconciler_NewDeploymentWorkload(t *testing.T) {
 								Name: corev1.ResourceName("cpu"),
 								Target: autoscalingv2.MetricTarget{
 									Type:               autoscalingv2.UtilizationMetricType,
-									AverageUtilization: util.Pointer[int32](90),
+									AverageUtilization: ptr.To[int32](90),
 								}}}}}},
 				&monitoringv1.PodMonitor{
 					ObjectMeta: metav1.ObjectMeta{
@@ -351,8 +346,8 @@ func TestWorkloadReconciler_NewDeploymentWorkload(t *testing.T) {
 					},
 					Spec: marin3rv1alpha1.EnvoyConfigSpec{
 						NodeID:        "my-workload",
-						Serialization: util.Pointer[envoy_serializer.Serialization]("yaml"),
-						EnvoyAPI:      util.Pointer[envoy.APIVersion]("v3"),
+						Serialization: ptr.To[envoy_serializer.Serialization]("yaml"),
+						EnvoyAPI:      ptr.To[envoy.APIVersion]("v3"),
 						EnvoyResources: &marin3rv1alpha1.EnvoyResources{
 							Clusters:  []marin3rv1alpha1.EnvoyResource{},
 							Routes:    []marin3rv1alpha1.EnvoyResource{},
@@ -399,7 +394,7 @@ func TestWorkloadReconciler_NewDeploymentWorkload(t *testing.T) {
 								EndpointName: "HTTP",
 								Marin3rSidecar: &saasv1alpha1.Marin3rSidecarSpec{
 									Simple: &saasv1alpha1.Simple{
-										ServiceType: util.Pointer(saasv1alpha1.ServiceTypeNLB),
+										ServiceType: ptr.To(saasv1alpha1.ServiceTypeNLB),
 									},
 								},
 							},
@@ -415,7 +410,7 @@ func TestWorkloadReconciler_NewDeploymentWorkload(t *testing.T) {
 								Strategy:     saasv1alpha1.SimpleStrategy,
 								EndpointName: "HTTP",
 								Simple: &saasv1alpha1.Simple{
-									ServiceType: util.Pointer(saasv1alpha1.ServiceTypeClusterIP),
+									ServiceType: ptr.To(saasv1alpha1.ServiceTypeClusterIP),
 								},
 							},
 						},
@@ -451,7 +446,7 @@ func TestWorkloadReconciler_NewDeploymentWorkload(t *testing.T) {
 						Name: "my-workload", Namespace: "ns",
 						Labels: map[string]string{"l-key": "l-value"}},
 					Spec: appsv1.DeploymentSpec{
-						Replicas: util.Pointer[int32](1),
+						Replicas: ptr.To[int32](1),
 						Selector: &metav1.LabelSelector{MatchLabels: map[string]string{"sel-key": "sel-value"}},
 						Template: corev1.PodTemplateSpec{
 							ObjectMeta: metav1.ObjectMeta{
@@ -481,7 +476,7 @@ func TestWorkloadReconciler_NewDeploymentWorkload(t *testing.T) {
 					},
 					Spec: policyv1.PodDisruptionBudgetSpec{
 						Selector:       &metav1.LabelSelector{MatchLabels: map[string]string{"sel-key": "sel-value"}},
-						MaxUnavailable: util.Pointer(intstr.FromInt(1)),
+						MaxUnavailable: ptr.To(intstr.FromInt(1)),
 					}},
 				&autoscalingv2.HorizontalPodAutoscaler{
 					ObjectMeta: metav1.ObjectMeta{
@@ -494,7 +489,7 @@ func TestWorkloadReconciler_NewDeploymentWorkload(t *testing.T) {
 							Kind:       "Deployment",
 							Name:       "my-workload",
 						},
-						MinReplicas: util.Pointer[int32](1),
+						MinReplicas: ptr.To[int32](1),
 						MaxReplicas: 2,
 						Metrics: []autoscalingv2.MetricSpec{{
 							Type: autoscalingv2.ResourceMetricSourceType,
@@ -502,7 +497,7 @@ func TestWorkloadReconciler_NewDeploymentWorkload(t *testing.T) {
 								Name: corev1.ResourceName("cpu"),
 								Target: autoscalingv2.MetricTarget{
 									Type:               autoscalingv2.UtilizationMetricType,
-									AverageUtilization: util.Pointer[int32](90),
+									AverageUtilization: ptr.To[int32](90),
 								}}}}}},
 				&monitoringv1.PodMonitor{
 					ObjectMeta: metav1.ObjectMeta{
@@ -522,8 +517,8 @@ func TestWorkloadReconciler_NewDeploymentWorkload(t *testing.T) {
 					},
 					Spec: marin3rv1alpha1.EnvoyConfigSpec{
 						NodeID:        "my-workload",
-						Serialization: util.Pointer[envoy_serializer.Serialization]("yaml"),
-						EnvoyAPI:      util.Pointer[envoy.APIVersion]("v3"),
+						Serialization: ptr.To[envoy_serializer.Serialization]("yaml"),
+						EnvoyAPI:      ptr.To[envoy.APIVersion]("v3"),
 						EnvoyResources: &marin3rv1alpha1.EnvoyResources{
 							Clusters:  []marin3rv1alpha1.EnvoyResource{},
 							Routes:    []marin3rv1alpha1.EnvoyResource{},
@@ -573,13 +568,17 @@ func TestWorkloadReconciler_NewDeploymentWorkload(t *testing.T) {
 			templates, err := New(tt.args.main, tt.args.canary)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("New() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
+
 			got := make([]client.Object, 0, len(templates))
+
 			for _, tpl := range templates {
 				o, _ := tpl.Build(context.TODO(), tt.client, nil)
 				got = append(got, o)
 			}
+
 			if diff := cmp.Diff(got, tt.want, util.IgnoreProperty("Status")); len(diff) > 0 {
 				t.Errorf("New() diff %v", diff)
 			}
@@ -591,6 +590,7 @@ func Test_applyTrafficSelectorToDeployment(t *testing.T) {
 	type args struct {
 		w DeploymentWorkload
 	}
+
 	tests := []struct {
 		name     string
 		template *resource.Template[*appsv1.Deployment]
@@ -633,6 +633,7 @@ func Test_applyHPAScaleTargetRef(t *testing.T) {
 	type args struct {
 		w WithWorkloadMeta
 	}
+
 	tests := []struct {
 		name     string
 		template *resource.Template[*autoscalingv2.HorizontalPodAutoscaler]
@@ -679,6 +680,7 @@ func Test_applyMeta(t *testing.T) {
 	type args struct {
 		w WithWorkloadMeta
 	}
+
 	tests1 := []struct {
 		name     string
 		template *resource.Template[*corev1.ConfigMap]
@@ -778,7 +780,6 @@ func Test_applyMeta(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func Test_applyTrafficSelectorToService(t *testing.T) {
@@ -786,6 +787,7 @@ func Test_applyTrafficSelectorToService(t *testing.T) {
 		main   WithCanary
 		canary WithCanary
 	}
+
 	tests := []struct {
 		name     string
 		template *resource.Template[*corev1.Service]
@@ -840,6 +842,7 @@ func Test_trafficSwitcher(t *testing.T) {
 		main   TestWorkloadGenerator
 		canary TestWorkloadGenerator
 	}
+
 	tests := []struct {
 		name string
 		args args
@@ -907,6 +910,7 @@ func Test_applyNodeIdToEnvoyConfig(t *testing.T) {
 	type args struct {
 		sd service.ServiceDescriptor
 	}
+
 	tests := []struct {
 		name     string
 		template *resource.Template[*marin3rv1alpha1.EnvoyConfig]
@@ -925,7 +929,7 @@ func Test_applyNodeIdToEnvoyConfig(t *testing.T) {
 					PortDefinitions: []corev1.ServicePort{},
 					PublishingStrategy: saasv1alpha1.PublishingStrategy{
 						Marin3rSidecar: &saasv1alpha1.Marin3rSidecarSpec{
-							NodeID: util.Pointer("aaaa"),
+							NodeID: ptr.To("aaaa"),
 						},
 					},
 				},
@@ -969,6 +973,7 @@ func Test_marin3rSidecarToDeployment(t *testing.T) {
 	type args struct {
 		sd service.ServiceDescriptor
 	}
+
 	tests := []struct {
 		name     string
 		template *resource.Template[*appsv1.Deployment]
@@ -1036,6 +1041,7 @@ func Test_toWithCanaryOrNil(t *testing.T) {
 	type args struct {
 		w DeploymentWorkload
 	}
+
 	tests := []struct {
 		name string
 		args args
@@ -1053,6 +1059,7 @@ func Test_toWithCanaryOrNil(t *testing.T) {
 			args: args{
 				w: func() DeploymentWorkload {
 					val := (*TestWorkloadGenerator)(nil)
+
 					return val
 				}(),
 			},

@@ -1,8 +1,6 @@
 package apicast
 
 import (
-	"fmt"
-
 	mutators "github.com/3scale-sre/basereconciler/mutators"
 	"github.com/3scale-sre/basereconciler/resource"
 	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
@@ -88,6 +86,7 @@ func NewGenerator(instance, namespace string, spec saasv1alpha1.ApicastSpec) (Ge
 		if err != nil {
 			return Generator{}, err
 		}
+
 		generator.CanaryStaging = &EnvGenerator{
 			BaseOptionsV2: generators.BaseOptionsV2{
 				Component:    apicastCanaryStaging,
@@ -113,6 +112,7 @@ func NewGenerator(instance, namespace string, spec saasv1alpha1.ApicastSpec) (Ge
 		if err != nil {
 			return Generator{}, err
 		}
+
 		generator.CanaryProduction = &EnvGenerator{
 			BaseOptionsV2: generators.BaseOptionsV2{
 				Component:    apicastCanaryProduction,
@@ -142,10 +142,12 @@ func (gen *Generator) Resources() ([]resource.TemplateInterface, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	production, err := deployment_workload.New(&gen.Production, gen.CanaryProduction)
 	if err != nil {
 		return nil, err
 	}
+
 	misc := []resource.TemplateInterface{
 		resource.NewTemplate(
 			grafanadashboard.New(
@@ -201,9 +203,9 @@ func (gen *EnvGenerator) MonitoredEndpoints() []monitoringv1.PodMetricsEndpoint 
 func (gen *EnvGenerator) SendTraffic() bool { return gen.Traffic }
 func (gen *EnvGenerator) TrafficSelector() map[string]string {
 	return map[string]string{
-		// This is purposedly hardcoded as the TrafficSelector needs to be the same for all workloads produced
+		// This is purposely hardcoded as the TrafficSelector needs to be the same for all workloads produced
 		// by the same generator so traffic can be sent to all of them at the same time
-		fmt.Sprintf("%s/traffic", saasv1alpha1.GroupVersion.Group): gen.GetComponent(),
+		saasv1alpha1.GroupVersion.Group + "/traffic": gen.GetComponent(),
 	}
 }
 

@@ -15,8 +15,9 @@ import (
 func TestRawConfig_v1(t *testing.T) {
 	type args struct {
 		name string
-		opts interface{}
+		opts any
 	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -74,8 +75,10 @@ func TestRawConfig_v1(t *testing.T) {
 			got, err := RawConfig_v1(tt.args.name, tt.args.opts)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("RawConfig_v1() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
+
 			if !proto.Equal(got, tt.want) {
 				t.Errorf("RawConfig_v1() = %v, want %v", got, tt.want)
 			}

@@ -20,12 +20,12 @@ import (
 	"context"
 	"testing"
 
-	"github.com/3scale-sre/basereconciler/util"
 	"github.com/3scale-sre/saas-operator/internal/pkg/redis/client"
 	redis "github.com/3scale-sre/saas-operator/internal/pkg/redis/server"
 	"github.com/3scale-sre/saas-operator/internal/pkg/redis/sharded"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+	"k8s.io/utils/ptr"
 )
 
 func TestSentinelStatus_ShardedCluster(t *testing.T) {
@@ -33,10 +33,12 @@ func TestSentinelStatus_ShardedCluster(t *testing.T) {
 		Sentinels       []string
 		MonitoredShards MonitoredShards
 	}
+
 	type args struct {
 		ctx  context.Context
 		pool *redis.ServerPool
 	}
+
 	tests := []struct {
 		name    string
 		fields  fields
@@ -64,28 +66,28 @@ func TestSentinelStatus_ShardedCluster(t *testing.T) {
 			args: args{
 				ctx: context.TODO(),
 				pool: redis.NewServerPool(
-					redis.MustNewServer("redis://127.0.0.1:1000", util.Pointer("srv1")),
-					redis.MustNewServer("redis://127.0.0.1:2000", util.Pointer("srv2")),
-					redis.MustNewServer("redis://127.0.0.1:3000", util.Pointer("srv3")),
-					redis.MustNewServer("redis://127.0.0.1:4000", util.Pointer("srv4")),
-					redis.MustNewServer("redis://127.0.0.1:26379", util.Pointer("sentinel")),
+					redis.MustNewServer("redis://127.0.0.1:1000", ptr.To("srv1")),
+					redis.MustNewServer("redis://127.0.0.1:2000", ptr.To("srv2")),
+					redis.MustNewServer("redis://127.0.0.1:3000", ptr.To("srv3")),
+					redis.MustNewServer("redis://127.0.0.1:4000", ptr.To("srv4")),
+					redis.MustNewServer("redis://127.0.0.1:26379", ptr.To("sentinel")),
 				),
 			},
 			want: &sharded.Cluster{
 				Shards: []*sharded.Shard{
 					{Name: "shard01",
 						Servers: []*sharded.RedisServer{
-							sharded.NewRedisServerFromParams(redis.MustNewServer("redis://127.0.0.1:1000", util.Pointer("srv1")), client.Master, map[string]string{"save": ""}),
-							sharded.NewRedisServerFromParams(redis.MustNewServer("redis://127.0.0.1:2000", util.Pointer("srv2")), client.Slave, map[string]string{"slave-read-only": "yes"}),
+							sharded.NewRedisServerFromParams(redis.MustNewServer("redis://127.0.0.1:1000", ptr.To("srv1")), client.Master, map[string]string{"save": ""}),
+							sharded.NewRedisServerFromParams(redis.MustNewServer("redis://127.0.0.1:2000", ptr.To("srv2")), client.Slave, map[string]string{"slave-read-only": "yes"}),
 						}},
 					{Name: "shard02",
 						Servers: []*sharded.RedisServer{
-							sharded.NewRedisServerFromParams(redis.MustNewServer("redis://127.0.0.1:3000", util.Pointer("srv3")), client.Master, map[string]string{}),
-							sharded.NewRedisServerFromParams(redis.MustNewServer("redis://127.0.0.1:4000", util.Pointer("srv4")), client.Slave, map[string]string{}),
+							sharded.NewRedisServerFromParams(redis.MustNewServer("redis://127.0.0.1:3000", ptr.To("srv3")), client.Master, map[string]string{}),
+							sharded.NewRedisServerFromParams(redis.MustNewServer("redis://127.0.0.1:4000", ptr.To("srv4")), client.Slave, map[string]string{}),
 						}},
 				},
 				Sentinels: []*sharded.SentinelServer{
-					sharded.NewSentinelServerFromParams(redis.MustNewServer("redis://127.0.0.1:26379", util.Pointer("sentinel"))),
+					sharded.NewSentinelServerFromParams(redis.MustNewServer("redis://127.0.0.1:26379", ptr.To("sentinel"))),
 				},
 			},
 			wantErr: false,
@@ -97,11 +99,14 @@ func TestSentinelStatus_ShardedCluster(t *testing.T) {
 				Sentinels:       tt.fields.Sentinels,
 				MonitoredShards: tt.fields.MonitoredShards,
 			}
+
 			got, err := ss.ShardedCluster(tt.args.ctx, tt.args.pool)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("SentinelStatus.ShardedCluster() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
+
 			if diff := cmp.Diff(got, tt.want, cmpopts.IgnoreUnexported(sharded.Cluster{}, sharded.Shard{}, redis.Server{})); len(diff) > 0 {
 				t.Errorf("SentinelStatus.ShardedCluster() = diff %s", diff)
 			}

@@ -1,9 +1,8 @@
 package envoyconfig
 
 import (
-	"fmt"
+	"errors"
 
-	"github.com/3scale-sre/basereconciler/util"
 	"github.com/3scale-sre/marin3r/api/envoy"
 	envoy_serializer "github.com/3scale-sre/marin3r/api/envoy/serializer"
 	envoy_serializer_v3 "github.com/3scale-sre/marin3r/api/envoy/serializer/v3"
@@ -17,21 +16,21 @@ import (
 	envoy_service_runtime_v3 "github.com/envoyproxy/go-control-plane/envoy/service/runtime/v3"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
 )
 
 func New(key types.NamespacedName, nodeID string, factory factory.EnvoyDynamicConfigFactory, resources ...descriptor.EnvoyDynamicConfigDescriptor) func(client.Object) (*marin3rv1alpha1.EnvoyConfig, error) {
-
 	return func(client.Object) (*marin3rv1alpha1.EnvoyConfig, error) {
 		protos := []envoy.Resource{}
 
 		for _, res := range resources {
-
 			proto, err := factory.NewResource(res)
 			if err != nil {
 				return nil, err
 			}
+
 			protos = append(protos, proto)
 		}
 
@@ -45,31 +44,29 @@ func New(key types.NamespacedName, nodeID string, factory factory.EnvoyDynamicCo
 }
 
 func newFromProtos(key types.NamespacedName, nodeID string, resources []envoy.Resource) func() (*marin3rv1alpha1.EnvoyConfig, error) {
-
 	return func() (*marin3rv1alpha1.EnvoyConfig, error) {
-
 		clusters := []marin3rv1alpha1.EnvoyResource{}
 		routes := []marin3rv1alpha1.EnvoyResource{}
 		listeners := []marin3rv1alpha1.EnvoyResource{}
 		runtimes := []marin3rv1alpha1.EnvoyResource{}
+
 		secrets, err := auto.GenerateSecrets(resources)
 		if err != nil {
 			return nil, err
 		}
 
 		for i := range resources {
-
 			j, err := envoy_serializer_v3.JSON{}.Marshal(resources[i])
 			if err != nil {
 				return nil, err
 			}
+
 			y, err := yaml.JSONToYAML([]byte(j))
 			if err != nil {
 				return nil, err
 			}
 
 			switch resources[i].(type) {
-
 			case *envoy_config_cluster_v3.Cluster:
 				clusters = append(clusters, marin3rv1alpha1.EnvoyResource{Value: string(y)})
 
@@ -83,7 +80,7 @@ func newFromProtos(key types.NamespacedName, nodeID string, resources []envoy.Re
 				runtimes = append(runtimes, marin3rv1alpha1.EnvoyResource{Value: string(y)})
 
 			default:
-				return nil, fmt.Errorf("unknown dynamic configuration type")
+				return nil, errors.New("unknown dynamic configuration type")
 			}
 		}
 
@@ -93,9 +90,9 @@ func newFromProtos(key types.NamespacedName, nodeID string, resources []envoy.Re
 				Namespace: key.Namespace,
 			},
 			Spec: marin3rv1alpha1.EnvoyConfigSpec{
-				EnvoyAPI:      util.Pointer(envoy.APIv3),
+				EnvoyAPI:      ptr.To(envoy.APIv3),
 				NodeID:        nodeID,
-				Serialization: util.Pointer(envoy_serializer.YAML),
+				Serialization: ptr.To(envoy_serializer.YAML),
 				EnvoyResources: &marin3rv1alpha1.EnvoyResources{
 					Clusters:  clusters,
 					Routes:    routes,
@@ -105,6 +102,5 @@ func newFromProtos(key types.NamespacedName, nodeID string, resources []envoy.Re
 				},
 			},
 		}, nil
-
 	}
 }

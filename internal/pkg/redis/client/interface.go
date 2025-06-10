@@ -12,24 +12,24 @@ import (
 // responses through the use of the Fake client, for testing purposes.
 type TestableInterface interface {
 	SentinelMaster(context.Context, string) (*SentinelMasterCmdResult, error)
-	SentinelMasters(context.Context) ([]interface{}, error)
+	SentinelMasters(context.Context) ([]any, error)
 	SentinelGetMasterAddrByName(ctx context.Context, shard string) ([]string, error)
-	SentinelSlaves(context.Context, string) ([]interface{}, error)
+	SentinelSlaves(context.Context, string) ([]any, error)
 	SentinelMonitor(context.Context, string, string, string, int) error
 	SentinelSet(context.Context, string, string, string) error
 	SentinelPSubscribe(context.Context, ...string) (<-chan *redis.Message, func() error)
-	SentinelInfoCache(context.Context) (interface{}, error)
-	SentinelDo(context.Context, ...interface{}) (interface{}, error)
+	SentinelInfoCache(context.Context) (any, error)
+	SentinelDo(context.Context, ...any) (any, error)
 	SentinelPing(ctx context.Context) error
-	RedisRole(context.Context) (interface{}, error)
-	RedisConfigGet(context.Context, string) ([]interface{}, error)
+	RedisRole(context.Context) (any, error)
+	RedisConfigGet(context.Context, string) ([]any, error)
 	RedisConfigSet(context.Context, string, string) error
 	RedisSlaveOf(context.Context, string, string) error
 	RedisDebugSleep(context.Context, time.Duration) error
-	RedisDo(context.Context, ...interface{}) (interface{}, error)
+	RedisDo(context.Context, ...any) (any, error)
 	RedisBGSave(context.Context) error
 	RedisLastSave(context.Context) (int64, error)
-	RedisSet(context.Context, string, interface{}) error
+	RedisSet(context.Context, string, any) error
 	RedisInfo(ctx context.Context, section string) (string, error)
 	Close() error
 }

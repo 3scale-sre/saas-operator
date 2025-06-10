@@ -2,11 +2,11 @@ package e2e
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 	"time"
 
-	"github.com/3scale-sre/basereconciler/util"
 	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	"github.com/3scale-sre/saas-operator/internal/pkg/resource_builders/twemproxy"
 	testutil "github.com/3scale-sre/saas-operator/test/util"
@@ -17,6 +17,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
 )
@@ -47,11 +48,11 @@ var _ = Describe("twemproxyconfig e2e suite", func() {
 		shards = []saasv1alpha1.RedisShard{
 			{
 				ObjectMeta: metav1.ObjectMeta{Name: "rs0", Namespace: ns},
-				Spec:       saasv1alpha1.RedisShardSpec{MasterIndex: util.Pointer[int32](0), SlaveCount: util.Pointer[int32](2)},
+				Spec:       saasv1alpha1.RedisShardSpec{MasterIndex: ptr.To[int32](0), SlaveCount: ptr.To[int32](2)},
 			},
 			{
 				ObjectMeta: metav1.ObjectMeta{Name: "rs1", Namespace: ns},
-				Spec:       saasv1alpha1.RedisShardSpec{MasterIndex: util.Pointer[int32](0), SlaveCount: util.Pointer[int32](2)},
+				Spec:       saasv1alpha1.RedisShardSpec{MasterIndex: ptr.To[int32](0), SlaveCount: ptr.To[int32](2)},
 			},
 		}
 
@@ -67,6 +68,7 @@ var _ = Describe("twemproxyconfig e2e suite", func() {
 				if shard.Status.ShardNodes != nil && shard.Status.ShardNodes.Master != nil {
 					// store the resource for later use
 					shards[i] = shard
+
 					return nil
 				} else {
 					return fmt.Errorf("RedisShard %s not ready", shard.ObjectMeta.Name)
@@ -104,8 +106,9 @@ var _ = Describe("twemproxyconfig e2e suite", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			if len(sentinel.Status.MonitoredShards) != len(shards) {
-				return fmt.Errorf("sentinel not ready")
+				return errors.New("sentinel not ready")
 			}
+
 			return nil
 		}, timeout, poll).ShouldNot(HaveOccurred())
 
@@ -147,8 +150,9 @@ var _ = Describe("twemproxyconfig e2e suite", func() {
 						return err
 					}
 					if twemproxyconfig.Status.SelectedTargets == nil {
-						return fmt.Errorf("status.targets is empty")
+						return errors.New("status.targets is empty")
 					}
+
 					return nil
 				}, timeout, poll).ShouldNot(HaveOccurred())
 			})
@@ -159,11 +163,11 @@ var _ = Describe("twemproxyconfig e2e suite", func() {
 				&saasv1alpha1.TwemproxyConfigStatus{
 					SelectedTargets: map[string]saasv1alpha1.TargetServer{
 						shards[0].GetName(): {
-							ServerAlias:   util.Pointer(shards[0].Status.ShardNodes.GetAliasByPodIndex(0)),
+							ServerAlias:   ptr.To(shards[0].Status.ShardNodes.GetAliasByPodIndex(0)),
 							ServerAddress: shards[0].Status.ShardNodes.GetHostPortByPodIndex(0),
 						},
 						shards[1].GetName(): {
-							ServerAlias:   util.Pointer(shards[1].Status.ShardNodes.GetAliasByPodIndex(0)),
+							ServerAlias:   ptr.To(shards[1].Status.ShardNodes.GetAliasByPodIndex(0)),
 							ServerAddress: shards[1].Status.ShardNodes.GetHostPortByPodIndex(0),
 						},
 					},
@@ -231,11 +235,11 @@ var _ = Describe("twemproxyconfig e2e suite", func() {
 					&saasv1alpha1.TwemproxyConfigStatus{
 						SelectedTargets: map[string]saasv1alpha1.TargetServer{
 							shards[0].GetName(): {
-								ServerAlias:   util.Pointer(shards[0].Status.ShardNodes.GetAliasByPodIndex(1)),
+								ServerAlias:   ptr.To(shards[0].Status.ShardNodes.GetAliasByPodIndex(1)),
 								ServerAddress: shards[0].Status.ShardNodes.GetHostPortByPodIndex(1),
 							},
 							shards[1].GetName(): {
-								ServerAlias:   util.Pointer(shards[1].Status.ShardNodes.GetAliasByPodIndex(0)),
+								ServerAlias:   ptr.To(shards[1].Status.ShardNodes.GetAliasByPodIndex(0)),
 								ServerAddress: shards[1].Status.ShardNodes.GetHostPortByPodIndex(0),
 							},
 						},
@@ -290,8 +294,12 @@ var _ = Describe("twemproxyconfig e2e suite", func() {
 					ObjectMeta: metav1.ObjectMeta{Name: "tmc-instance", Namespace: ns},
 					Spec: saasv1alpha1.TwemproxyConfigSpec{
 						ServerPools: []saasv1alpha1.TwemproxyServerPool{{
-							Name:   "test-pool",
-							Target: func() *saasv1alpha1.TargetRedisServers { t := saasv1alpha1.SlavesRW; return &t }(),
+							Name: "test-pool",
+							Target: func() *saasv1alpha1.TargetRedisServers {
+								t := saasv1alpha1.SlavesRW
+
+								return &t
+							}(),
 							Topology: []saasv1alpha1.ShardedRedisTopology{
 								{ShardName: "l-shard00", PhysicalShard: shards[0].GetName()},
 								{ShardName: "l-shard01", PhysicalShard: shards[0].GetName()},
@@ -318,8 +326,9 @@ var _ = Describe("twemproxyconfig e2e suite", func() {
 						return err
 					}
 					if twemproxyconfig.Status.SelectedTargets == nil {
-						return fmt.Errorf("status.targets is empty")
+						return errors.New("status.targets is empty")
 					}
+
 					return nil
 				}, timeout, poll).ShouldNot(HaveOccurred())
 			})
@@ -331,11 +340,11 @@ var _ = Describe("twemproxyconfig e2e suite", func() {
 				&saasv1alpha1.TwemproxyConfigStatus{
 					SelectedTargets: map[string]saasv1alpha1.TargetServer{
 						shards[0].GetName(): {
-							ServerAlias:   util.Pointer(shards[0].Status.ShardNodes.GetAliasByPodIndex(2)),
+							ServerAlias:   ptr.To(shards[0].Status.ShardNodes.GetAliasByPodIndex(2)),
 							ServerAddress: shards[0].Status.ShardNodes.GetHostPortByPodIndex(2),
 						},
 						shards[1].GetName(): {
-							ServerAlias:   util.Pointer(shards[1].Status.ShardNodes.GetAliasByPodIndex(2)),
+							ServerAlias:   ptr.To(shards[1].Status.ShardNodes.GetAliasByPodIndex(2)),
 							ServerAddress: shards[1].Status.ShardNodes.GetHostPortByPodIndex(2),
 						},
 					},
@@ -381,11 +390,11 @@ var _ = Describe("twemproxyconfig e2e suite", func() {
 						&saasv1alpha1.TwemproxyConfigStatus{
 							SelectedTargets: map[string]saasv1alpha1.TargetServer{
 								shards[0].GetName(): {
-									ServerAlias:   util.Pointer(shards[0].Status.ShardNodes.GetAliasByPodIndex(0)),
+									ServerAlias:   ptr.To(shards[0].Status.ShardNodes.GetAliasByPodIndex(0)),
 									ServerAddress: shards[0].Status.ShardNodes.GetHostPortByPodIndex(0),
 								},
 								shards[1].GetName(): {
-									ServerAlias:   util.Pointer(shards[1].Status.ShardNodes.GetAliasByPodIndex(2)),
+									ServerAlias:   ptr.To(shards[1].Status.ShardNodes.GetAliasByPodIndex(2)),
 									ServerAddress: shards[1].Status.ShardNodes.GetHostPortByPodIndex(2),
 								},
 							},
@@ -407,11 +416,11 @@ var _ = Describe("twemproxyconfig e2e suite", func() {
 						&saasv1alpha1.TwemproxyConfigStatus{
 							SelectedTargets: map[string]saasv1alpha1.TargetServer{
 								shards[0].GetName(): {
-									ServerAlias:   util.Pointer(shards[0].Status.ShardNodes.GetAliasByPodIndex(2)),
+									ServerAlias:   ptr.To(shards[0].Status.ShardNodes.GetAliasByPodIndex(2)),
 									ServerAddress: shards[0].Status.ShardNodes.GetHostPortByPodIndex(2),
 								},
 								shards[1].GetName(): {
-									ServerAlias:   util.Pointer(shards[1].Status.ShardNodes.GetAliasByPodIndex(2)),
+									ServerAlias:   ptr.To(shards[1].Status.ShardNodes.GetAliasByPodIndex(2)),
 									ServerAddress: shards[1].Status.ShardNodes.GetHostPortByPodIndex(2),
 								},
 							},
@@ -469,11 +478,11 @@ var _ = Describe("twemproxyconfig e2e suite", func() {
 						&saasv1alpha1.TwemproxyConfigStatus{
 							SelectedTargets: map[string]saasv1alpha1.TargetServer{
 								shards[0].GetName(): {
-									ServerAlias:   util.Pointer(shards[0].Status.ShardNodes.GetAliasByPodIndex(idx)),
+									ServerAlias:   ptr.To(shards[0].Status.ShardNodes.GetAliasByPodIndex(idx)),
 									ServerAddress: shards[0].Status.ShardNodes.GetHostPortByPodIndex(idx),
 								},
 								shards[1].GetName(): {
-									ServerAlias:   util.Pointer(shards[1].Status.ShardNodes.GetAliasByPodIndex(2)),
+									ServerAlias:   ptr.To(shards[1].Status.ShardNodes.GetAliasByPodIndex(2)),
 									ServerAddress: shards[1].Status.ShardNodes.GetHostPortByPodIndex(2),
 								},
 							},
@@ -516,7 +525,6 @@ var _ = Describe("twemproxyconfig e2e suite", func() {
 
 func assertTwemproxyConfigStatus(tmc *saasv1alpha1.TwemproxyConfig, sentinel *saasv1alpha1.Sentinel,
 	want *saasv1alpha1.TwemproxyConfigStatus) func() error {
-
 	return func() error {
 		if err := k8sClient.Get(context.Background(), client.ObjectKeyFromObject(tmc), tmc); err != nil {
 			return err
@@ -528,6 +536,7 @@ func assertTwemproxyConfigStatus(tmc *saasv1alpha1.TwemproxyConfig, sentinel *sa
 
 		monitoredShards, _ := yaml.Marshal(sentinel.Status.MonitoredShards)
 		GinkgoWriter.Printf("[debug] cluster status:\n\n %s\n", monitoredShards)
+
 		selectedTargets, _ := yaml.Marshal(tmc.Status.SelectedTargets)
 		GinkgoWriter.Printf("[debug] selected targets:\n\n %s\n", selectedTargets)
 
@@ -540,7 +549,6 @@ func assertTwemproxyConfigStatus(tmc *saasv1alpha1.TwemproxyConfig, sentinel *sa
 }
 
 func assertTwemproxyConfigServerPool(tmc *saasv1alpha1.TwemproxyConfig, want []twemproxy.Server) func() error {
-
 	return func() error {
 		cm := &corev1.ConfigMap{}
 		if err := k8sClient.Get(context.Background(), client.ObjectKeyFromObject(tmc), cm); err != nil {

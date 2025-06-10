@@ -10,7 +10,7 @@ import (
 	envoy_service_runtime_v3 "github.com/envoyproxy/go-control-plane/envoy/service/runtime/v3"
 )
 
-func RawConfig_v1(name string, opts interface{}) (envoy.Resource, error) {
+func RawConfig_v1(name string, opts any) (envoy.Resource, error) {
 	o := opts.(*saasv1alpha1.RawConfig)
 
 	switch o.Type {
@@ -32,5 +32,6 @@ func unmarshal(b []byte, proto envoy.Resource) (envoy.Resource, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return proto, nil
 }

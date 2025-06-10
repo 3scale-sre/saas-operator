@@ -52,6 +52,7 @@ func (r *Runner) publishMetrics() {
 	if err := backupSuccessCount.With(prometheus.Labels{"shard": r.ShardName}).Write(&dto.Metric{}); err != nil {
 		backupFailureCount.With(prometheus.Labels{"shard": r.ShardName}).Add(0)
 	}
+
 	if err := backupFailureCount.With(prometheus.Labels{"shard": r.ShardName}).Write(&dto.Metric{}); err != nil {
 		backupFailureCount.With(prometheus.Labels{"shard": r.ShardName}).Add(0)
 	}

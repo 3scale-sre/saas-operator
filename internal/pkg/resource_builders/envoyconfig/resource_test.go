@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/3scale-sre/basereconciler/util"
 	"github.com/3scale-sre/marin3r/api/envoy"
 	envoy_serializer "github.com/3scale-sre/marin3r/api/envoy/serializer"
 	marin3rv1alpha1 "github.com/3scale-sre/marin3r/api/marin3r/v1alpha1"
@@ -23,6 +22,7 @@ import (
 	"google.golang.org/protobuf/types/known/durationpb"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/utils/ptr"
 )
 
 func TestNew(t *testing.T) {
@@ -32,6 +32,7 @@ func TestNew(t *testing.T) {
 		factory   factory.EnvoyDynamicConfigFactory
 		resources []descriptor.EnvoyDynamicConfigDescriptor
 	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -46,23 +47,23 @@ func TestNew(t *testing.T) {
 				factory: factory.Default(),
 				resources: saasv1alpha1.MapOfEnvoyDynamicConfig{
 					"my_cluster": {
-						GeneratorVersion: util.Pointer("v1"),
+						GeneratorVersion: ptr.To("v1"),
 						Cluster: &saasv1alpha1.Cluster{
 							Host:    "localhost",
 							Port:    8080,
-							IsHttp2: util.Pointer(false),
+							IsHttp2: ptr.To(false),
 						},
 					},
 					"my_listener": {
-						GeneratorVersion: util.Pointer("v1"),
+						GeneratorVersion: ptr.To("v1"),
 						ListenerHttp: &saasv1alpha1.ListenerHttp{
 							Port:                        0,
 							RouteConfigName:             "routeconfig",
-							CertificateSecretName:       util.Pointer("certificate"),
-							EnableHttp2:                 util.Pointer(false),
-							AllowHeadersWithUnderscores: util.Pointer(true),
-							MaxConnectionDuration:       util.Pointer(metav1.Duration{Duration: 900 * time.Second}),
-							ProxyProtocol:               util.Pointer(true),
+							CertificateSecretName:       ptr.To("certificate"),
+							EnableHttp2:                 ptr.To(false),
+							AllowHeadersWithUnderscores: ptr.To(true),
+							MaxConnectionDuration:       ptr.To(metav1.Duration{Duration: 900 * time.Second}),
+							ProxyProtocol:               ptr.To(true),
 						},
 					},
 				}.AsList(),
@@ -74,8 +75,8 @@ func TestNew(t *testing.T) {
 				},
 				Spec: marin3rv1alpha1.EnvoyConfigSpec{
 					NodeID:        "test",
-					Serialization: util.Pointer(envoy_serializer.YAML),
-					EnvoyAPI:      util.Pointer(envoy.APIv3),
+					Serialization: ptr.To(envoy_serializer.YAML),
+					EnvoyAPI:      ptr.To(envoy.APIv3),
 					EnvoyResources: &marin3rv1alpha1.EnvoyResources{
 						Clusters: []marin3rv1alpha1.EnvoyResource{{
 							Value: heredoc.Doc(`
@@ -190,8 +191,10 @@ func TestNew(t *testing.T) {
 			got, err := New(tt.args.key, tt.args.nodeID, tt.args.factory, tt.args.resources...)(nil)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("New() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
+
 			if diff := deep.Equal(got, tt.want); len(diff) > 0 {
 				t.Errorf("New() = got diff %v", diff)
 			}
@@ -205,6 +208,7 @@ func Test_newFromProtos(t *testing.T) {
 		nodeID    string
 		resources []envoy.Resource
 	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -265,8 +269,8 @@ func Test_newFromProtos(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{Name: "test", Namespace: "ns"},
 				Spec: marin3rv1alpha1.EnvoyConfigSpec{
 					NodeID:        "test",
-					Serialization: util.Pointer(envoy_serializer.YAML),
-					EnvoyAPI:      util.Pointer(envoy.APIv3),
+					Serialization: ptr.To(envoy_serializer.YAML),
+					EnvoyAPI:      ptr.To(envoy.APIv3),
 					EnvoyResources: &marin3rv1alpha1.EnvoyResources{
 						Clusters: []marin3rv1alpha1.EnvoyResource{{
 							Value: heredoc.Doc(`
@@ -317,8 +321,10 @@ func Test_newFromProtos(t *testing.T) {
 			got, err := newFromProtos(tt.args.key, tt.args.nodeID, tt.args.resources)()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("newFromProtos() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
+
 			if diff := deep.Equal(got, tt.want); len(diff) > 0 {
 				t.Errorf("newFromProtos() = diff %v", diff)
 			}

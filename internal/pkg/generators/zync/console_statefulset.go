@@ -8,6 +8,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/ptr"
 )
 
 func (gen *ConsoleGenerator) statefulset() *appsv1.StatefulSet {
@@ -18,7 +19,7 @@ func (gen *ConsoleGenerator) statefulset() *appsv1.StatefulSet {
 			Labels:    gen.GetLabels(),
 		},
 		Spec: appsv1.StatefulSetSpec{
-			Replicas: util.Pointer[int32](1),
+			Replicas: ptr.To[int32](1),
 			Selector: &metav1.LabelSelector{MatchLabels: gen.GetSelector()},
 			UpdateStrategy: appsv1.StatefulSetUpdateStrategy{
 				Type: appsv1.RollingUpdateStatefulSetStrategyType,
@@ -33,6 +34,7 @@ func (gen *ConsoleGenerator) statefulset() *appsv1.StatefulSet {
 						if gen.Spec.Image.PullSecretName != nil {
 							return []corev1.LocalObjectReference{{Name: *gen.Spec.Image.PullSecretName}}
 						}
+
 						return nil
 					}(),
 					Containers: []corev1.Container{
@@ -75,10 +77,11 @@ func (gen *ConsoleGenerator) statefulset() *appsv1.StatefulSet {
 					},
 					Affinity:                      pod.Affinity(gen.GetSelector(), gen.Spec.NodeAffinity),
 					Tolerations:                   gen.Spec.Tolerations,
-					TerminationGracePeriodSeconds: util.Pointer[int64](30),
+					TerminationGracePeriodSeconds: ptr.To[int64](30),
 				},
 			},
 		},
 	}
+
 	return sts
 }

@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -32,11 +33,11 @@ import (
 	"github.com/robfig/cron/v3"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
@@ -47,21 +48,11 @@ type ShardedRedisBackupReconciler struct {
 	Pool         *redis.ServerPool
 }
 
-//+kubebuilder:rbac:groups=saas.3scale.net,namespace=placeholder,resources=shardedredisbackups,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=saas.3scale.net,namespace=placeholder,resources=shardedredisbackups/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=saas.3scale.net,namespace=placeholder,resources=shardedredisbackups/finalizers,verbs=update
+// +kubebuilder:rbac:groups=saas.3scale.net,namespace=placeholder,resources=shardedredisbackups,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=saas.3scale.net,namespace=placeholder,resources=shardedredisbackups/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=saas.3scale.net,namespace=placeholder,resources=shardedredisbackups/finalizers,verbs=update
 
-// Reconcile is part of the main kubernetes reconciliation loop which aims to
-// move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
-// the ShardedRedisBackup object against the actual cluster state, and then
-// perform operations to make the cluster state reflect the state specified by
-// the user.
-//
-// For more details, check Reconcile and its Result here:
-// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.13.0/pkg/reconcile
 func (r *ShardedRedisBackupReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-
 	ctx, logger := r.Logger(ctx, "name", req.Name, "namespace", req.Namespace)
 	now := time.Now()
 
@@ -70,6 +61,7 @@ func (r *ShardedRedisBackupReconciler) Reconcile(ctx context.Context, req ctrl.R
 	// ----------------------------------
 
 	instance := &saasv1alpha1.ShardedRedisBackup{}
+
 	result := r.ManageResourceLifecycle(ctx, req, instance,
 		reconciler.WithInMemoryInitializationFunc(util.ResourceDefaulter(instance)),
 		reconciler.WithFinalizer(saasv1alpha1.Finalizer),
@@ -96,9 +88,11 @@ func (r *ShardedRedisBackupReconciler) Reconcile(ctx context.Context, req ctrl.R
 	if err := r.Client.Get(ctx, client.ObjectKeyFromObject(sshPrivateKey), sshPrivateKey); err != nil {
 		return ctrl.Result{}, err
 	}
+
 	if sshPrivateKey.Type != corev1.SecretTypeSSHAuth {
 		return ctrl.Result{}, fmt.Errorf("secret %s must be of 'kubernetes.io/ssh-auth' type", sshPrivateKey.GetName())
 	}
+
 	if _, ok := sshPrivateKey.Data[corev1.SSHAuthPrivateKey]; !ok {
 		return ctrl.Result{}, fmt.Errorf("secret %s is missing %s key", sshPrivateKey.GetName(), corev1.SSHAuthPrivateKey)
 	}
@@ -109,9 +103,11 @@ func (r *ShardedRedisBackupReconciler) Reconcile(ctx context.Context, req ctrl.R
 	if err := r.Client.Get(ctx, client.ObjectKeyFromObject(awsCredentials), awsCredentials); err != nil {
 		return ctrl.Result{}, err
 	}
+
 	if _, ok := awsCredentials.Data[operatorutils.AWSAccessKeyEnvvar]; !ok {
 		return ctrl.Result{}, fmt.Errorf("secret %s is missing %s key", awsCredentials.GetName(), operatorutils.AWSAccessKeyEnvvar)
 	}
+
 	if _, ok := awsCredentials.Data[operatorutils.AWSSecretKeyEnvvar]; !ok {
 		return ctrl.Result{}, fmt.Errorf("secret %s is missing %s key", awsCredentials.GetName(), operatorutils.AWSSecretKeyEnvvar)
 	}
@@ -123,14 +119,17 @@ func (r *ShardedRedisBackupReconciler) Reconcile(ctx context.Context, req ctrl.R
 	statusChanged := false
 	requeue := false
 	runners := make([]threads.RunnableThread, 0, len(cluster.Shards))
+
 	for _, shard := range cluster.Shards {
 		scheduledBackup, _ := instance.Status.FindLastBackup(shard.Name, saasv1alpha1.BackupPendingState)
 		if scheduledBackup != nil && scheduledBackup.ScheduledFor.Time.Before(now) {
 			// hanlde error when no available RO slaves
 			var roSlaves []*sharded.RedisServer
 			if roSlaves = shard.GetSlavesRO(); len(roSlaves) == 0 {
-				logger.Error(fmt.Errorf("no available RO slaves in shard"), fmt.Sprintf("skipped shard %s, will be retried", shard.Name))
+				logger.Error(errors.New("no available RO slaves in shard"), fmt.Sprintf("skipped shard %s, will be retried", shard.Name))
+
 				requeue = true
+
 				continue
 			}
 
@@ -155,8 +154,8 @@ func (r *ShardedRedisBackupReconciler) Reconcile(ctx context.Context, req ctrl.R
 				AWSRegion:          instance.Spec.S3Options.Region,
 				AWSS3Endpoint:      instance.Spec.S3Options.ServiceEndpoint,
 			})
-			scheduledBackup.ServerAlias = util.Pointer(roSlaves[0].GetAlias())
-			scheduledBackup.ServerID = util.Pointer(roSlaves[0].ID())
+			scheduledBackup.ServerAlias = ptr.To(roSlaves[0].GetAlias())
+			scheduledBackup.ServerID = ptr.To(roSlaves[0].ID())
 			scheduledBackup.StartedAt = &metav1.Time{Time: now}
 			scheduledBackup.Message = "backup is running"
 			scheduledBackup.State = saasv1alpha1.BackupRunningState
@@ -167,8 +166,10 @@ func (r *ShardedRedisBackupReconciler) Reconcile(ctx context.Context, req ctrl.R
 	if err := r.BackupRunner.ReconcileThreads(ctx, instance, runners, logger.WithName("backup-runner")); err != nil {
 		return ctrl.Result{}, err
 	}
+
 	if statusChanged {
 		err := r.Client.Status().Update(ctx, instance)
+
 		return ctrl.Result{}, err
 	}
 	// requeue if any of the shards had no available RO slaves
@@ -182,12 +183,14 @@ func (r *ShardedRedisBackupReconciler) Reconcile(ctx context.Context, req ctrl.R
 
 	for _, b := range instance.Status.GetRunningBackups() {
 		var thread *backup.Runner
+
 		var srv *sharded.RedisServer
 
 		if srv = cluster.LookupServerByID(*b.ServerID); srv == nil {
 			b.State = saasv1alpha1.BackupUnknownState
 			b.Message = "server not found in cluster"
 			statusChanged = true
+
 			continue
 		}
 
@@ -197,6 +200,7 @@ func (r *ShardedRedisBackupReconciler) Reconcile(ctx context.Context, req ctrl.R
 			b.State = saasv1alpha1.BackupUnknownState
 			b.Message = "runner not found"
 			statusChanged = true
+
 			continue
 		}
 
@@ -211,12 +215,14 @@ func (r *ShardedRedisBackupReconciler) Reconcile(ctx context.Context, req ctrl.R
 				b.BackupSize = &status.BackupSize
 				b.FinishedAt = &metav1.Time{Time: status.FinishedAt}
 			}
+
 			statusChanged = true
 		}
 	}
 
 	if statusChanged {
 		err := r.Client.Status().Update(ctx, instance)
+
 		return ctrl.Result{}, err
 	}
 
@@ -228,26 +234,21 @@ func (r *ShardedRedisBackupReconciler) Reconcile(ctx context.Context, req ctrl.R
 	if err != nil {
 		return ctrl.Result{}, err
 	}
+
 	nextRun := schedule.Next(now)
 
 	// only actually add the schedule if pause == false
-	if !*instance.Spec.Pause {
-		statusChanged, err = r.reconcileBackupList(ctx, instance, nextRun, cluster.GetShardNames())
-		if err != nil {
-			return reconcile.Result{}, err
-		}
+	if !*instance.Spec.Pause && r.reconcileBackupList(ctx, instance, nextRun, cluster.GetShardNames()) {
+		err := r.Client.Status().Update(ctx, instance)
 
-		if statusChanged {
-			err := r.Client.Status().Update(ctx, instance)
-			return ctrl.Result{}, err
-		}
+		return ctrl.Result{}, err
 	}
 
 	// requeue for next schedule
 	return ctrl.Result{RequeueAfter: time.Until(nextRun.Add(1 * time.Second))}, nil
 }
 
-func (r *ShardedRedisBackupReconciler) reconcileBackupList(ctx context.Context, instance *saasv1alpha1.ShardedRedisBackup, nextRun time.Time, shards []string) (bool, error) {
+func (r *ShardedRedisBackupReconciler) reconcileBackupList(ctx context.Context, instance *saasv1alpha1.ShardedRedisBackup, nextRun time.Time, shards []string) bool {
 	logger := log.FromContext(ctx, "function", "(r *ShardedRedisBackupReconciler) reconcileBackupList")
 	changed := false
 
@@ -256,6 +257,7 @@ func (r *ShardedRedisBackupReconciler) reconcileBackupList(ctx context.Context, 
 		if runningbackup, _ := instance.Status.FindLastBackup(shard, saasv1alpha1.BackupRunningState); runningbackup != nil {
 			continue
 		}
+
 		if lastbackup, pos := instance.Status.FindLastBackup(shard, saasv1alpha1.BackupPendingState); lastbackup != nil {
 			// found a pending backup for this shard
 			if nextRun == lastbackup.ScheduledFor.Time {
@@ -275,6 +277,7 @@ func (r *ShardedRedisBackupReconciler) reconcileBackupList(ctx context.Context, 
 			State:        saasv1alpha1.BackupPendingState,
 		})
 		logger.V(1).Info("scheduled backup", "shard", shard, "scheduledFor", nextRun)
+
 		changed = true
 	}
 
@@ -283,7 +286,7 @@ func (r *ShardedRedisBackupReconciler) reconcileBackupList(ctx context.Context, 
 		changed = true
 	}
 
-	return changed, nil
+	return changed
 }
 
 // SetupWithManager sets up the controller with the Manager.

@@ -37,6 +37,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/equality"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -62,9 +63,9 @@ type TwemproxyConfigReconciler struct {
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
 func (r *TwemproxyConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-
 	ctx, logger := r.Logger(ctx, "name", req.Name, "namespace", req.Namespace)
 	instance := &saasv1alpha1.TwemproxyConfig{}
+
 	result := r.ManageResourceLifecycle(ctx, req, instance,
 		reconciler.WithInMemoryInitializationFunc(util.ResourceDefaulter(instance)),
 		reconciler.WithFinalizer(saasv1alpha1.Finalizer),
@@ -103,14 +104,19 @@ func (r *TwemproxyConfigReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 
 	// Reconcile sentinel event watchers
 	eventWatchers := make([]threads.RunnableThread, 0, len(gen.Spec.SentinelURIs))
+
 	for _, uri := range gen.Spec.SentinelURIs {
 		watcher, err := events.NewSentinelEventWatcher(uri, instance, nil, false, r.Pool)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
+
 		eventWatchers = append(eventWatchers, watcher)
 	}
-	r.SentinelEvents.ReconcileThreads(ctx, instance, eventWatchers, logger.WithName("event-watcher"))
+
+	if err := r.SentinelEvents.ReconcileThreads(ctx, instance, eventWatchers, logger.WithName("event-watcher")); err != nil {
+		return ctrl.Result{}, err
+	}
 
 	if _, err := resource.CreateOrUpdate(ctx, r.Client, r.Scheme, instance, gen.GrafanaDashboard()); err != nil {
 		return ctrl.Result{}, err
@@ -130,6 +136,7 @@ func (r *TwemproxyConfigReconciler) reconcileConfigMap(ctx context.Context, owne
 	logger := log.WithValues("kind", "ConfigMap", "resource", desired.GetName())
 
 	current := &corev1.ConfigMap{}
+
 	err := r.Client.Get(ctx, client.ObjectKeyFromObject(desired), current)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
@@ -137,12 +144,16 @@ func (r *TwemproxyConfigReconciler) reconcileConfigMap(ctx context.Context, owne
 			if err := controllerutil.SetControllerReference(owner, desired, r.Scheme); err != nil {
 				return "", err
 			}
+
 			if err := r.Client.Create(ctx, desired); err != nil {
 				return "", err
 			}
+
 			logger.Info("created ConfigMap")
+
 			return util.Hash(desired.Data), nil
 		}
+
 		return "", err
 	}
 
@@ -153,10 +164,13 @@ func (r *TwemproxyConfigReconciler) reconcileConfigMap(ctx context.Context, owne
 		if !reflect.DeepEqual(desired.Data, current.Data) {
 			patch := client.MergeFrom(current.DeepCopy())
 			current.Data = desired.Data
+
 			if err := r.Client.Patch(ctx, current, patch); err != nil {
 				logger.Error(err, "unable to patch ConfigMap")
+
 				return "", err
 			}
+
 			logger.Info("patched ConfigMap")
 		}
 	}
@@ -166,7 +180,6 @@ func (r *TwemproxyConfigReconciler) reconcileConfigMap(ctx context.Context, owne
 
 func (r *TwemproxyConfigReconciler) reconcileSyncAnnotations(ctx context.Context,
 	instance *saasv1alpha1.TwemproxyConfig, hash string, log logr.Logger) error {
-
 	podList := &corev1.PodList{}
 	if err := r.Client.List(ctx, podList, instance.PodSyncSelector(),
 		client.InNamespace(instance.GetNamespace())); err != nil {
@@ -176,6 +189,7 @@ func (r *TwemproxyConfigReconciler) reconcileSyncAnnotations(ctx context.Context
 	failures := operatorutils.MultiError{}
 	errCh := make(chan error)
 	innerCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+
 	var wg sync.WaitGroup
 
 	// listen the error channel for errors
@@ -193,6 +207,7 @@ func (r *TwemproxyConfigReconciler) reconcileSyncAnnotations(ctx context.Context
 	// Patch the Pods concurrently
 	for _, pod := range podList.Items {
 		wg.Add(1)
+
 		go func(pod corev1.Pod) {
 			r.syncPod(innerCtx, pod, hash, errCh, log)
 			wg.Done()
@@ -201,6 +216,7 @@ func (r *TwemproxyConfigReconciler) reconcileSyncAnnotations(ctx context.Context
 
 	wg.Wait()
 	cancel()
+
 	if len(failures) > 0 {
 		return failures
 	}
@@ -212,6 +228,7 @@ func (r *TwemproxyConfigReconciler) syncPod(ctx context.Context, pod corev1.Pod,
 	annotatedHash, ok := pod.GetAnnotations()[saasv1alpha1.TwemproxySyncAnnotationKey]
 	if !ok || annotatedHash != hash {
 		patch := client.MergeFrom(pod.DeepCopy())
+
 		if pod.GetAnnotations() != nil {
 			pod.ObjectMeta.Annotations[saasv1alpha1.TwemproxySyncAnnotationKey] = hash
 		} else {
@@ -223,6 +240,7 @@ func (r *TwemproxyConfigReconciler) syncPod(ctx context.Context, pod corev1.Pod,
 		if err := r.Client.Patch(ctx, &pod, patch); err != nil {
 			errCh <- err
 		}
+
 		log.V(1).Info(fmt.Sprintf("configmap re-sync forced in target pod %s", client.ObjectKeyFromObject(&pod)))
 	}
 }
@@ -235,7 +253,7 @@ func (r *TwemproxyConfigReconciler) reconcileStatus(ctx context.Context, gen *tw
 	// but this is actually not used, so just assume there's only one pool for simplicity
 	for pshard, server := range gen.GetTargets(gen.Spec.ServerPools[0].Name) {
 		selectedTargets[pshard] = saasv1alpha1.TargetServer{
-			ServerAlias:   util.Pointer(server.Alias()),
+			ServerAlias:   ptr.To(server.Alias()),
 			ServerAddress: server.Address,
 		}
 	}
@@ -248,6 +266,7 @@ func (r *TwemproxyConfigReconciler) reconcileStatus(ctx context.Context, gen *tw
 		if err := r.Client.Status().Update(ctx, instance); err != nil {
 			return err
 		}
+
 		log.Info("status updated")
 	}
 

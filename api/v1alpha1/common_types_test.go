@@ -20,11 +20,11 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/3scale-sre/basereconciler/util"
 	"github.com/go-test/deep"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
 )
 
 func TestImageSpec_Default(t *testing.T) {
@@ -34,9 +34,11 @@ func TestImageSpec_Default(t *testing.T) {
 		PullSecretName *string
 		PullPolicy     *corev1.PullPolicy
 	}
+
 	type args struct {
 		def defaultImageSpec
 	}
+
 	tests := []struct {
 		name   string
 		fields fields
@@ -47,35 +49,50 @@ func TestImageSpec_Default(t *testing.T) {
 			name:   "Sets defaults",
 			fields: fields{},
 			args: args{def: defaultImageSpec{
-				Name:           util.Pointer("name"),
-				Tag:            util.Pointer("tag"),
-				PullSecretName: util.Pointer("pullSecret"),
-				PullPolicy:     func() *corev1.PullPolicy { p := corev1.PullIfNotPresent; return &p }(),
+				Name:           ptr.To("name"),
+				Tag:            ptr.To("tag"),
+				PullSecretName: ptr.To("pullSecret"),
+				PullPolicy: func() *corev1.PullPolicy {
+					p := corev1.PullIfNotPresent
+					return &p
+				}(),
 			}},
 			want: &ImageSpec{
-				Name:           util.Pointer("name"),
-				Tag:            util.Pointer("tag"),
-				PullSecretName: util.Pointer("pullSecret"),
-				PullPolicy:     func() *corev1.PullPolicy { p := corev1.PullIfNotPresent; return &p }(),
+				Name:           ptr.To("name"),
+				Tag:            ptr.To("tag"),
+				PullSecretName: ptr.To("pullSecret"),
+				PullPolicy: func() *corev1.PullPolicy {
+					p := corev1.PullIfNotPresent
+					return &p
+				}(),
 			},
 		},
 		{
-			name: "Combines explicitely set values with defaults",
+			name: "Combines explicitly set values with defaults",
 			fields: fields{
-				Name:       util.Pointer("explicit"),
-				PullPolicy: func() *corev1.PullPolicy { p := corev1.PullAlways; return &p }(),
+				Name: ptr.To("explicit"),
+				PullPolicy: func() *corev1.PullPolicy {
+					p := corev1.PullAlways
+					return &p
+				}(),
 			},
 			args: args{def: defaultImageSpec{
-				Name:           util.Pointer("name"),
-				Tag:            util.Pointer("tag"),
-				PullSecretName: util.Pointer("pullSecret"),
-				PullPolicy:     func() *corev1.PullPolicy { p := corev1.PullIfNotPresent; return &p }(),
+				Name:           ptr.To("name"),
+				Tag:            ptr.To("tag"),
+				PullSecretName: ptr.To("pullSecret"),
+				PullPolicy: func() *corev1.PullPolicy {
+					p := corev1.PullIfNotPresent
+					return &p
+				}(),
 			}},
 			want: &ImageSpec{
-				Name:           util.Pointer("explicit"),
-				Tag:            util.Pointer("tag"),
-				PullSecretName: util.Pointer("pullSecret"),
-				PullPolicy:     func() *corev1.PullPolicy { p := corev1.PullAlways; return &p }(),
+				Name:           ptr.To("explicit"),
+				Tag:            ptr.To("tag"),
+				PullSecretName: ptr.To("pullSecret"),
+				PullPolicy: func() *corev1.PullPolicy {
+					p := corev1.PullAlways
+					return &p
+				}(),
 			},
 		},
 	}
@@ -88,6 +105,7 @@ func TestImageSpec_Default(t *testing.T) {
 				PullPolicy:     tt.fields.PullPolicy,
 			}
 			spec.Default(tt.args.def)
+
 			if !reflect.DeepEqual(spec, tt.want) {
 				t.Errorf("ImageSpec_Default() = %v, want %v", *spec, *tt.want)
 			}
@@ -118,6 +136,7 @@ func TestInitializeImageSpec(t *testing.T) {
 		spec *ImageSpec
 		def  defaultImageSpec
 	}
+
 	tests := []struct {
 		name string
 		args args
@@ -126,27 +145,27 @@ func TestInitializeImageSpec(t *testing.T) {
 		{
 			name: "Initializes the struct with appropriate defaults if nil",
 			args: args{nil, defaultImageSpec{
-				Name:           util.Pointer("name"),
-				Tag:            util.Pointer("tag"),
-				PullSecretName: util.Pointer("pullSecret"),
+				Name:           ptr.To("name"),
+				Tag:            ptr.To("tag"),
+				PullSecretName: ptr.To("pullSecret"),
 			}},
 			want: &ImageSpec{
-				Name:           util.Pointer("name"),
-				Tag:            util.Pointer("tag"),
-				PullSecretName: util.Pointer("pullSecret"),
+				Name:           ptr.To("name"),
+				Tag:            ptr.To("tag"),
+				PullSecretName: ptr.To("pullSecret"),
 			},
 		},
 		{
 			name: "Initializes the struct with appropriate defaults if empty",
 			args: args{&ImageSpec{}, defaultImageSpec{
-				Name:           util.Pointer("name"),
-				Tag:            util.Pointer("tag"),
-				PullSecretName: util.Pointer("pullSecret"),
+				Name:           ptr.To("name"),
+				Tag:            ptr.To("tag"),
+				PullSecretName: ptr.To("pullSecret"),
 			}},
 			want: &ImageSpec{
-				Name:           util.Pointer("name"),
-				Tag:            util.Pointer("tag"),
-				PullSecretName: util.Pointer("pullSecret"),
+				Name:           ptr.To("name"),
+				Tag:            ptr.To("tag"),
+				PullSecretName: ptr.To("pullSecret"),
 			},
 		},
 	}
@@ -167,9 +186,11 @@ func TestProbeSpec_Default(t *testing.T) {
 		SuccessThreshold    *int32
 		FailureThreshold    *int32
 	}
+
 	type args struct {
 		def defaultProbeSpec
 	}
+
 	tests := []struct {
 		name   string
 		fields fields
@@ -180,38 +201,38 @@ func TestProbeSpec_Default(t *testing.T) {
 			name:   "Sets defaults",
 			fields: fields{},
 			args: args{def: defaultProbeSpec{
-				InitialDelaySeconds: util.Pointer[int32](1),
-				TimeoutSeconds:      util.Pointer[int32](2),
-				PeriodSeconds:       util.Pointer[int32](3),
-				SuccessThreshold:    util.Pointer[int32](4),
-				FailureThreshold:    util.Pointer[int32](5),
+				InitialDelaySeconds: ptr.To[int32](1),
+				TimeoutSeconds:      ptr.To[int32](2),
+				PeriodSeconds:       ptr.To[int32](3),
+				SuccessThreshold:    ptr.To[int32](4),
+				FailureThreshold:    ptr.To[int32](5),
 			}},
 			want: &ProbeSpec{
-				InitialDelaySeconds: util.Pointer[int32](1),
-				TimeoutSeconds:      util.Pointer[int32](2),
-				PeriodSeconds:       util.Pointer[int32](3),
-				SuccessThreshold:    util.Pointer[int32](4),
-				FailureThreshold:    util.Pointer[int32](5),
+				InitialDelaySeconds: ptr.To[int32](1),
+				TimeoutSeconds:      ptr.To[int32](2),
+				PeriodSeconds:       ptr.To[int32](3),
+				SuccessThreshold:    ptr.To[int32](4),
+				FailureThreshold:    ptr.To[int32](5),
 			},
 		},
 		{
-			name: "Combines explicitely set values with defaults",
+			name: "Combines explicitly set values with defaults",
 			fields: fields{
-				InitialDelaySeconds: util.Pointer[int32](9999),
+				InitialDelaySeconds: ptr.To[int32](9999),
 			},
 			args: args{def: defaultProbeSpec{
-				InitialDelaySeconds: util.Pointer[int32](1),
-				TimeoutSeconds:      util.Pointer[int32](2),
-				PeriodSeconds:       util.Pointer[int32](3),
-				SuccessThreshold:    util.Pointer[int32](4),
-				FailureThreshold:    util.Pointer[int32](5),
+				InitialDelaySeconds: ptr.To[int32](1),
+				TimeoutSeconds:      ptr.To[int32](2),
+				PeriodSeconds:       ptr.To[int32](3),
+				SuccessThreshold:    ptr.To[int32](4),
+				FailureThreshold:    ptr.To[int32](5),
 			}},
 			want: &ProbeSpec{
-				InitialDelaySeconds: util.Pointer[int32](9999),
-				TimeoutSeconds:      util.Pointer[int32](2),
-				PeriodSeconds:       util.Pointer[int32](3),
-				SuccessThreshold:    util.Pointer[int32](4),
-				FailureThreshold:    util.Pointer[int32](5),
+				InitialDelaySeconds: ptr.To[int32](9999),
+				TimeoutSeconds:      ptr.To[int32](2),
+				PeriodSeconds:       ptr.To[int32](3),
+				SuccessThreshold:    ptr.To[int32](4),
+				FailureThreshold:    ptr.To[int32](5),
 			},
 		},
 	}
@@ -225,6 +246,7 @@ func TestProbeSpec_Default(t *testing.T) {
 				FailureThreshold:    tt.fields.FailureThreshold,
 			}
 			spec.Default(tt.args.def)
+
 			if !reflect.DeepEqual(spec, tt.want) {
 				t.Errorf("ProbeSpec_Default() = %v, want %v", *spec, *tt.want)
 			}
@@ -240,7 +262,7 @@ func TestProbeSpec_IsDeactivated(t *testing.T) {
 	}{
 		{"Wants true if empty", &ProbeSpec{}, true},
 		{"Wants false if nil", nil, false},
-		{"Wants false if other", &ProbeSpec{InitialDelaySeconds: util.Pointer[int32](1)}, false},
+		{"Wants false if other", &ProbeSpec{InitialDelaySeconds: ptr.To[int32](1)}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -256,6 +278,7 @@ func TestInitializeProbeSpec(t *testing.T) {
 		spec *ProbeSpec
 		def  defaultProbeSpec
 	}
+
 	tests := []struct {
 		name string
 		args args
@@ -264,18 +287,18 @@ func TestInitializeProbeSpec(t *testing.T) {
 		{
 			name: "Initializes the struct with appropriate defaults if nil",
 			args: args{nil, defaultProbeSpec{
-				InitialDelaySeconds: util.Pointer[int32](1),
-				TimeoutSeconds:      util.Pointer[int32](2),
-				PeriodSeconds:       util.Pointer[int32](3),
-				SuccessThreshold:    util.Pointer[int32](4),
-				FailureThreshold:    util.Pointer[int32](5),
+				InitialDelaySeconds: ptr.To[int32](1),
+				TimeoutSeconds:      ptr.To[int32](2),
+				PeriodSeconds:       ptr.To[int32](3),
+				SuccessThreshold:    ptr.To[int32](4),
+				FailureThreshold:    ptr.To[int32](5),
 			}},
 			want: &ProbeSpec{
-				InitialDelaySeconds: util.Pointer[int32](1),
-				TimeoutSeconds:      util.Pointer[int32](2),
-				PeriodSeconds:       util.Pointer[int32](3),
-				SuccessThreshold:    util.Pointer[int32](4),
-				FailureThreshold:    util.Pointer[int32](5),
+				InitialDelaySeconds: ptr.To[int32](1),
+				TimeoutSeconds:      ptr.To[int32](2),
+				PeriodSeconds:       ptr.To[int32](3),
+				SuccessThreshold:    ptr.To[int32](4),
+				FailureThreshold:    ptr.To[int32](5),
 			},
 		},
 		{
@@ -304,9 +327,11 @@ func TestLoadBalancerSpec_Default(t *testing.T) {
 		ConnectionHealthcheckInterval           *int32
 		ConnectionHealthcheckTimeout            *int32
 	}
+
 	type args struct {
 		def ElasticLoadBalancerSpec
 	}
+
 	tests := []struct {
 		name   string
 		fields fields
@@ -317,50 +342,50 @@ func TestLoadBalancerSpec_Default(t *testing.T) {
 			name:   "Sets defaults",
 			fields: fields{},
 			args: args{def: ElasticLoadBalancerSpec{
-				ProxyProtocol:                 util.Pointer(true),
-				CrossZoneLoadBalancingEnabled: util.Pointer(true),
-				ConnectionDrainingEnabled:     util.Pointer(true),
-				ConnectionDrainingTimeout:     util.Pointer[int32](1),
-				HealthcheckHealthyThreshold:   util.Pointer[int32](2),
-				HealthcheckUnhealthyThreshold: util.Pointer[int32](3),
-				HealthcheckInterval:           util.Pointer[int32](4),
-				HealthcheckTimeout:            util.Pointer[int32](5),
+				ProxyProtocol:                 ptr.To(true),
+				CrossZoneLoadBalancingEnabled: ptr.To(true),
+				ConnectionDrainingEnabled:     ptr.To(true),
+				ConnectionDrainingTimeout:     ptr.To[int32](1),
+				HealthcheckHealthyThreshold:   ptr.To[int32](2),
+				HealthcheckUnhealthyThreshold: ptr.To[int32](3),
+				HealthcheckInterval:           ptr.To[int32](4),
+				HealthcheckTimeout:            ptr.To[int32](5),
 			}},
 			want: &ElasticLoadBalancerSpec{
-				ProxyProtocol:                 util.Pointer(true),
-				CrossZoneLoadBalancingEnabled: util.Pointer(true),
-				ConnectionDrainingEnabled:     util.Pointer(true),
-				ConnectionDrainingTimeout:     util.Pointer[int32](1),
-				HealthcheckHealthyThreshold:   util.Pointer[int32](2),
-				HealthcheckUnhealthyThreshold: util.Pointer[int32](3),
-				HealthcheckInterval:           util.Pointer[int32](4),
-				HealthcheckTimeout:            util.Pointer[int32](5),
+				ProxyProtocol:                 ptr.To(true),
+				CrossZoneLoadBalancingEnabled: ptr.To(true),
+				ConnectionDrainingEnabled:     ptr.To(true),
+				ConnectionDrainingTimeout:     ptr.To[int32](1),
+				HealthcheckHealthyThreshold:   ptr.To[int32](2),
+				HealthcheckUnhealthyThreshold: ptr.To[int32](3),
+				HealthcheckInterval:           ptr.To[int32](4),
+				HealthcheckTimeout:            ptr.To[int32](5),
 			},
 		},
 		{
-			name: "Combines explicitely set values with defaults",
+			name: "Combines explicitly set values with defaults",
 			fields: fields{
-				ProxyProtocol: util.Pointer(false),
+				ProxyProtocol: ptr.To(false),
 			},
 			args: args{def: ElasticLoadBalancerSpec{
-				ProxyProtocol:                 util.Pointer(true),
-				CrossZoneLoadBalancingEnabled: util.Pointer(true),
-				ConnectionDrainingEnabled:     util.Pointer(true),
-				ConnectionDrainingTimeout:     util.Pointer[int32](1),
-				HealthcheckHealthyThreshold:   util.Pointer[int32](2),
-				HealthcheckUnhealthyThreshold: util.Pointer[int32](3),
-				HealthcheckInterval:           util.Pointer[int32](4),
-				HealthcheckTimeout:            util.Pointer[int32](5),
+				ProxyProtocol:                 ptr.To(true),
+				CrossZoneLoadBalancingEnabled: ptr.To(true),
+				ConnectionDrainingEnabled:     ptr.To(true),
+				ConnectionDrainingTimeout:     ptr.To[int32](1),
+				HealthcheckHealthyThreshold:   ptr.To[int32](2),
+				HealthcheckUnhealthyThreshold: ptr.To[int32](3),
+				HealthcheckInterval:           ptr.To[int32](4),
+				HealthcheckTimeout:            ptr.To[int32](5),
 			}},
 			want: &ElasticLoadBalancerSpec{
-				ProxyProtocol:                 util.Pointer(false),
-				CrossZoneLoadBalancingEnabled: util.Pointer(true),
-				ConnectionDrainingEnabled:     util.Pointer(true),
-				ConnectionDrainingTimeout:     util.Pointer[int32](1),
-				HealthcheckHealthyThreshold:   util.Pointer[int32](2),
-				HealthcheckUnhealthyThreshold: util.Pointer[int32](3),
-				HealthcheckInterval:           util.Pointer[int32](4),
-				HealthcheckTimeout:            util.Pointer[int32](5),
+				ProxyProtocol:                 ptr.To(false),
+				CrossZoneLoadBalancingEnabled: ptr.To(true),
+				ConnectionDrainingEnabled:     ptr.To(true),
+				ConnectionDrainingTimeout:     ptr.To[int32](1),
+				HealthcheckHealthyThreshold:   ptr.To[int32](2),
+				HealthcheckUnhealthyThreshold: ptr.To[int32](3),
+				HealthcheckInterval:           ptr.To[int32](4),
+				HealthcheckTimeout:            ptr.To[int32](5),
 			},
 		},
 	}
@@ -377,6 +402,7 @@ func TestLoadBalancerSpec_Default(t *testing.T) {
 				HealthcheckTimeout:            tt.fields.ConnectionHealthcheckTimeout,
 			}
 			spec.Default(tt.args.def)
+
 			if !reflect.DeepEqual(spec, tt.want) {
 				t.Errorf("LoadBalancerSpec_Default() = %v, want %v", *spec, *tt.want)
 			}
@@ -389,6 +415,7 @@ func TestInitializeLoadBalancerSpec(t *testing.T) {
 		spec *ElasticLoadBalancerSpec
 		def  ElasticLoadBalancerSpec
 	}
+
 	tests := []struct {
 		name string
 		args args
@@ -397,47 +424,47 @@ func TestInitializeLoadBalancerSpec(t *testing.T) {
 		{
 			name: "Initializes the struct with appropriate defaults if nil",
 			args: args{nil, ElasticLoadBalancerSpec{
-				ProxyProtocol:                 util.Pointer(true),
-				CrossZoneLoadBalancingEnabled: util.Pointer(true),
-				ConnectionDrainingEnabled:     util.Pointer(true),
-				ConnectionDrainingTimeout:     util.Pointer[int32](1),
-				HealthcheckHealthyThreshold:   util.Pointer[int32](2),
-				HealthcheckUnhealthyThreshold: util.Pointer[int32](3),
-				HealthcheckInterval:           util.Pointer[int32](4),
-				HealthcheckTimeout:            util.Pointer[int32](5),
+				ProxyProtocol:                 ptr.To(true),
+				CrossZoneLoadBalancingEnabled: ptr.To(true),
+				ConnectionDrainingEnabled:     ptr.To(true),
+				ConnectionDrainingTimeout:     ptr.To[int32](1),
+				HealthcheckHealthyThreshold:   ptr.To[int32](2),
+				HealthcheckUnhealthyThreshold: ptr.To[int32](3),
+				HealthcheckInterval:           ptr.To[int32](4),
+				HealthcheckTimeout:            ptr.To[int32](5),
 			}},
 			want: &ElasticLoadBalancerSpec{
-				ProxyProtocol:                 util.Pointer(true),
-				CrossZoneLoadBalancingEnabled: util.Pointer(true),
-				ConnectionDrainingEnabled:     util.Pointer(true),
-				ConnectionDrainingTimeout:     util.Pointer[int32](1),
-				HealthcheckHealthyThreshold:   util.Pointer[int32](2),
-				HealthcheckUnhealthyThreshold: util.Pointer[int32](3),
-				HealthcheckInterval:           util.Pointer[int32](4),
-				HealthcheckTimeout:            util.Pointer[int32](5),
+				ProxyProtocol:                 ptr.To(true),
+				CrossZoneLoadBalancingEnabled: ptr.To(true),
+				ConnectionDrainingEnabled:     ptr.To(true),
+				ConnectionDrainingTimeout:     ptr.To[int32](1),
+				HealthcheckHealthyThreshold:   ptr.To[int32](2),
+				HealthcheckUnhealthyThreshold: ptr.To[int32](3),
+				HealthcheckInterval:           ptr.To[int32](4),
+				HealthcheckTimeout:            ptr.To[int32](5),
 			},
 		},
 		{
 			name: "Initializes the struct with appropriate defaults if empty",
 			args: args{&ElasticLoadBalancerSpec{}, ElasticLoadBalancerSpec{
-				ProxyProtocol:                 util.Pointer(true),
-				CrossZoneLoadBalancingEnabled: util.Pointer(true),
-				ConnectionDrainingEnabled:     util.Pointer(true),
-				ConnectionDrainingTimeout:     util.Pointer[int32](1),
-				HealthcheckHealthyThreshold:   util.Pointer[int32](2),
-				HealthcheckUnhealthyThreshold: util.Pointer[int32](3),
-				HealthcheckInterval:           util.Pointer[int32](4),
-				HealthcheckTimeout:            util.Pointer[int32](5),
+				ProxyProtocol:                 ptr.To(true),
+				CrossZoneLoadBalancingEnabled: ptr.To(true),
+				ConnectionDrainingEnabled:     ptr.To(true),
+				ConnectionDrainingTimeout:     ptr.To[int32](1),
+				HealthcheckHealthyThreshold:   ptr.To[int32](2),
+				HealthcheckUnhealthyThreshold: ptr.To[int32](3),
+				HealthcheckInterval:           ptr.To[int32](4),
+				HealthcheckTimeout:            ptr.To[int32](5),
 			}},
 			want: &ElasticLoadBalancerSpec{
-				ProxyProtocol:                 util.Pointer(true),
-				CrossZoneLoadBalancingEnabled: util.Pointer(true),
-				ConnectionDrainingEnabled:     util.Pointer(true),
-				ConnectionDrainingTimeout:     util.Pointer[int32](1),
-				HealthcheckHealthyThreshold:   util.Pointer[int32](2),
-				HealthcheckUnhealthyThreshold: util.Pointer[int32](3),
-				HealthcheckInterval:           util.Pointer[int32](4),
-				HealthcheckTimeout:            util.Pointer[int32](5),
+				ProxyProtocol:                 ptr.To(true),
+				CrossZoneLoadBalancingEnabled: ptr.To(true),
+				ConnectionDrainingEnabled:     ptr.To(true),
+				ConnectionDrainingTimeout:     ptr.To[int32](1),
+				HealthcheckHealthyThreshold:   ptr.To[int32](2),
+				HealthcheckUnhealthyThreshold: ptr.To[int32](3),
+				HealthcheckInterval:           ptr.To[int32](4),
+				HealthcheckTimeout:            ptr.To[int32](5),
 			},
 		},
 	}
@@ -455,9 +482,11 @@ func TestNLBLoadBalancerSpec_Default(t *testing.T) {
 		ProxyProtocol                 *bool
 		CrossZoneLoadBalancingEnabled *bool
 	}
+
 	type args struct {
 		def NetworkLoadBalancerSpec
 	}
+
 	tests := []struct {
 		name   string
 		fields fields
@@ -468,26 +497,26 @@ func TestNLBLoadBalancerSpec_Default(t *testing.T) {
 			name:   "Sets defaults",
 			fields: fields{},
 			args: args{def: NetworkLoadBalancerSpec{
-				ProxyProtocol:                 util.Pointer(true),
-				CrossZoneLoadBalancingEnabled: util.Pointer(true),
+				ProxyProtocol:                 ptr.To(true),
+				CrossZoneLoadBalancingEnabled: ptr.To(true),
 			}},
 			want: &NetworkLoadBalancerSpec{
-				ProxyProtocol:                 util.Pointer(true),
-				CrossZoneLoadBalancingEnabled: util.Pointer(true),
+				ProxyProtocol:                 ptr.To(true),
+				CrossZoneLoadBalancingEnabled: ptr.To(true),
 			},
 		},
 		{
-			name: "Combines explicitely set values with defaults",
+			name: "Combines explicitly set values with defaults",
 			fields: fields{
-				ProxyProtocol: util.Pointer(false),
+				ProxyProtocol: ptr.To(false),
 			},
 			args: args{def: NetworkLoadBalancerSpec{
-				ProxyProtocol:                 util.Pointer(true),
-				CrossZoneLoadBalancingEnabled: util.Pointer(true),
+				ProxyProtocol:                 ptr.To(true),
+				CrossZoneLoadBalancingEnabled: ptr.To(true),
 			}},
 			want: &NetworkLoadBalancerSpec{
-				ProxyProtocol:                 util.Pointer(false),
-				CrossZoneLoadBalancingEnabled: util.Pointer(true),
+				ProxyProtocol:                 ptr.To(false),
+				CrossZoneLoadBalancingEnabled: ptr.To(true),
 			},
 		},
 	}
@@ -498,6 +527,7 @@ func TestNLBLoadBalancerSpec_Default(t *testing.T) {
 				CrossZoneLoadBalancingEnabled: tt.fields.CrossZoneLoadBalancingEnabled,
 			}
 			spec.Default(tt.args.def)
+
 			if !reflect.DeepEqual(spec, tt.want) {
 				t.Errorf("NLBLoadBalancerSpec_Default() = %v, want %v", *spec, *tt.want)
 			}
@@ -510,6 +540,7 @@ func TestInitializeNLBLoadBalancerSpec(t *testing.T) {
 		spec *NetworkLoadBalancerSpec
 		def  NetworkLoadBalancerSpec
 	}
+
 	tests := []struct {
 		name string
 		args args
@@ -518,23 +549,23 @@ func TestInitializeNLBLoadBalancerSpec(t *testing.T) {
 		{
 			name: "Initializes the struct with appropriate defaults if nil",
 			args: args{nil, NetworkLoadBalancerSpec{
-				ProxyProtocol:                 util.Pointer(true),
-				CrossZoneLoadBalancingEnabled: util.Pointer(true),
+				ProxyProtocol:                 ptr.To(true),
+				CrossZoneLoadBalancingEnabled: ptr.To(true),
 			}},
 			want: &NetworkLoadBalancerSpec{
-				ProxyProtocol:                 util.Pointer(true),
-				CrossZoneLoadBalancingEnabled: util.Pointer(true),
+				ProxyProtocol:                 ptr.To(true),
+				CrossZoneLoadBalancingEnabled: ptr.To(true),
 			},
 		},
 		{
 			name: "Initializes the struct with appropriate defaults if empty",
 			args: args{&NetworkLoadBalancerSpec{}, NetworkLoadBalancerSpec{
-				ProxyProtocol:                 util.Pointer(true),
-				CrossZoneLoadBalancingEnabled: util.Pointer(true),
+				ProxyProtocol:                 ptr.To(true),
+				CrossZoneLoadBalancingEnabled: ptr.To(true),
 			}},
 			want: &NetworkLoadBalancerSpec{
-				ProxyProtocol:                 util.Pointer(true),
-				CrossZoneLoadBalancingEnabled: util.Pointer(true),
+				ProxyProtocol:                 ptr.To(true),
+				CrossZoneLoadBalancingEnabled: ptr.To(true),
 			},
 		},
 	}
@@ -552,9 +583,11 @@ func TestGrafanaDashboardSpec_Default(t *testing.T) {
 		SelectorKey   *string
 		SelectorValue *string
 	}
+
 	type args struct {
 		def defaultGrafanaDashboardSpec
 	}
+
 	tests := []struct {
 		name   string
 		fields fields
@@ -565,26 +598,26 @@ func TestGrafanaDashboardSpec_Default(t *testing.T) {
 			name:   "Sets defaults",
 			fields: fields{},
 			args: args{def: defaultGrafanaDashboardSpec{
-				SelectorKey:   util.Pointer("key"),
-				SelectorValue: util.Pointer("label"),
+				SelectorKey:   ptr.To("key"),
+				SelectorValue: ptr.To("label"),
 			}},
 			want: &GrafanaDashboardSpec{
-				SelectorKey:   util.Pointer("key"),
-				SelectorValue: util.Pointer("label"),
+				SelectorKey:   ptr.To("key"),
+				SelectorValue: ptr.To("label"),
 			},
 		},
 		{
-			name: "Combines explicitely set values with defaults",
+			name: "Combines explicitly set values with defaults",
 			fields: fields{
-				SelectorKey: util.Pointer("xxxx"),
+				SelectorKey: ptr.To("xxxx"),
 			},
 			args: args{def: defaultGrafanaDashboardSpec{
-				SelectorKey:   util.Pointer("key"),
-				SelectorValue: util.Pointer("label"),
+				SelectorKey:   ptr.To("key"),
+				SelectorValue: ptr.To("label"),
 			}},
 			want: &GrafanaDashboardSpec{
-				SelectorKey:   util.Pointer("xxxx"),
-				SelectorValue: util.Pointer("label"),
+				SelectorKey:   ptr.To("xxxx"),
+				SelectorValue: ptr.To("label"),
 			},
 		},
 	}
@@ -595,6 +628,7 @@ func TestGrafanaDashboardSpec_Default(t *testing.T) {
 				SelectorValue: tt.fields.SelectorValue,
 			}
 			spec.Default(tt.args.def)
+
 			if !reflect.DeepEqual(spec, tt.want) {
 				t.Errorf("GrafanaDashboardSpec_Default() = %v, want %v", *spec, *tt.want)
 			}
@@ -610,7 +644,7 @@ func TestGrafanaDashboardSpec_IsDeactivated(t *testing.T) {
 	}{
 		{"Wants true if empty", &GrafanaDashboardSpec{}, true},
 		{"Wants false if nil", nil, false},
-		{"Wants false if other", &GrafanaDashboardSpec{SelectorKey: util.Pointer("key")}, false},
+		{"Wants false if other", &GrafanaDashboardSpec{SelectorKey: ptr.To("key")}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -626,6 +660,7 @@ func TestInitializeGrafanaDashboardSpec(t *testing.T) {
 		spec *GrafanaDashboardSpec
 		def  defaultGrafanaDashboardSpec
 	}
+
 	tests := []struct {
 		name string
 		args args
@@ -634,12 +669,12 @@ func TestInitializeGrafanaDashboardSpec(t *testing.T) {
 		{
 			name: "Initializes the struct with appropriate defaults if nil",
 			args: args{nil, defaultGrafanaDashboardSpec{
-				SelectorKey:   util.Pointer("key"),
-				SelectorValue: util.Pointer("label"),
+				SelectorKey:   ptr.To("key"),
+				SelectorValue: ptr.To("label"),
 			}},
 			want: &GrafanaDashboardSpec{
-				SelectorKey:   util.Pointer("key"),
-				SelectorValue: util.Pointer("label"),
+				SelectorKey:   ptr.To("key"),
+				SelectorValue: ptr.To("label"),
 			},
 		},
 		{
@@ -661,9 +696,11 @@ func TestPodDisruptionBudgetSpec_Default(t *testing.T) {
 		MinAvailable   *intstr.IntOrString
 		MaxUnavailable *intstr.IntOrString
 	}
+
 	type args struct {
 		def defaultPodDisruptionBudgetSpec
 	}
+
 	tests := []struct {
 		name   string
 		fields fields
@@ -674,39 +711,39 @@ func TestPodDisruptionBudgetSpec_Default(t *testing.T) {
 			name:   "Sets defaults",
 			fields: fields{},
 			args: args{def: defaultPodDisruptionBudgetSpec{
-				MinAvailable:   util.Pointer(intstr.FromString("default")),
+				MinAvailable:   ptr.To(intstr.FromString("default")),
 				MaxUnavailable: nil,
 			}},
 			want: &PodDisruptionBudgetSpec{
-				MinAvailable:   util.Pointer(intstr.FromString("default")),
+				MinAvailable:   ptr.To(intstr.FromString("default")),
 				MaxUnavailable: nil,
 			},
 		},
 		{
-			name: "Combines explicitely set values with defaults",
+			name: "Combines explicitly set values with defaults",
 			fields: fields{
-				MinAvailable: util.Pointer(intstr.FromString("explicit")),
+				MinAvailable: ptr.To(intstr.FromString("explicit")),
 			},
 			args: args{def: defaultPodDisruptionBudgetSpec{
-				MinAvailable:   util.Pointer(intstr.FromString("default")),
+				MinAvailable:   ptr.To(intstr.FromString("default")),
 				MaxUnavailable: nil,
 			}},
 			want: &PodDisruptionBudgetSpec{
-				MinAvailable:   util.Pointer(intstr.FromString("explicit")),
+				MinAvailable:   ptr.To(intstr.FromString("explicit")),
 				MaxUnavailable: nil,
 			},
 		},
 		{
 			name: "Only one of MinAvailable or MaxUnavailable can be set",
 			fields: fields{
-				MinAvailable: util.Pointer(intstr.FromString("explicit")),
+				MinAvailable: ptr.To(intstr.FromString("explicit")),
 			},
 			args: args{def: defaultPodDisruptionBudgetSpec{
 				MinAvailable:   nil,
-				MaxUnavailable: util.Pointer(intstr.FromString("default")),
+				MaxUnavailable: ptr.To(intstr.FromString("default")),
 			}},
 			want: &PodDisruptionBudgetSpec{
-				MinAvailable:   util.Pointer(intstr.FromString("explicit")),
+				MinAvailable:   ptr.To(intstr.FromString("explicit")),
 				MaxUnavailable: nil,
 			},
 		},
@@ -714,11 +751,11 @@ func TestPodDisruptionBudgetSpec_Default(t *testing.T) {
 			name:   "Only one of MinAvailable or MaxUnavailable can be set (II)",
 			fields: fields{},
 			args: args{def: defaultPodDisruptionBudgetSpec{
-				MinAvailable:   util.Pointer(intstr.IntOrString{Type: intstr.String, StrVal: "defaultMin"}),
-				MaxUnavailable: util.Pointer(intstr.IntOrString{Type: intstr.String, StrVal: "defaultMax"}),
+				MinAvailable:   ptr.To(intstr.IntOrString{Type: intstr.String, StrVal: "defaultMin"}),
+				MaxUnavailable: ptr.To(intstr.IntOrString{Type: intstr.String, StrVal: "defaultMax"}),
 			}},
 			want: &PodDisruptionBudgetSpec{
-				MinAvailable:   util.Pointer(intstr.IntOrString{Type: intstr.String, StrVal: "defaultMin"}),
+				MinAvailable:   ptr.To(intstr.IntOrString{Type: intstr.String, StrVal: "defaultMin"}),
 				MaxUnavailable: nil,
 			},
 		},
@@ -730,6 +767,7 @@ func TestPodDisruptionBudgetSpec_Default(t *testing.T) {
 				MaxUnavailable: tt.fields.MaxUnavailable,
 			}
 			spec.Default(tt.args.def)
+
 			if !reflect.DeepEqual(spec, tt.want) {
 				t.Errorf("PodDisruptionBudgetSpec_Default() = %v, want %v", *spec, *tt.want)
 			}
@@ -745,7 +783,7 @@ func TestPodDisruptionBudgetSpec_IsDeactivated(t *testing.T) {
 	}{
 		{"Wants true if empty", &PodDisruptionBudgetSpec{}, true},
 		{"Wants false if nil", nil, false},
-		{"Wants false if other", &PodDisruptionBudgetSpec{MinAvailable: util.Pointer(intstr.FromInt(1))}, false},
+		{"Wants false if other", &PodDisruptionBudgetSpec{MinAvailable: ptr.To(intstr.FromInt(1))}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -761,6 +799,7 @@ func TestInitializePodDisruptionBudgetSpec(t *testing.T) {
 		spec *PodDisruptionBudgetSpec
 		def  defaultPodDisruptionBudgetSpec
 	}
+
 	tests := []struct {
 		name string
 		args args
@@ -769,11 +808,11 @@ func TestInitializePodDisruptionBudgetSpec(t *testing.T) {
 		{
 			name: "Initializes the struct with appropriate defaults if nil",
 			args: args{nil, defaultPodDisruptionBudgetSpec{
-				MinAvailable:   util.Pointer(intstr.FromString("default")),
+				MinAvailable:   ptr.To(intstr.FromString("default")),
 				MaxUnavailable: nil,
 			}},
 			want: &PodDisruptionBudgetSpec{
-				MinAvailable:   util.Pointer(intstr.FromString("default")),
+				MinAvailable:   ptr.To(intstr.FromString("default")),
 				MaxUnavailable: nil,
 			},
 		},
@@ -799,9 +838,11 @@ func TestHorizontalPodAutoscalerSpec_Default(t *testing.T) {
 		ResourceName        *string
 		ResourceUtilization *int32
 	}
+
 	type args struct {
 		def defaultHorizontalPodAutoscalerSpec
 	}
+
 	tests := []struct {
 		name   string
 		fields fields
@@ -812,34 +853,34 @@ func TestHorizontalPodAutoscalerSpec_Default(t *testing.T) {
 			name:   "Sets defaults",
 			fields: fields{},
 			args: args{def: defaultHorizontalPodAutoscalerSpec{
-				MinReplicas:         util.Pointer[int32](1),
-				MaxReplicas:         util.Pointer[int32](2),
-				ResourceUtilization: util.Pointer[int32](3),
-				ResourceName:        util.Pointer("xxxx"),
+				MinReplicas:         ptr.To[int32](1),
+				MaxReplicas:         ptr.To[int32](2),
+				ResourceUtilization: ptr.To[int32](3),
+				ResourceName:        ptr.To("xxxx"),
 			}},
 			want: &HorizontalPodAutoscalerSpec{
-				MinReplicas:         util.Pointer[int32](1),
-				MaxReplicas:         util.Pointer[int32](2),
-				ResourceUtilization: util.Pointer[int32](3),
-				ResourceName:        util.Pointer("xxxx"),
+				MinReplicas:         ptr.To[int32](1),
+				MaxReplicas:         ptr.To[int32](2),
+				ResourceUtilization: ptr.To[int32](3),
+				ResourceName:        ptr.To("xxxx"),
 			},
 		},
 		{
-			name: "Combines explicitely set values with defaults",
+			name: "Combines explicitly set values with defaults",
 			fields: fields{
-				MinReplicas: util.Pointer[int32](9999),
+				MinReplicas: ptr.To[int32](9999),
 			},
 			args: args{def: defaultHorizontalPodAutoscalerSpec{
-				MinReplicas:         util.Pointer[int32](1),
-				MaxReplicas:         util.Pointer[int32](2),
-				ResourceUtilization: util.Pointer[int32](3),
-				ResourceName:        util.Pointer("xxxx"),
+				MinReplicas:         ptr.To[int32](1),
+				MaxReplicas:         ptr.To[int32](2),
+				ResourceUtilization: ptr.To[int32](3),
+				ResourceName:        ptr.To("xxxx"),
 			}},
 			want: &HorizontalPodAutoscalerSpec{
-				MinReplicas:         util.Pointer[int32](9999),
-				MaxReplicas:         util.Pointer[int32](2),
-				ResourceUtilization: util.Pointer[int32](3),
-				ResourceName:        util.Pointer("xxxx"),
+				MinReplicas:         ptr.To[int32](9999),
+				MaxReplicas:         ptr.To[int32](2),
+				ResourceUtilization: ptr.To[int32](3),
+				ResourceName:        ptr.To("xxxx"),
 			},
 		},
 	}
@@ -852,6 +893,7 @@ func TestHorizontalPodAutoscalerSpec_Default(t *testing.T) {
 				ResourceUtilization: tt.fields.ResourceUtilization,
 			}
 			spec.Default(tt.args.def)
+
 			if !reflect.DeepEqual(spec, tt.want) {
 				t.Errorf("HorizontalPodAutoscalerSpec_Default() = %v, want %v", *spec, *tt.want)
 			}
@@ -867,7 +909,7 @@ func TestHorizontalPodAutoscalerSpec_IsDeactivated(t *testing.T) {
 	}{
 		{"Wants true if empty", &HorizontalPodAutoscalerSpec{}, true},
 		{"Wants false if nil", nil, false},
-		{"Wants false if other", &HorizontalPodAutoscalerSpec{MinReplicas: util.Pointer[int32](1)}, false}}
+		{"Wants false if other", &HorizontalPodAutoscalerSpec{MinReplicas: ptr.To[int32](1)}, false}}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.spec.IsDeactivated(); got != tt.want {
@@ -882,6 +924,7 @@ func TestInitializeHorizontalPodAutoscalerSpec(t *testing.T) {
 		spec *HorizontalPodAutoscalerSpec
 		def  defaultHorizontalPodAutoscalerSpec
 	}
+
 	tests := []struct {
 		name string
 		args args
@@ -890,16 +933,16 @@ func TestInitializeHorizontalPodAutoscalerSpec(t *testing.T) {
 		{
 			name: "Initializes the struct with appropriate defaults if nil",
 			args: args{nil, defaultHorizontalPodAutoscalerSpec{
-				MinReplicas:         util.Pointer[int32](1),
-				MaxReplicas:         util.Pointer[int32](2),
-				ResourceUtilization: util.Pointer[int32](3),
-				ResourceName:        util.Pointer("xxxx"),
+				MinReplicas:         ptr.To[int32](1),
+				MaxReplicas:         ptr.To[int32](2),
+				ResourceUtilization: ptr.To[int32](3),
+				ResourceName:        ptr.To("xxxx"),
 			}},
 			want: &HorizontalPodAutoscalerSpec{
-				MinReplicas:         util.Pointer[int32](1),
-				MaxReplicas:         util.Pointer[int32](2),
-				ResourceUtilization: util.Pointer[int32](3),
-				ResourceName:        util.Pointer("xxxx"),
+				MinReplicas:         ptr.To[int32](1),
+				MaxReplicas:         ptr.To[int32](2),
+				ResourceUtilization: ptr.To[int32](3),
+				ResourceName:        ptr.To("xxxx"),
 			},
 		},
 		{
@@ -922,9 +965,11 @@ func TestResourceRequirementsSpec_Default(t *testing.T) {
 		Limits   corev1.ResourceList
 		Requests corev1.ResourceList
 	}
+
 	type args struct {
 		def defaultResourceRequirementsSpec
 	}
+
 	tests := []struct {
 		name   string
 		fields fields
@@ -956,7 +1001,7 @@ func TestResourceRequirementsSpec_Default(t *testing.T) {
 			},
 		},
 		{
-			name: "Combines explicitely set values with defaults",
+			name: "Combines explicitly set values with defaults",
 			fields: fields{
 				Limits: corev1.ResourceList{
 					corev1.ResourceCPU:    resource.MustParse("500m"),
@@ -991,6 +1036,7 @@ func TestResourceRequirementsSpec_Default(t *testing.T) {
 				Requests: tt.fields.Requests,
 			}
 			spec.Default(tt.args.def)
+
 			if !reflect.DeepEqual(spec, tt.want) {
 				t.Errorf("ResourceRequirementsSpec_Default() = %v, want %v", *spec, *tt.want)
 			}
@@ -1028,6 +1074,7 @@ func TestInitializeResourceRequirementsSpec(t *testing.T) {
 		spec *ResourceRequirementsSpec
 		def  defaultResourceRequirementsSpec
 	}
+
 	tests := []struct {
 		name string
 		args args
@@ -1068,26 +1115,27 @@ func Test_stringOrDefault(t *testing.T) {
 		value    *string
 		defValue *string
 	}
+
 	tests := []struct {
 		name string
 		args args
 		want *string
 	}{
 		{
-			name: "Value explicitely set",
+			name: "Value explicitly set",
 			args: args{
-				value:    util.Pointer("value"),
-				defValue: util.Pointer("default"),
+				value:    ptr.To("value"),
+				defValue: ptr.To("default"),
 			},
-			want: util.Pointer("value"),
+			want: ptr.To("value"),
 		},
 		{
 			name: "Value not set",
 			args: args{
 				value:    nil,
-				defValue: util.Pointer("default"),
+				defValue: ptr.To("default"),
 			},
-			want: util.Pointer("default"),
+			want: ptr.To("default"),
 		},
 		{
 			name: "Nor value not default set",
@@ -1113,26 +1161,27 @@ func Test_intOrDefault(t *testing.T) {
 		value    *int32
 		defValue *int32
 	}
+
 	tests := []struct {
 		name string
 		args args
 		want *int32
 	}{
 		{
-			name: "Value explicitely set",
+			name: "Value explicitly set",
 			args: args{
-				value:    util.Pointer[int32](100),
-				defValue: util.Pointer[int32](10),
+				value:    ptr.To[int32](100),
+				defValue: ptr.To[int32](10),
 			},
-			want: util.Pointer[int32](100),
+			want: ptr.To[int32](100),
 		},
 		{
 			name: "Value not set",
 			args: args{
 				value:    nil,
-				defValue: util.Pointer[int32](10),
+				defValue: ptr.To[int32](10),
 			},
-			want: util.Pointer[int32](10),
+			want: ptr.To[int32](10),
 		},
 		{
 			name: "Nor value not default set",
@@ -1158,26 +1207,27 @@ func Test_boolOrDefault(t *testing.T) {
 		value    *bool
 		defValue *bool
 	}
+
 	tests := []struct {
 		name string
 		args args
 		want *bool
 	}{
 		{
-			name: "Value explicitely set",
+			name: "Value explicitly set",
 			args: args{
-				value:    util.Pointer(true),
-				defValue: util.Pointer(false),
+				value:    ptr.To(true),
+				defValue: ptr.To(false),
 			},
-			want: util.Pointer(true),
+			want: ptr.To(true),
 		},
 		{
 			name: "Value not set",
 			args: args{
 				value:    nil,
-				defValue: util.Pointer(false),
+				defValue: ptr.To(false),
 			},
-			want: util.Pointer(false),
+			want: ptr.To(false),
 		},
 		{
 			name: "Nor value not default set",
@@ -1205,15 +1255,17 @@ func TestCanary_CanarySpec(t *testing.T) {
 		Replicas  *int32
 		Patches   []string
 	}
+
 	type args struct {
-		spec       interface{}
-		canarySpec interface{}
+		spec       any
+		canarySpec any
 	}
+
 	tests := []struct {
 		name    string
 		fields  fields
 		args    args
-		want    interface{}
+		want    any
 		wantErr bool
 	}{
 		{
@@ -1226,16 +1278,16 @@ func TestCanary_CanarySpec(t *testing.T) {
 			args: args{
 				spec: &BackendSpec{
 					Image: &ImageSpec{
-						Name: util.Pointer("old"),
-						Tag:  util.Pointer("tag"),
+						Name: ptr.To("old"),
+						Tag:  ptr.To("tag"),
 					},
 				},
 				canarySpec: &BackendSpec{},
 			},
 			want: &BackendSpec{
 				Image: &ImageSpec{
-					Name: util.Pointer("new"),
-					Tag:  util.Pointer("tag"),
+					Name: ptr.To("new"),
+					Tag:  ptr.To("tag"),
 				},
 			},
 			wantErr: false,
@@ -1249,11 +1301,14 @@ func TestCanary_CanarySpec(t *testing.T) {
 				Replicas:  tt.fields.Replicas,
 				Patches:   tt.fields.Patches,
 			}
+
 			err := c.PatchSpec(tt.args.spec, tt.args.canarySpec)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Canary.CanarySpec() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
+
 			if diff := deep.Equal(tt.args.canarySpec, tt.want); len(diff) > 0 {
 				t.Errorf("Canary.CanarySpec() = diff %v", diff)
 			}
@@ -1266,9 +1321,11 @@ func TestExternalSecretSecretStoreReferenceSpec_Default(t *testing.T) {
 		Name *string
 		Kind *string
 	}
+
 	type args struct {
 		def defaultExternalSecretSecretStoreReferenceSpec
 	}
+
 	tests := []struct {
 		name   string
 		fields fields
@@ -1279,26 +1336,26 @@ func TestExternalSecretSecretStoreReferenceSpec_Default(t *testing.T) {
 			name:   "Sets defaults",
 			fields: fields{},
 			args: args{def: defaultExternalSecretSecretStoreReferenceSpec{
-				Name: util.Pointer("vault-mgmt"),
-				Kind: util.Pointer("ClusterSecretStore"),
+				Name: ptr.To("vault-mgmt"),
+				Kind: ptr.To("ClusterSecretStore"),
 			}},
 			want: &ExternalSecretSecretStoreReferenceSpec{
-				Name: util.Pointer("vault-mgmt"),
-				Kind: util.Pointer("ClusterSecretStore"),
+				Name: ptr.To("vault-mgmt"),
+				Kind: ptr.To("ClusterSecretStore"),
 			},
 		},
 		{
-			name: "Combines explicitely set values with defaults",
+			name: "Combines explicitly set values with defaults",
 			fields: fields{
-				Name: util.Pointer("other-vault"),
+				Name: ptr.To("other-vault"),
 			},
 			args: args{def: defaultExternalSecretSecretStoreReferenceSpec{
-				Name: util.Pointer("vault-mgmt"),
-				Kind: util.Pointer("ClusterSecretStore"),
+				Name: ptr.To("vault-mgmt"),
+				Kind: ptr.To("ClusterSecretStore"),
 			}},
 			want: &ExternalSecretSecretStoreReferenceSpec{
-				Name: util.Pointer("other-vault"),
-				Kind: util.Pointer("ClusterSecretStore"),
+				Name: ptr.To("other-vault"),
+				Kind: ptr.To("ClusterSecretStore"),
 			},
 		},
 	}
@@ -1309,6 +1366,7 @@ func TestExternalSecretSecretStoreReferenceSpec_Default(t *testing.T) {
 				Kind: tt.fields.Kind,
 			}
 			spec.Default(tt.args.def)
+
 			if !reflect.DeepEqual(spec, tt.want) {
 				t.Errorf("ExternalSecretSecretStoreReferenceSpec_Default() = %v, want %v", *spec, *tt.want)
 			}
@@ -1321,6 +1379,7 @@ func TestInitializeVaultSecretStoreReferenceSpec(t *testing.T) {
 		spec *ExternalSecretSecretStoreReferenceSpec
 		def  defaultExternalSecretSecretStoreReferenceSpec
 	}
+
 	tests := []struct {
 		name string
 		args args
@@ -1329,12 +1388,12 @@ func TestInitializeVaultSecretStoreReferenceSpec(t *testing.T) {
 		{
 			name: "Initializes the struct with appropriate defaults if nil",
 			args: args{nil, defaultExternalSecretSecretStoreReferenceSpec{
-				Name: util.Pointer("vault-mgmt"),
-				Kind: util.Pointer("ClusterSecretStore"),
+				Name: ptr.To("vault-mgmt"),
+				Kind: ptr.To("ClusterSecretStore"),
 			}},
 			want: &ExternalSecretSecretStoreReferenceSpec{
-				Name: util.Pointer("vault-mgmt"),
-				Kind: util.Pointer("ClusterSecretStore"),
+				Name: ptr.To("vault-mgmt"),
+				Kind: ptr.To("ClusterSecretStore"),
 			},
 		},
 		{

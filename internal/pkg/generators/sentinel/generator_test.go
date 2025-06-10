@@ -4,16 +4,17 @@ import (
 	"context"
 	"testing"
 
-	"github.com/3scale-sre/basereconciler/util"
 	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	"github.com/go-test/deep"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/utils/ptr"
 )
 
 func TestGenerator_ClusterTopology(t *testing.T) {
 	type args struct {
 		ctx context.Context
 	}
+
 	tests := []struct {
 		name    string
 		key     types.NamespacedName
@@ -26,7 +27,7 @@ func TestGenerator_ClusterTopology(t *testing.T) {
 			name: "Generates a correct cluster topology from 'spec.config.monitoredShards'",
 			key:  types.NamespacedName{Name: "test", Namespace: "test"},
 			spec: saasv1alpha1.SentinelSpec{
-				Replicas: util.Pointer[int32](3),
+				Replicas: ptr.To[int32](3),
 				Config: &saasv1alpha1.SentinelConfig{
 					MonitoredShards: map[string][]string{
 						"shard01": {
@@ -66,7 +67,7 @@ func TestGenerator_ClusterTopology(t *testing.T) {
 			name: "Generates a correct cluster topology from 'spec.config.clusterTopology'",
 			key:  types.NamespacedName{Name: "test", Namespace: "test"},
 			spec: saasv1alpha1.SentinelSpec{
-				Replicas: util.Pointer(int32(3)),
+				Replicas: ptr.To(int32(3)),
 				Config: &saasv1alpha1.SentinelConfig{
 					ClusterTopology: map[string]map[string]string{
 						"shard01": {
@@ -105,13 +106,15 @@ func TestGenerator_ClusterTopology(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			gen := NewGenerator("test", "test", tt.spec)
+
 			got, err := gen.ClusterTopology(tt.args.ctx)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Generator.ClusterTopology() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
+
 			if diff := deep.Equal(got, tt.want); len(diff) > 0 {
 				t.Errorf("Generator.ClusterTopology() = got diff %v", diff)
 			}

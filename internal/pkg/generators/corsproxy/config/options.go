@@ -19,5 +19,6 @@ func NewOptions(spec saasv1alpha1.CORSProxySpec) pod.Options {
 	opts := pod.Options{}
 	opts.AddEnvvar("DATABASE_URL").AsSecretRef(CorsProxySystemDatabaseSecret).WithSeedKey(seed.SystemDatabaseDsn).
 		Unpack(spec.Config.SystemDatabaseDSN)
+
 	return opts
 }

@@ -20,11 +20,11 @@ import (
 	"time"
 
 	"github.com/3scale-sre/basereconciler/reconciler"
-	"github.com/3scale-sre/basereconciler/util"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -50,21 +50,21 @@ var (
 	systemDefaultConfigFilesSecret             string           = "system-config"
 	systemDefaultBugsnagSpec                   BugsnagSpec      = BugsnagSpec{}
 	systemDefaultImage                         defaultImageSpec = defaultImageSpec{
-		Name:       util.Pointer("quay.io/3scale/porta"),
-		Tag:        util.Pointer("nightly"),
-		PullPolicy: (*corev1.PullPolicy)(util.Pointer(string(corev1.PullIfNotPresent))),
+		Name:       ptr.To("quay.io/3scale/porta"),
+		Tag:        ptr.To("nightly"),
+		PullPolicy: (*corev1.PullPolicy)(ptr.To(string(corev1.PullIfNotPresent))),
 	}
 	systemDefaultGrafanaDashboard defaultGrafanaDashboardSpec = defaultGrafanaDashboardSpec{
-		SelectorKey:   util.Pointer("monitoring-key"),
-		SelectorValue: util.Pointer("middleware"),
+		SelectorKey:   ptr.To("monitoring-key"),
+		SelectorValue: ptr.To("middleware"),
 	}
-	systemDefaultTerminationGracePeriodSeconds *int64           = util.Pointer[int64](60)
+	systemDefaultTerminationGracePeriodSeconds *int64           = ptr.To[int64](60)
 	systemDefaultSearchServer                  SearchServerSpec = SearchServerSpec{
 		AddressSpec: AddressSpec{
-			Host: util.Pointer("system-searchd"),
-			Port: util.Pointer[int32](9306),
+			Host: ptr.To("system-searched"),
+			Port: ptr.To[int32](9306),
 		},
-		BatchSize: util.Pointer[int32](100),
+		BatchSize: ptr.To[int32](100),
 	}
 
 	// App
@@ -80,31 +80,31 @@ var (
 		},
 	}
 	systemDefaultAppDeploymentStrategy defaultDeploymentRollingStrategySpec = defaultDeploymentRollingStrategySpec{
-		MaxUnavailable: util.Pointer(intstr.FromInt(0)),
-		MaxSurge:       util.Pointer(intstr.FromString("10%")),
+		MaxUnavailable: ptr.To(intstr.FromInt(0)),
+		MaxSurge:       ptr.To(intstr.FromString("10%")),
 	}
 	systemDefaultAppHPA defaultHorizontalPodAutoscalerSpec = defaultHorizontalPodAutoscalerSpec{
-		MinReplicas:         util.Pointer[int32](2),
-		MaxReplicas:         util.Pointer[int32](4),
-		ResourceUtilization: util.Pointer[int32](90),
-		ResourceName:        util.Pointer("cpu"),
+		MinReplicas:         ptr.To[int32](2),
+		MaxReplicas:         ptr.To[int32](4),
+		ResourceUtilization: ptr.To[int32](90),
+		ResourceName:        ptr.To("cpu"),
 	}
 	systemDefaultAppLivenessProbe defaultProbeSpec = defaultProbeSpec{
-		InitialDelaySeconds: util.Pointer[int32](30),
-		TimeoutSeconds:      util.Pointer[int32](1),
-		PeriodSeconds:       util.Pointer[int32](10),
-		SuccessThreshold:    util.Pointer[int32](1),
-		FailureThreshold:    util.Pointer[int32](3),
+		InitialDelaySeconds: ptr.To[int32](30),
+		TimeoutSeconds:      ptr.To[int32](1),
+		PeriodSeconds:       ptr.To[int32](10),
+		SuccessThreshold:    ptr.To[int32](1),
+		FailureThreshold:    ptr.To[int32](3),
 	}
 	systemDefaultAppReadinessProbe defaultProbeSpec = defaultProbeSpec{
-		InitialDelaySeconds: util.Pointer[int32](30),
-		TimeoutSeconds:      util.Pointer[int32](5),
-		PeriodSeconds:       util.Pointer[int32](10),
-		SuccessThreshold:    util.Pointer[int32](1),
-		FailureThreshold:    util.Pointer[int32](3),
+		InitialDelaySeconds: ptr.To[int32](30),
+		TimeoutSeconds:      ptr.To[int32](5),
+		PeriodSeconds:       ptr.To[int32](10),
+		SuccessThreshold:    ptr.To[int32](1),
+		FailureThreshold:    ptr.To[int32](3),
 	}
 	systemDefaultAppPDB defaultPodDisruptionBudgetSpec = defaultPodDisruptionBudgetSpec{
-		MaxUnavailable: util.Pointer(intstr.FromInt(1)),
+		MaxUnavailable: ptr.To(intstr.FromInt(1)),
 	}
 
 	// Sidekiq
@@ -120,31 +120,31 @@ var (
 		},
 	}
 	systemDefaultSidekiqDeploymentStrategy defaultDeploymentRollingStrategySpec = defaultDeploymentRollingStrategySpec{
-		MaxUnavailable: util.Pointer(intstr.FromInt(0)),
-		MaxSurge:       util.Pointer(intstr.FromInt(1)),
+		MaxUnavailable: ptr.To(intstr.FromInt(0)),
+		MaxSurge:       ptr.To(intstr.FromInt(1)),
 	}
 	systemDefaultSidekiqHPA defaultHorizontalPodAutoscalerSpec = defaultHorizontalPodAutoscalerSpec{
-		MinReplicas:         util.Pointer[int32](2),
-		MaxReplicas:         util.Pointer[int32](4),
-		ResourceUtilization: util.Pointer[int32](90),
-		ResourceName:        util.Pointer("cpu"),
+		MinReplicas:         ptr.To[int32](2),
+		MaxReplicas:         ptr.To[int32](4),
+		ResourceUtilization: ptr.To[int32](90),
+		ResourceName:        ptr.To("cpu"),
 	}
 	systemDefaultSidekiqLivenessProbe defaultProbeSpec = defaultProbeSpec{
-		InitialDelaySeconds: util.Pointer[int32](10),
-		TimeoutSeconds:      util.Pointer[int32](3),
-		PeriodSeconds:       util.Pointer[int32](15),
-		SuccessThreshold:    util.Pointer[int32](1),
-		FailureThreshold:    util.Pointer[int32](5),
+		InitialDelaySeconds: ptr.To[int32](10),
+		TimeoutSeconds:      ptr.To[int32](3),
+		PeriodSeconds:       ptr.To[int32](15),
+		SuccessThreshold:    ptr.To[int32](1),
+		FailureThreshold:    ptr.To[int32](5),
 	}
 	systemDefaultSidekiqReadinessProbe defaultProbeSpec = defaultProbeSpec{
-		InitialDelaySeconds: util.Pointer[int32](10),
-		TimeoutSeconds:      util.Pointer[int32](5),
-		PeriodSeconds:       util.Pointer[int32](30),
-		SuccessThreshold:    util.Pointer[int32](1),
-		FailureThreshold:    util.Pointer[int32](5),
+		InitialDelaySeconds: ptr.To[int32](10),
+		TimeoutSeconds:      ptr.To[int32](5),
+		PeriodSeconds:       ptr.To[int32](30),
+		SuccessThreshold:    ptr.To[int32](1),
+		FailureThreshold:    ptr.To[int32](5),
 	}
 	systemDefaultSidekiqPDB defaultPodDisruptionBudgetSpec = defaultPodDisruptionBudgetSpec{
-		MaxUnavailable: util.Pointer(intstr.FromInt(1)),
+		MaxUnavailable: ptr.To(intstr.FromInt(1)),
 	}
 
 	systemDefaultSidekiqConfigDefault defaultSidekiqConfig = defaultSidekiqConfig{
@@ -152,29 +152,29 @@ var (
 			"critical", "backend_sync", "events", "zync,40",
 			"priority,25", "default,15", "web_hooks,10", "deletion,5",
 		},
-		MaxThreads: util.Pointer[int32](15),
+		MaxThreads: ptr.To[int32](15),
 	}
 	systemDefaultSidekiqConfigBilling defaultSidekiqConfig = defaultSidekiqConfig{
 		Queues:     []string{"billing"},
-		MaxThreads: util.Pointer[int32](15),
+		MaxThreads: ptr.To[int32](15),
 	}
 	systemDefaultSidekiqConfigLow defaultSidekiqConfig = defaultSidekiqConfig{
 		Queues: []string{
 			"mailers", "low", "bulk_indexing",
 		},
-		MaxThreads: util.Pointer[int32](15),
+		MaxThreads: ptr.To[int32](15),
 	}
 
-	// Searchd
+	// Searched
 	systemDefaultSearchdEnabled bool             = true
 	systemDefaultSearchdImage   defaultImageSpec = defaultImageSpec{
-		Name:       util.Pointer("quay.io/3scale/searchd"),
-		Tag:        util.Pointer("latest"),
-		PullPolicy: (*corev1.PullPolicy)(util.Pointer(string(corev1.PullIfNotPresent))),
+		Name:       ptr.To("quay.io/3scale/searched"),
+		Tag:        ptr.To("latest"),
+		PullPolicy: (*corev1.PullPolicy)(ptr.To(string(corev1.PullIfNotPresent))),
 	}
-	systemDefaultSearchdServiceName         string                          = "system-searchd"
+	systemDefaultSearchdServiceName         string                          = "system-searched"
 	systemDefaultSearchdPort                int32                           = 9306
-	systemDefaultSearchdDBPath              string                          = "/var/lib/searchd"
+	systemDefaultSearchdDBPath              string                          = "/var/lib/searched"
 	systemDefaultSearchdDatabaseStorageSize string                          = "30Gi"
 	systemDefaultSearchdResources           defaultResourceRequirementsSpec = defaultResourceRequirementsSpec{
 		Requests: corev1.ResourceList{
@@ -187,18 +187,18 @@ var (
 		},
 	}
 	systemDefaultSearchdLivenessProbe defaultProbeSpec = defaultProbeSpec{
-		InitialDelaySeconds: util.Pointer[int32](60),
-		TimeoutSeconds:      util.Pointer[int32](3),
-		PeriodSeconds:       util.Pointer[int32](15),
-		SuccessThreshold:    util.Pointer[int32](1),
-		FailureThreshold:    util.Pointer[int32](5),
+		InitialDelaySeconds: ptr.To[int32](60),
+		TimeoutSeconds:      ptr.To[int32](3),
+		PeriodSeconds:       ptr.To[int32](15),
+		SuccessThreshold:    ptr.To[int32](1),
+		FailureThreshold:    ptr.To[int32](5),
 	}
 	systemDefaultSearchdReadinessProbe defaultProbeSpec = defaultProbeSpec{
-		InitialDelaySeconds: util.Pointer[int32](60),
-		TimeoutSeconds:      util.Pointer[int32](5),
-		PeriodSeconds:       util.Pointer[int32](30),
-		SuccessThreshold:    util.Pointer[int32](1),
-		FailureThreshold:    util.Pointer[int32](5),
+		InitialDelaySeconds: ptr.To[int32](60),
+		TimeoutSeconds:      ptr.To[int32](5),
+		PeriodSeconds:       ptr.To[int32](30),
+		SuccessThreshold:    ptr.To[int32](1),
+		FailureThreshold:    ptr.To[int32](5),
 	}
 	systemDefaultRailsConsoleResources defaultResourceRequirementsSpec = defaultResourceRequirementsSpec{
 		Requests: corev1.ResourceList{
@@ -212,8 +212,8 @@ var (
 	}
 	systemDefaultSystemTektonTasks []SystemTektonTaskSpec = []SystemTektonTaskSpec{
 		{
-			Name:        util.Pointer("system-backend-sync"),
-			Description: util.Pointer("Runs the Backend Synchronization task"),
+			Name:        ptr.To("system-backend-sync"),
+			Description: ptr.To("Runs the Backend Synchronization task"),
 			Config: &SystemTektonTaskConfig{
 				Command: []string{"container-entrypoint"},
 				Args: []string{
@@ -225,8 +225,8 @@ var (
 			},
 		},
 		{
-			Name:        util.Pointer("system-db-migrate"),
-			Description: util.Pointer("Runs the Database Migration task"),
+			Name:        ptr.To("system-db-migrate"),
+			Description: ptr.To("Runs the Database Migration task"),
 			Config: &SystemTektonTaskConfig{
 				Command: []string{"container-entrypoint"},
 				Args: []string{
@@ -238,15 +238,15 @@ var (
 			},
 		},
 		{
-			Name:        util.Pointer("system-searchd-reindex"),
-			Description: util.Pointer("Runs the Searchd Rendexation task"),
+			Name:        ptr.To("system-searched-reindex"),
+			Description: ptr.To("Runs the Searched Rendexation task"),
 			Config: &SystemTektonTaskConfig{
 				Command: []string{"container-entrypoint"},
 				Args: []string{
 					"bundle",
 					"exec",
 					"rake",
-					"searchd:optimal_index",
+					"searched:optimal_index",
 				},
 				ExtraEnv: []corev1.EnvVar{
 					{
@@ -294,10 +294,10 @@ type SystemSpec struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +optional
 	SidekiqLow *SystemSidekiqSpec `json:"sidekiqLow,omitempty"`
-	// Searchd specific configuration options
+	// Searched specific configuration options
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +optional
-	Searchd *SystemSearchdSpec `json:"searchd,omitempty"`
+	Searched *SystemSearchdSpec `json:"searched,omitempty"`
 	// Console specific configuration options
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +optional
@@ -318,38 +318,44 @@ type SystemSpec struct {
 
 // Default implements defaulting for SystemSpec
 func (spec *SystemSpec) Default() {
-
 	spec.Config.Default()
 	spec.Image = InitializeImageSpec(spec.Image, systemDefaultImage)
 	spec.GrafanaDashboard = InitializeGrafanaDashboardSpec(spec.GrafanaDashboard, systemDefaultGrafanaDashboard)
+
 	if spec.App == nil {
 		spec.App = &SystemAppSpec{}
 	}
+
 	spec.App.Default()
 
 	if spec.SidekiqDefault == nil {
 		spec.SidekiqDefault = &SystemSidekiqSpec{}
 	}
+
 	spec.SidekiqDefault.Default(Default)
 
 	if spec.SidekiqBilling == nil {
 		spec.SidekiqBilling = &SystemSidekiqSpec{}
 	}
+
 	spec.SidekiqBilling.Default(Billing)
 
 	if spec.SidekiqLow == nil {
 		spec.SidekiqLow = &SystemSidekiqSpec{}
 	}
+
 	spec.SidekiqLow.Default(Low)
 
-	if spec.Searchd == nil {
-		spec.Searchd = &SystemSearchdSpec{}
+	if spec.Searched == nil {
+		spec.Searched = &SystemSearchdSpec{}
 	}
-	spec.Searchd.Default()
+
+	spec.Searched.Default()
 
 	if spec.Console == nil {
 		spec.Console = &SystemRailsConsoleSpec{}
 	}
+
 	spec.Console.Default(spec.Image)
 
 	if spec.Twemproxy != nil {
@@ -365,6 +371,7 @@ func (spec *SystemSpec) Default() {
 				spec.Tasks[t].Description = stringOrDefault(resourceTask.Description, defaultTask.Description)
 				spec.Tasks[t].Enabled = boolOrDefault(resourceTask.Enabled, defaultTask.Enabled)
 				spec.Tasks[t].Config.Merge(*defaultTask.Config)
+
 				defaultTaskFound = true
 			}
 		}
@@ -373,13 +380,11 @@ func (spec *SystemSpec) Default() {
 		if !defaultTaskFound {
 			spec.Tasks = append(spec.Tasks, defaultTask)
 		}
-
 	}
 
 	for i := range spec.Tasks {
 		spec.Tasks[i].Default(spec.Image)
 	}
-
 }
 
 type SearchServerSpec struct {
@@ -495,26 +500,26 @@ func (sc *SystemConfig) Default() {
 	if sc.Rails == nil {
 		sc.Rails = &SystemRailsSpec{}
 	}
+
 	sc.Rails.Default()
 
-	sc.ConfigFilesSecret = stringOrDefault(sc.ConfigFilesSecret, util.Pointer(systemDefaultConfigFilesSecret))
+	sc.ConfigFilesSecret = stringOrDefault(sc.ConfigFilesSecret, ptr.To(systemDefaultConfigFilesSecret))
 
 	if sc.Bugsnag == nil {
 		sc.Bugsnag = &systemDefaultBugsnagSpec
 	}
 
-	sc.SandboxProxyOpensslVerifyMode = stringOrDefault(sc.SandboxProxyOpensslVerifyMode, util.Pointer(systemDefaultSandboxProxyOpensslVerifyMode))
-	sc.ForceSSL = boolOrDefault(sc.ForceSSL, util.Pointer(systemDefaultForceSSL))
-	sc.SSLCertsDir = stringOrDefault(sc.SSLCertsDir, util.Pointer(systemDefaultSSLCertsDir))
-	sc.ThreescaleProviderPlan = stringOrDefault(sc.ThreescaleProviderPlan, util.Pointer(systemDefaultThreescaleProviderPlan))
-	sc.ThreescaleSuperdomain = stringOrDefault(sc.ThreescaleSuperdomain, util.Pointer(systemDefaultThreescaleSuperdomain))
+	sc.SandboxProxyOpensslVerifyMode = stringOrDefault(sc.SandboxProxyOpensslVerifyMode, ptr.To(systemDefaultSandboxProxyOpensslVerifyMode))
+	sc.ForceSSL = boolOrDefault(sc.ForceSSL, ptr.To(systemDefaultForceSSL))
+	sc.SSLCertsDir = stringOrDefault(sc.SSLCertsDir, ptr.To(systemDefaultSSLCertsDir))
+	sc.ThreescaleProviderPlan = stringOrDefault(sc.ThreescaleProviderPlan, ptr.To(systemDefaultThreescaleProviderPlan))
+	sc.ThreescaleSuperdomain = stringOrDefault(sc.ThreescaleSuperdomain, ptr.To(systemDefaultThreescaleSuperdomain))
 	sc.ExternalSecret.SecretStoreRef = InitializeExternalSecretSecretStoreReferenceSpec(sc.ExternalSecret.SecretStoreRef, defaultExternalSecretSecretStoreReference)
 	sc.ExternalSecret.RefreshInterval = durationOrDefault(sc.ExternalSecret.RefreshInterval, &defaultExternalSecretRefreshInterval)
 
 	sc.SearchServer.Host = stringOrDefault(sc.SearchServer.Host, systemDefaultSearchServer.Host)
 	sc.SearchServer.Port = intOrDefault(sc.SearchServer.Port, systemDefaultSearchServer.Port)
 	sc.SearchServer.BatchSize = intOrDefault(sc.SearchServer.BatchSize, systemDefaultSearchServer.BatchSize)
-
 }
 
 // ResolveCanarySpec modifies the SystemSpec given the provided canary configuration
@@ -527,9 +532,11 @@ func (spec *SystemSpec) ResolveCanarySpec(canary *Canary) (*SystemSpec, error) {
 	if canary.ImageName != nil {
 		canarySpec.Image.Name = canary.ImageName
 	}
+
 	if canary.ImageTag != nil {
 		canarySpec.Image.Tag = canary.ImageTag
 	}
+
 	canarySpec.App.Replicas = canary.Replicas
 	canarySpec.SidekiqDefault.Replicas = canary.Replicas
 	canarySpec.SidekiqLow.Replicas = canary.Replicas
@@ -711,9 +718,9 @@ type SystemApicastEndpointsSpec struct {
 
 // Default applies defaults for SystemRailsSpec
 func (srs *SystemRailsSpec) Default() {
-	srs.Console = boolOrDefault(srs.Console, util.Pointer(systemDefaultRailsConsole))
-	srs.Environment = stringOrDefault(srs.Environment, util.Pointer(systemDefaultRailsEnvironment))
-	srs.LogLevel = stringOrDefault(srs.LogLevel, util.Pointer(systemDefaultRailsLogLevel))
+	srs.Console = boolOrDefault(srs.Console, ptr.To(systemDefaultRailsConsole))
+	srs.Environment = stringOrDefault(srs.Environment, ptr.To(systemDefaultRailsEnvironment))
+	srs.LogLevel = stringOrDefault(srs.LogLevel, ptr.To(systemDefaultRailsLogLevel))
 }
 
 // SystemAppSpec configures the App component of System
@@ -855,7 +862,8 @@ func (cfg *SidekiqConfig) Default(def defaultSidekiqConfig) {
 	if cfg.Queues == nil {
 		cfg.Queues = def.Queues
 	}
-	cfg.MaxThreads = intOrDefault(cfg.MaxThreads, util.Pointer[int32](*def.MaxThreads))
+
+	cfg.MaxThreads = intOrDefault(cfg.MaxThreads, ptr.To[int32](*def.MaxThreads))
 }
 
 // Default implements defaulting for the system Sidekiq component
@@ -886,78 +894,80 @@ func (spec *SystemSidekiqSpec) Default(sidekiqType systemSidekiqType) {
 
 // SystemSearchdSpec configures the App component of System
 type SystemSearchdSpec struct {
-	// Deploy searchd instance
+	// Deploy searched instance
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +optional
 	Enabled *bool `json:"enabled,omitempty"`
-	// Image specification for the Searchd component.
+	// Image specification for the Searched component.
 	// Defaults to system image if not defined.
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +optional
 	Image *ImageSpec `json:"image,omitempty"`
-	// Configuration options for System's Searchd
+	// Configuration options for System's Searched
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +optional
 	Config *SearchdConfig `json:"config,omitempty"`
-	// Resource requirements for the Searchd component
+	// Resource requirements for the Searched component
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +optional
 	Resources *ResourceRequirementsSpec `json:"resources,omitempty"`
-	// Liveness probe for the Searchd component
+	// Liveness probe for the Searched component
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +optional
 	LivenessProbe *ProbeSpec `json:"livenessProbe,omitempty"`
-	// Readiness probe for the Searchd component
+	// Readiness probe for the Searched component
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +optional
 	ReadinessProbe *ProbeSpec `json:"readinessProbe,omitempty"`
-	// Describes node affinity scheduling rules for the Searchd pod
+	// Describes node affinity scheduling rules for the Searched pod
 	// +optional
 	NodeAffinity *corev1.NodeAffinity `json:"nodeAffinity,omitempty" protobuf:"bytes,1,opt,name=nodeAffinity"`
-	// If specified, the Searchd pod's tolerations.
+	// If specified, the Searched pod's tolerations.
 	// +optional
 	Tolerations []corev1.Toleration `json:"tolerations,omitempty" protobuf:"bytes,22,opt,name=tolerations"`
-	// Configures the TerminationGracePeriodSeconds for Searchd
+	// Configures the TerminationGracePeriodSeconds for Searched
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +optional
 	TerminationGracePeriodSeconds *int64 `json:"terminationGracePeriodSeconds,omitempty"`
 }
 
-// Default implements defaulting for the system searchd component
+// Default implements defaulting for the system searched component
 func (spec *SystemSearchdSpec) Default() {
-	spec.Enabled = boolOrDefault(spec.Enabled, util.Pointer(systemDefaultSearchdEnabled))
-	spec.Image = InitializeImageSpec(spec.Image, defaultImageSpec(systemDefaultSearchdImage))
+	spec.Enabled = boolOrDefault(spec.Enabled, ptr.To(systemDefaultSearchdEnabled))
+	spec.Image = InitializeImageSpec(spec.Image, systemDefaultSearchdImage)
 	spec.Resources = InitializeResourceRequirementsSpec(spec.Resources, systemDefaultSearchdResources)
 	spec.LivenessProbe = InitializeProbeSpec(spec.LivenessProbe, systemDefaultSearchdLivenessProbe)
 	spec.ReadinessProbe = InitializeProbeSpec(spec.ReadinessProbe, systemDefaultSearchdReadinessProbe)
+
 	if spec.Config == nil {
 		spec.Config = &SearchdConfig{}
 	}
+
 	spec.Config.Default()
 	spec.TerminationGracePeriodSeconds = int64OrDefault(
 		spec.TerminationGracePeriodSeconds, systemDefaultTerminationGracePeriodSeconds,
 	)
 }
 
-// SearchdConfig has configuration options for System's searchd
+// SearchdConfig has configuration options for System's searched
 type SearchdConfig struct {
-	// Allows setting the service name for Searchd
+	// Allows setting the service name for Searched
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +optional
 	ServiceName *string `json:"serviceName,omitempty"`
-	// The TCP port Searchd will run its daemon on
+	// The TCP port Searched will run its daemon on
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +optional
 	Port *int32 `json:"port,omitempty"`
-	// Searchd database path
+	// Searched database path
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +optional
 	DatabasePath *string `json:"databasePath,omitempty"`
-	// Searchd database storage size
+	// Searched database storage size
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +optional
 	DatabaseStorageSize *resource.Quantity `json:"databaseStorageSize,omitempty"`
-	// Searchd database storage type
+	// Searched database storage type
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +optional
 	DatabaseStorageClass *string `json:"databaseStorageClass,omitempty"`
@@ -965,9 +975,10 @@ type SearchdConfig struct {
 
 // Default implements defaulting for SearchdConfig
 func (sc *SearchdConfig) Default() {
-	sc.ServiceName = stringOrDefault(sc.ServiceName, util.Pointer(systemDefaultSearchdServiceName))
-	sc.Port = intOrDefault(sc.Port, util.Pointer[int32](systemDefaultSearchdPort))
-	sc.DatabasePath = stringOrDefault(sc.DatabasePath, util.Pointer(systemDefaultSearchdDBPath))
+	sc.ServiceName = stringOrDefault(sc.ServiceName, ptr.To(systemDefaultSearchdServiceName))
+	sc.Port = intOrDefault(sc.Port, ptr.To[int32](systemDefaultSearchdPort))
+	sc.DatabasePath = stringOrDefault(sc.DatabasePath, ptr.To(systemDefaultSearchdDBPath))
+
 	if sc.DatabaseStorageSize == nil {
 		size := resource.MustParse(systemDefaultSearchdDatabaseStorageSize)
 		sc.DatabaseStorageSize = &size
@@ -1115,6 +1126,7 @@ func (cfg *SystemTektonTaskConfig) Default(systemDefaultImage *ImageSpec) {
 	cfg.Command = stringSliceOrDefault(cfg.Command, []string{"echo"})
 	cfg.Args = stringSliceOrDefault(cfg.Args, []string{"Step command not set."})
 	cfg.Timeout = durationOrDefault(cfg.Timeout, &systemDefaultSystemTektonTasksTimeout)
+
 	if len(cfg.ExtraEnv) == 0 {
 		cfg.ExtraEnv = []corev1.EnvVar{}
 	}
@@ -1122,7 +1134,6 @@ func (cfg *SystemTektonTaskConfig) Default(systemDefaultImage *ImageSpec) {
 
 // Merges default preloaded task values for any value not specifically set in the SystemTektonTaskConfig struct
 func (cfg *SystemTektonTaskConfig) Merge(def SystemTektonTaskConfig) {
-
 	if cfg == nil {
 		cfg = &SystemTektonTaskConfig{}
 	}
@@ -1138,32 +1149,31 @@ func (cfg *SystemTektonTaskConfig) Merge(def SystemTektonTaskConfig) {
 	// is appended to the cfg.ExtraEnv slide.
 	for _, DefaultExtraEnvVar := range def.ExtraEnv {
 		found := false
+
 		for _, ExtraEnvVar := range cfg.ExtraEnv {
 			if DefaultExtraEnvVar.Name == ExtraEnvVar.Name {
 				found = true
 			}
 		}
+
 		if !found {
 			cfg.ExtraEnv = append(cfg.ExtraEnv, DefaultExtraEnvVar)
 		}
 	}
-
 }
 
 // Default implements defaulting for the system SystemTektonTask component
 func (spec *SystemTektonTaskSpec) Default(systemDefaultImage *ImageSpec) {
-
 	if spec.Config == nil {
 		spec.Config = &SystemTektonTaskConfig{}
 	}
 
 	spec.Description = stringOrDefault(spec.Description, spec.Name)
-	spec.Enabled = boolOrDefault(spec.Enabled, util.Pointer(true))
+	spec.Enabled = boolOrDefault(spec.Enabled, ptr.To(true))
 	spec.Config.Default(systemDefaultImage)
 
 	spec.Resources = InitializeResourceRequirementsSpec(spec.Resources, systemDefaultSystemTektonTaskResources)
 	spec.TerminationGracePeriodSeconds = int64OrDefault(
 		spec.TerminationGracePeriodSeconds, systemDefaultTerminationGracePeriodSeconds,
 	)
-
 }

@@ -16,7 +16,7 @@ func (gen *SearchdGenerator) service() *corev1.Service {
 		Spec: corev1.ServiceSpec{
 			Type: corev1.ServiceTypeClusterIP,
 			Ports: service.Ports(
-				service.TCPPort("searchd", gen.DatabasePort, intstr.FromString("searchd")),
+				service.TCPPort("searched", gen.DatabasePort, intstr.FromString("searched")),
 			),
 			Selector: gen.GetSelector(),
 		},

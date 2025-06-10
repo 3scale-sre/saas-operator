@@ -22,7 +22,6 @@ import (
 	"time"
 
 	"github.com/3scale-sre/basereconciler/reconciler"
-	"github.com/3scale-sre/basereconciler/util"
 	"github.com/3scale-sre/saas-operator/internal/pkg/redis/client"
 	redis "github.com/3scale-sre/saas-operator/internal/pkg/redis/server"
 	"github.com/3scale-sre/saas-operator/internal/pkg/redis/sharded"
@@ -30,6 +29,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
 )
 
 const (
@@ -42,9 +42,9 @@ var (
 	SentinelDefaultReplicas int32            = 3
 	SentinelDefaultQuorum   int              = 2
 	sentinelDefaultImage    defaultImageSpec = defaultImageSpec{
-		Name:       util.Pointer("bitnami/redis-sentinel"),
-		Tag:        util.Pointer("4.0.11-debian-9-r110"),
-		PullPolicy: (*corev1.PullPolicy)(util.Pointer(string(corev1.PullIfNotPresent))),
+		Name:       ptr.To("bitnami/redis-sentinel"),
+		Tag:        ptr.To("4.0.11-debian-9-r110"),
+		PullPolicy: (*corev1.PullPolicy)(ptr.To(string(corev1.PullIfNotPresent))),
 	}
 	sentinelDefaultResources defaultResourceRequirementsSpec = defaultResourceRequirementsSpec{
 		Requests: corev1.ResourceList{
@@ -57,19 +57,19 @@ var (
 		},
 	}
 	sentinelDefaultProbe defaultProbeSpec = defaultProbeSpec{
-		InitialDelaySeconds: util.Pointer[int32](25),
-		TimeoutSeconds:      util.Pointer[int32](1),
-		PeriodSeconds:       util.Pointer[int32](10),
-		SuccessThreshold:    util.Pointer[int32](1),
-		FailureThreshold:    util.Pointer[int32](3),
+		InitialDelaySeconds: ptr.To[int32](25),
+		TimeoutSeconds:      ptr.To[int32](1),
+		PeriodSeconds:       ptr.To[int32](10),
+		SuccessThreshold:    ptr.To[int32](1),
+		FailureThreshold:    ptr.To[int32](3),
 	}
 	sentinelDefaultPDB defaultPodDisruptionBudgetSpec = defaultPodDisruptionBudgetSpec{
-		MaxUnavailable: util.Pointer(intstr.FromInt(1)),
+		MaxUnavailable: ptr.To(intstr.FromInt(1)),
 	}
 
 	sentinelDefaultGrafanaDashboard defaultGrafanaDashboardSpec = defaultGrafanaDashboardSpec{
-		SelectorKey:   util.Pointer("monitoring-key"),
-		SelectorValue: util.Pointer("middleware"),
+		SelectorKey:   ptr.To("monitoring-key"),
+		SelectorValue: ptr.To("middleware"),
 	}
 	sentinelDefaultStorageSize            string        = "10Mi"
 	sentinelDefaultMetricsRefreshInterval time.Duration = 30 * time.Second
@@ -81,12 +81,12 @@ type SentinelConfig struct {
 	// part of each shard monitored by sentinel
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +optional
-	MonitoredShards map[string][]string `json:"monitoredShards,"`
+	MonitoredShards map[string][]string `json:"monitoredShards"`
 	// ClusterTopology indicates the redis servers that form
 	// part of each shard monitored by sentinel
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +optional
-	ClusterTopology map[string]map[string]string `json:"clusterTopology,"`
+	ClusterTopology map[string]map[string]string `json:"clusterTopology"`
 	// StorageClass is the storage class to be used for
 	// the persistent sentinel config file where the shards
 	// state is stored
@@ -160,7 +160,6 @@ type SentinelSpec struct {
 
 // Default implements defaulting for SentinelSpec
 func (spec *SentinelSpec) Default() {
-
 	spec.Image = InitializeImageSpec(spec.Image, sentinelDefaultImage)
 	spec.Replicas = intOrDefault(spec.Replicas, &SentinelDefaultReplicas)
 	spec.PDB = InitializePodDisruptionBudgetSpec(spec.PDB, sentinelDefaultPDB)
@@ -190,9 +189,7 @@ type SentinelStatus struct {
 // but is less robust as it depends entirely on the Sentinel controller working properly and without delays.
 // As of now, this is used in the SharededRedisBackup controller but not in the TwemproxyConfig controller.
 func (ss *SentinelStatus) ShardedCluster(ctx context.Context, pool *redis.ServerPool) (*sharded.Cluster, error) {
-
 	// have a list of sentinels but must provide a map
-	// TODO: at some point change the SentinelStatus.Sentinels to also have a map and avoid this
 	msentinel := make(map[string]string, len(ss.Sentinels))
 	for _, s := range ss.Sentinels {
 		msentinel[s] = "redis://" + s
@@ -202,16 +199,20 @@ func (ss *SentinelStatus) ShardedCluster(ctx context.Context, pool *redis.Server
 	// generate slice of shards from status
 	for _, s := range ss.MonitoredShards {
 		servers := make([]*sharded.RedisServer, 0, len(s.Servers))
+
 		for _, rsd := range s.Servers {
 			srv, err := pool.GetServer("redis://"+rsd.Address, nil)
 			if err != nil {
 				return nil, err
 			}
+
 			servers = append(servers, sharded.NewRedisServerFromParams(srv, rsd.Role, rsd.Config))
 		}
+
 		sort.Slice(servers, func(i, j int) bool {
 			return servers[i].ID() < servers[j].ID()
 		})
+
 		shards = append(shards, sharded.NewShardFromServers(s.Name, pool, servers...))
 	}
 
@@ -219,6 +220,7 @@ func (ss *SentinelStatus) ShardedCluster(ctx context.Context, pool *redis.Server
 	if err != nil {
 		return nil, err
 	}
+
 	return cluster, nil
 }
 
@@ -280,7 +282,7 @@ func (d *Sentinel) GetStatus() any {
 	return &d.Status
 }
 
-//+kubebuilder:object:root=true
+// +kubebuilder:object:root=true
 
 // SentinelList contains a list of Sentinel
 type SentinelList struct {

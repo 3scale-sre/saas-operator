@@ -17,10 +17,10 @@ spec:
     sudo: true
     port: 2222
   s3Options:
-    bucket: my-bucket
+    bucket: backups
     path: backups
     region: us-east-1
     credentialsSecretRef:
       name: aws-credentials
-    serviceEndpoint: http://minio.default.svc.cluster.local:9000
+    serviceEndpoint: http://minio.minio.svc.cluster.local:9000
   pause: false

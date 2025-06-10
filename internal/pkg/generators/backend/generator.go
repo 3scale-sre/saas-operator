@@ -40,7 +40,6 @@ type Generator struct {
 
 // NewGenerator returns a new Options struct
 func NewGenerator(instance, namespace string, spec saasv1alpha1.BackendSpec) (Generator, error) {
-
 	generator := Generator{
 		BaseOptionsV2: generators.BaseOptionsV2{
 			Component:    component,
@@ -108,6 +107,7 @@ func NewGenerator(instance, namespace string, spec saasv1alpha1.BackendSpec) (Ge
 		if err != nil {
 			return Generator{}, err
 		}
+
 		generator.CanaryListener = &ListenerGenerator{
 			BaseOptionsV2: generators.BaseOptionsV2{
 				Component:    strings.Join([]string{component, listener, "canary"}, "-"),
@@ -135,6 +135,7 @@ func NewGenerator(instance, namespace string, spec saasv1alpha1.BackendSpec) (Ge
 		if err != nil {
 			return Generator{}, err
 		}
+
 		generator.CanaryWorker = &WorkerGenerator{
 			BaseOptionsV2: generators.BaseOptionsV2{
 				Component:    strings.Join([]string{component, worker, "canary"}, "-"),
@@ -165,10 +166,12 @@ func (gen *Generator) Resources() ([]resource.TemplateInterface, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	worker_resources, err := deployment_workload.New(&gen.Worker, gen.CanaryWorker)
 	if err != nil {
 		return nil, err
 	}
+
 	cron_resources, err := deployment_workload.New(&gen.Cron, nil)
 	if err != nil {
 		return nil, err
@@ -228,21 +231,21 @@ func (gen *ListenerGenerator) MonitoredEndpoints() []monitoringv1.PodMetricsEndp
 	if gen.TwemproxySpec != nil {
 		pmes = append(pmes, podmonitor.PodMetricsEndpoint("/metrics", "twem-metrics", 30))
 	}
+
 	return pmes
 }
 func (gen *ListenerGenerator) SendTraffic() bool { return gen.Traffic }
 func (gen *ListenerGenerator) TrafficSelector() map[string]string {
 	return map[string]string{
-		// This is purposedly hardcoded as the TrafficSelector needs to be the same for all workloads produced
+		// This is purposely hardcoded as the TrafficSelector needs to be the same for all workloads produced
 		// by the same generator so traffic can be sent to all of them at the same time
-		fmt.Sprintf("%s/traffic", saasv1alpha1.GroupVersion.Group): fmt.Sprintf("%s-%s", component, listener),
+		saasv1alpha1.GroupVersion.Group + "/traffic": fmt.Sprintf("%s-%s", component, listener),
 	}
 }
 func (gen *ListenerGenerator) PublishingStrategies() ([]service.ServiceDescriptor, error) {
 	if pss, err := service.MergeWithDefaultPublishingStrategy(config.DefaultListenerPublishingStrategy(), gen.ListenerSpec.PublishingStrategies); err != nil {
 		return nil, err
 	} else {
-		// spew.Dump(pss)
 		return pss, nil
 	}
 }
@@ -278,6 +281,7 @@ func (gen *WorkerGenerator) MonitoredEndpoints() []monitoringv1.PodMetricsEndpoi
 	if gen.TwemproxySpec != nil {
 		pmes = append(pmes, podmonitor.PodMetricsEndpoint("/metrics", "twem-metrics", 30))
 	}
+
 	return pmes
 }
 

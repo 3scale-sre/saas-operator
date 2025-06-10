@@ -60,9 +60,10 @@ func (gen *Generator) PodServiceName(index int) string {
 // These URLs point to the Pod specific Service of each sentinel Pod
 func (gen *Generator) SentinelURIs() []string {
 	urls := make([]string, 0, *gen.Spec.Replicas)
-	for idx := 0; idx < int(*gen.Spec.Replicas); idx++ {
+	for idx := range int(*gen.Spec.Replicas) {
 		urls = append(urls,
 			fmt.Sprintf("redis://%s.%s.svc.cluster.local:%d", gen.PodServiceName(idx), gen.GetNamespace(), saasv1alpha1.SentinelPort))
 	}
+
 	return urls
 }

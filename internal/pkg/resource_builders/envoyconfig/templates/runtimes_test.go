@@ -14,6 +14,7 @@ func TestRuntime_v1(t *testing.T) {
 		name string
 		opts *saasv1alpha1.Runtime
 	}
+
 	tests := []struct {
 		name string
 		args args
@@ -45,14 +46,17 @@ func TestRuntime_v1(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, _ := Runtime_v1(tt.args.name, tt.args.opts)
+
 			j, err := envoy_serializer_v3.JSON{}.Marshal(got)
 			if err != nil {
 				t.Error(err)
 			}
+
 			y, err := yaml.JSONToYAML([]byte(j))
 			if err != nil {
 				t.Error(err)
 			}
+
 			if string(y) != tt.want {
 				t.Errorf("Runtime_v1():\n# got:\n%v\n# want:\n%v", string(y), tt.want)
 			}

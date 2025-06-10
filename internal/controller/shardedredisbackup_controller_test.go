@@ -22,11 +22,11 @@ import (
 	"time"
 
 	"github.com/3scale-sre/basereconciler/reconciler"
-	"github.com/3scale-sre/basereconciler/util"
 	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	testutil "github.com/3scale-sre/saas-operator/test/util"
 	"github.com/google/go-cmp/cmp"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/ptr"
 )
 
 func TestShardedRedisBackupReconciler_reconcileBackupList(t *testing.T) {
@@ -35,6 +35,7 @@ func TestShardedRedisBackupReconciler_reconcileBackupList(t *testing.T) {
 		nextRun  time.Time
 		shards   []string
 	}
+
 	tests := []struct {
 		name        string
 		args        args
@@ -47,7 +48,7 @@ func TestShardedRedisBackupReconciler_reconcileBackupList(t *testing.T) {
 			args: args{
 				nextRun: testutil.MustParseRFC3339("2023-09-01T00:01:00Z"),
 				instance: &saasv1alpha1.ShardedRedisBackup{
-					Spec:   saasv1alpha1.ShardedRedisBackupSpec{HistoryLimit: util.Pointer(int32(10))},
+					Spec:   saasv1alpha1.ShardedRedisBackupSpec{HistoryLimit: ptr.To(int32(10))},
 					Status: saasv1alpha1.ShardedRedisBackupStatus{},
 				},
 				shards: []string{"shard01", "shard02"},
@@ -76,7 +77,7 @@ func TestShardedRedisBackupReconciler_reconcileBackupList(t *testing.T) {
 			args: args{
 				nextRun: testutil.MustParseRFC3339("2023-09-01T00:01:00Z"),
 				instance: &saasv1alpha1.ShardedRedisBackup{
-					Spec: saasv1alpha1.ShardedRedisBackupSpec{HistoryLimit: util.Pointer(int32(10))},
+					Spec: saasv1alpha1.ShardedRedisBackupSpec{HistoryLimit: ptr.To(int32(10))},
 					Status: saasv1alpha1.ShardedRedisBackupStatus{
 						Backups: []saasv1alpha1.BackupStatus{
 							{
@@ -119,7 +120,7 @@ func TestShardedRedisBackupReconciler_reconcileBackupList(t *testing.T) {
 			args: args{
 				nextRun: testutil.MustParseRFC3339("2023-09-01T00:02:00Z"),
 				instance: &saasv1alpha1.ShardedRedisBackup{
-					Spec: saasv1alpha1.ShardedRedisBackupSpec{HistoryLimit: util.Pointer(int32(10))},
+					Spec: saasv1alpha1.ShardedRedisBackupSpec{HistoryLimit: ptr.To(int32(10))},
 					Status: saasv1alpha1.ShardedRedisBackupStatus{
 						Backups: []saasv1alpha1.BackupStatus{
 							{
@@ -163,14 +164,13 @@ func TestShardedRedisBackupReconciler_reconcileBackupList(t *testing.T) {
 			r := &ShardedRedisBackupReconciler{
 				Reconciler: &reconciler.Reconciler{},
 			}
-			got, err := r.reconcileBackupList(context.TODO(), tt.args.instance, tt.args.nextRun, tt.args.shards)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("ShardedRedisBackupReconciler.reconcileBackupList() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
+
+			got := r.reconcileBackupList(context.TODO(), tt.args.instance, tt.args.nextRun, tt.args.shards)
+
 			if diff := cmp.Diff(tt.args.instance.Status, tt.wantStatus); len(diff) > 0 {
 				t.Errorf("ShardedRedisBackupReconciler.reconcileBackupList() = diff %v", diff)
 			}
+
 			if got != tt.wantChanged {
 				t.Errorf("ShardedRedisBackupReconciler.reconcileBackupList() = %v, want %v", got, tt.wantChanged)
 			}

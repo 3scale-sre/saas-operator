@@ -18,6 +18,7 @@ const (
 // configMap returns a ConfigMap that holds the twemproxy config file.
 func (gen *Generator) configMap(toYAML bool) *corev1.ConfigMap {
 	config := make(map[string]twemproxy.ServerPoolConfig, len(gen.Spec.ServerPools)+1)
+
 	for _, pool := range gen.Spec.ServerPools {
 		if *pool.Target == saasv1alpha1.Masters {
 			config[pool.Name] = twemproxy.GenerateServerPool(pool, gen.masterTargets)
@@ -37,14 +38,15 @@ func (gen *Generator) configMap(toYAML bool) *corev1.ConfigMap {
 	}
 
 	var b []byte
+
 	var err error
 
 	if toYAML {
 		b, err = yaml.Marshal(config)
-
 	} else {
 		b, err = json.Marshal(config)
 	}
+
 	if err != nil {
 		panic(err)
 	}

@@ -17,20 +17,19 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"fmt"
-
 	"github.com/3scale-sre/basereconciler/util"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var (
-	TwemproxyPodSyncLabelKey   string = fmt.Sprintf("%s/twemproxyconfig.sync", GroupVersion.Group)
-	TwemproxySyncAnnotationKey string = fmt.Sprintf("%s/twemproxyconfig.configmap-hash", GroupVersion.Group)
+	TwemproxyPodSyncLabelKey   string = GroupVersion.Group + "/twemproxyconfig.sync"
+	TwemproxySyncAnnotationKey string = GroupVersion.Group + "/twemproxyconfig.configmap-hash"
 
 	twemproxyDefaultGrafanaDashboard defaultGrafanaDashboardSpec = defaultGrafanaDashboardSpec{
-		SelectorKey:   util.Pointer("monitoring-key"),
-		SelectorValue: util.Pointer("middleware"),
+		SelectorKey:   ptr.To("monitoring-key"),
+		SelectorValue: ptr.To("middleware"),
 	}
 )
 
@@ -38,7 +37,6 @@ var (
 type TwemproxyConfigSpec struct {
 	// SentinelURI is the redis URI of sentinel. If not set, the controller
 	// will try to autodiscover Sentinel within the namespace.
-	// TODO: remove, unused
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +optional
 	SentinelURIs []string `json:"sentinelURIs,omitempty"`
@@ -63,9 +61,11 @@ func (spec *TwemproxyConfigSpec) Default() {
 	for idx := range spec.ServerPools {
 		spec.ServerPools[idx].Default()
 	}
+
 	if spec.ReconcileServerPools == nil {
-		spec.ReconcileServerPools = util.Pointer(true)
+		spec.ReconcileServerPools = ptr.To(true)
 	}
+
 	spec.GrafanaDashboard = InitializeGrafanaDashboardSpec(spec.GrafanaDashboard, twemproxyDefaultGrafanaDashboard)
 }
 
@@ -165,7 +165,7 @@ func (tc *TwemproxyConfig) PodSyncSelector() client.MatchingLabels {
 	}
 }
 
-//+kubebuilder:object:root=true
+// +kubebuilder:object:root=true
 
 // TwemproxyConfigList contains a list of TwemproxyConfig
 type TwemproxyConfigList struct {

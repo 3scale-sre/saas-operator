@@ -14,6 +14,7 @@ func TestDiscoveryOptionSet_Has(t *testing.T) {
 	type args struct {
 		opt DiscoveryOption
 	}
+
 	tests := []struct {
 		name string
 		set  DiscoveryOptionSet
@@ -48,10 +49,12 @@ func TestRedisServer_Discover(t *testing.T) {
 		Role   client.Role
 		Config map[string]string
 	}
+
 	type args struct {
 		ctx  context.Context
 		opts []DiscoveryOption
 	}
+
 	tests := []struct {
 		name       string
 		fields     fields
@@ -65,8 +68,8 @@ func TestRedisServer_Discover(t *testing.T) {
 			fields: fields{
 				Server: redis.NewFakeServerWithFakeClient("127.0.0.1", "1000",
 					client.FakeResponse{
-						InjectResponse: func() interface{} {
-							return []interface{}{"master", ""}
+						InjectResponse: func() any {
+							return []any{"master", ""}
 						},
 						InjectError: func() error { return nil },
 					},
@@ -81,15 +84,15 @@ func TestRedisServer_Discover(t *testing.T) {
 			fields: fields{
 				Server: redis.NewFakeServerWithFakeClient("127.0.0.1", "1000",
 					client.FakeResponse{
-						InjectResponse: func() interface{} {
-							return []interface{}{"master", ""}
+						InjectResponse: func() any {
+							return []any{"master", ""}
 						},
 						InjectError: func() error { return nil },
 					},
 					client.FakeResponse{
 						// cmd: RedisConfigGet("save")
-						InjectResponse: func() interface{} {
-							return []interface{}{"save", "900 1 300 10"}
+						InjectResponse: func() any {
+							return []any{"save", "900 1 300 10"}
 						},
 						InjectError: func() error { return nil },
 					},
@@ -105,14 +108,14 @@ func TestRedisServer_Discover(t *testing.T) {
 			fields: fields{
 				Server: redis.NewFakeServerWithFakeClient("127.0.0.1", "1000",
 					client.FakeResponse{
-						InjectResponse: func() interface{} {
-							return []interface{}{"slave", "127.0.0.1:3333"}
+						InjectResponse: func() any {
+							return []any{"slave", "127.0.0.1:3333"}
 						},
 						InjectError: func() error { return nil },
 					},
 					client.FakeResponse{
-						InjectResponse: func() interface{} {
-							return []interface{}{"read-only", "yes"}
+						InjectResponse: func() any {
+							return []any{"read-only", "yes"}
 						},
 						InjectError: func() error { return nil },
 					},
@@ -128,14 +131,14 @@ func TestRedisServer_Discover(t *testing.T) {
 			fields: fields{
 				Server: redis.NewFakeServerWithFakeClient("127.0.0.1", "1000",
 					client.FakeResponse{
-						InjectResponse: func() interface{} {
-							return []interface{}{"slave", "127.0.0.1:3333"}
+						InjectResponse: func() any {
+							return []any{"slave", "127.0.0.1:3333"}
 						},
 						InjectError: func() error { return nil },
 					},
 					client.FakeResponse{
-						InjectResponse: func() interface{} {
-							return []interface{}{"read-only", "no"}
+						InjectResponse: func() any {
+							return []any{"read-only", "no"}
 						},
 						InjectError: func() error { return nil },
 					},
@@ -151,7 +154,7 @@ func TestRedisServer_Discover(t *testing.T) {
 			fields: fields{
 				Server: redis.NewFakeServerWithFakeClient("127.0.0.1", "1000",
 					client.FakeResponse{
-						InjectResponse: func() interface{} { return []interface{}{} },
+						InjectResponse: func() any { return []any{} },
 						InjectError:    func() error { return errors.New("error") },
 					},
 				),
@@ -172,11 +175,14 @@ func TestRedisServer_Discover(t *testing.T) {
 
 			if err := srv.Discover(tt.args.ctx, tt.args.opts...); (err != nil) != tt.wantErr {
 				t.Errorf("RedisServer.Discover() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
+
 			if tt.wantRole != srv.Role {
 				t.Errorf("RedisServer.Discover() got = %v, want %v", srv.Role, tt.wantRole)
 			}
+
 			if diff := deep.Equal(srv.Config, tt.wantConfig); len(diff) > 0 {
 				t.Errorf("RedisServer.Discover() got diff: %v", diff)
 			}

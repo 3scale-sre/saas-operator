@@ -12,9 +12,7 @@ import (
 // resource when called
 func New(key types.NamespacedName, labels map[string]string, selector map[string]string,
 	cfg saasv1alpha1.PodDisruptionBudgetSpec) func(client.Object) (*policyv1.PodDisruptionBudget, error) {
-
 	return func(client.Object) (*policyv1.PodDisruptionBudget, error) {
-
 		return &policyv1.PodDisruptionBudget{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      key.Name,
@@ -32,6 +30,7 @@ func New(key types.NamespacedName, labels map[string]string, selector map[string
 				} else {
 					spec.MaxUnavailable = cfg.MaxUnavailable
 				}
+
 				return spec
 			}(),
 		}, nil

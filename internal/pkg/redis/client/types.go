@@ -13,7 +13,7 @@ const (
 	// a server in the shard can be master at a given time
 	Master Role = "master"
 	// Slave are servers within the shard that replicate data from the master
-	// for data high availabilty purposes
+	// for data high availability purposes
 	Slave Role = "slave"
 	// Unknown represents a state in which the role of the server is still unknown
 	Unknown Role = "unknown"
@@ -78,12 +78,15 @@ func (sic SentinelInfoCache) GetValue(shard, runID, key string, maxCacheAge time
 	if _, ok := sic[shard]; !ok {
 		return "", fmt.Errorf("unable to find shard '%s' in cache", shard)
 	}
+
 	if _, ok := sic[shard][runID]; !ok {
 		return "", fmt.Errorf("unable to find run_id '%s' in %s's cache", runID, shard)
 	}
+
 	if age := sic[shard][runID].CacheAge; age > maxCacheAge {
 		return "", fmt.Errorf("cache is too old (%s)", age)
 	}
+
 	if value, ok := sic[shard][runID].Info[key]; !ok {
 		return "", fmt.Errorf("unable to find key '%s' in %s's cache", key, runID)
 	} else {

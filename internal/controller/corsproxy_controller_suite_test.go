@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/3scale-sre/basereconciler/util"
 	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	testutil "github.com/3scale-sre/saas-operator/test/util"
 	externalsecretsv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
@@ -15,6 +14,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -74,7 +74,7 @@ var _ = Describe("CORSProxy controller", func() {
 					PodMonitor:    true,
 				}).Assert(k8sClient, corsproxy, dep, timeout, poll))
 
-			Expect(dep.Spec.Template.Spec.Volumes).To(HaveLen(0))
+			Expect(dep.Spec.Template.Spec.Volumes).To(BeEmpty())
 			Expect(dep.Spec.Template.Spec.Containers[0].Env[0].Name).To(Equal("DATABASE_URL"))
 			Expect(dep.Spec.Template.Spec.Containers[0].Env[0].ValueFrom.SecretKeyRef.Key).To(Equal("DATABASE_URL"))
 			Expect(dep.Spec.Template.Spec.Containers[0].Env[0].ValueFrom.SecretKeyRef.LocalObjectReference.Name).To(Equal("cors-proxy-system-database"))
@@ -144,14 +144,14 @@ var _ = Describe("CORSProxy controller", func() {
 
 					patch := client.MergeFrom(corsproxy.DeepCopy())
 					corsproxy.Spec.HPA = &saasv1alpha1.HorizontalPodAutoscalerSpec{
-						MinReplicas: util.Pointer[int32](3),
+						MinReplicas: ptr.To[int32](3),
 					}
 					corsproxy.Spec.LivenessProbe = &saasv1alpha1.ProbeSpec{}
 					corsproxy.Spec.ReadinessProbe = &saasv1alpha1.ProbeSpec{}
 					corsproxy.Spec.Config.ExternalSecret.RefreshInterval = &metav1.Duration{Duration: 1 * time.Second}
 					corsproxy.Spec.Config.ExternalSecret.SecretStoreRef = &saasv1alpha1.ExternalSecretSecretStoreReferenceSpec{
-						Name: util.Pointer("other-store"),
-						Kind: util.Pointer("SecretStore"),
+						Name: ptr.To("other-store"),
+						Kind: ptr.To("SecretStore"),
 					}
 					corsproxy.Spec.Config.SystemDatabaseDSN.FromVault.Path = "secret/data/updated-path"
 					corsproxy.Spec.GrafanaDashboard = &saasv1alpha1.GrafanaDashboardSpec{}
@@ -231,7 +231,7 @@ var _ = Describe("CORSProxy controller", func() {
 						k8sClient, &appsv1.Deployment{}, "cors-proxy", namespace, timeout, poll)
 
 					patch := client.MergeFrom(corsproxy.DeepCopy())
-					corsproxy.Spec.Replicas = util.Pointer[int32](0)
+					corsproxy.Spec.Replicas = ptr.To[int32](0)
 					corsproxy.Spec.HPA = &saasv1alpha1.HorizontalPodAutoscalerSpec{}
 					corsproxy.Spec.PDB = &saasv1alpha1.PodDisruptionBudgetSpec{}
 

@@ -1,7 +1,6 @@
 package zync
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/3scale-sre/basereconciler/mutators"
@@ -106,6 +105,7 @@ func (gen *Generator) Resources() ([]resource.TemplateInterface, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	que_resources, err := deployment_workload.New(&gen.Que, nil)
 	if err != nil {
 		return nil, err
@@ -171,7 +171,7 @@ func (gen *APIGenerator) MonitoredEndpoints() []monitoringv1.PodMetricsEndpoint 
 func (gen *APIGenerator) SendTraffic() bool { return gen.Traffic }
 func (gen *APIGenerator) TrafficSelector() map[string]string {
 	return map[string]string{
-		fmt.Sprintf("%s/traffic", saasv1alpha1.GroupVersion.Group): component,
+		saasv1alpha1.GroupVersion.Group + "/traffic": component,
 	}
 }
 

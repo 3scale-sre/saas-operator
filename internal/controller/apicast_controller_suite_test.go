@@ -2,9 +2,8 @@ package controllers
 
 import (
 	"context"
-	"fmt"
+	"errors"
 
-	"github.com/3scale-sre/basereconciler/util"
 	marin3rv1alpha1 "github.com/3scale-sre/marin3r/api/marin3r/v1alpha1"
 	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	testutil "github.com/3scale-sre/saas-operator/test/util"
@@ -16,6 +15,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -128,7 +128,7 @@ var _ = Describe("Apicast controller", func() {
 			Expect(svc.Spec.Selector["deployment"]).To(Equal("apicast-production"))
 			Expect(svc.Spec.Selector["saas.3scale.net/traffic"]).To(Equal("apicast-production"))
 			Expect(svc.Spec.Ports[0].Name).To(Equal("management"))
-			Expect(svc.Annotations).To(HaveLen(0))
+			Expect(svc.Annotations).To(BeEmpty())
 
 			By("deploying the apicast-staging service",
 				(&testutil.ExpectedResource{
@@ -145,7 +145,7 @@ var _ = Describe("Apicast controller", func() {
 			Expect(svc.Spec.Selector["deployment"]).To(Equal("apicast-staging"))
 			Expect(svc.Spec.Selector["saas.3scale.net/traffic"]).To(Equal("apicast-staging"))
 			Expect(svc.Spec.Ports[0].Name).To(Equal("management"))
-			Expect(svc.Annotations).To(HaveLen(0))
+			Expect(svc.Annotations).To(BeEmpty())
 
 			By("deploying an apicast grafana dashboard",
 				(&testutil.ExpectedResource{Name: "apicast", Namespace: namespace}).
@@ -207,7 +207,7 @@ var _ = Describe("Apicast controller", func() {
 							ThreescalePortalEndpoint: "http://updated-example/config",
 						},
 						HPA: &saasv1alpha1.HorizontalPodAutoscalerSpec{
-							MinReplicas: util.Pointer[int32](3),
+							MinReplicas: ptr.To[int32](3),
 						},
 						LivenessProbe:  &saasv1alpha1.ProbeSpec{},
 						ReadinessProbe: &saasv1alpha1.ProbeSpec{},
@@ -218,11 +218,11 @@ var _ = Describe("Apicast controller", func() {
 								Marin3rSidecar: &saasv1alpha1.Marin3rSidecarSpec{
 									Simple: &saasv1alpha1.Simple{
 										ExternalDnsHostnames: []string{"apicast-production.example.com"},
-										ServiceType:          util.Pointer(saasv1alpha1.ServiceTypeELB),
+										ServiceType:          ptr.To(saasv1alpha1.ServiceTypeELB),
 									},
 									EnvoyDynamicConfig: saasv1alpha1.MapOfEnvoyDynamicConfig{
 										"http": {
-											GeneratorVersion: util.Pointer("v1"),
+											GeneratorVersion: ptr.To("v1"),
 											ListenerHttp: &saasv1alpha1.ListenerHttp{
 												Port:            8080,
 												RouteConfigName: "route",
@@ -239,7 +239,7 @@ var _ = Describe("Apicast controller", func() {
 							ThreescalePortalEndpoint: "http://updated-example/config",
 						},
 						HPA: &saasv1alpha1.HorizontalPodAutoscalerSpec{
-							MinReplicas: util.Pointer[int32](3),
+							MinReplicas: ptr.To[int32](3),
 						},
 						LivenessProbe:  &saasv1alpha1.ProbeSpec{},
 						ReadinessProbe: &saasv1alpha1.ProbeSpec{},
@@ -250,14 +250,14 @@ var _ = Describe("Apicast controller", func() {
 								Marin3rSidecar: &saasv1alpha1.Marin3rSidecarSpec{
 									Simple: &saasv1alpha1.Simple{
 										ExternalDnsHostnames: []string{"apicast-staging.example.com"},
-										ServiceType:          util.Pointer(saasv1alpha1.ServiceTypeELB),
+										ServiceType:          ptr.To(saasv1alpha1.ServiceTypeELB),
 										ElasticLoadBalancerConfig: &saasv1alpha1.ElasticLoadBalancerSpec{
-											CrossZoneLoadBalancingEnabled: util.Pointer(false),
+											CrossZoneLoadBalancingEnabled: ptr.To(false),
 										},
 									},
 									EnvoyDynamicConfig: saasv1alpha1.MapOfEnvoyDynamicConfig{
 										"http": {
-											GeneratorVersion: util.Pointer("v1"),
+											GeneratorVersion: ptr.To("v1"),
 											ListenerHttp: &saasv1alpha1.ListenerHttp{
 												Port:            8080,
 												RouteConfigName: "route",
@@ -393,14 +393,14 @@ var _ = Describe("Apicast controller", func() {
 
 					patch := client.MergeFrom(apicast.DeepCopy())
 					apicast.Spec.Production.Canary = &saasv1alpha1.Canary{
-						ImageName: util.Pointer("newImage"),
-						ImageTag:  util.Pointer("newTag"),
-						Replicas:  util.Pointer[int32](1),
+						ImageName: ptr.To("newImage"),
+						ImageTag:  ptr.To("newTag"),
+						Replicas:  ptr.To[int32](1),
 					}
 					apicast.Spec.Staging.Canary = &saasv1alpha1.Canary{
-						ImageName: util.Pointer("newImage"),
-						ImageTag:  util.Pointer("newTag"),
-						Replicas:  util.Pointer[int32](1),
+						ImageName: ptr.To("newImage"),
+						ImageTag:  ptr.To("newTag"),
+						Replicas:  ptr.To[int32](1),
 					}
 
 					if err := k8sClient.Patch(context.Background(), apicast, patch); err != nil {
@@ -408,10 +408,10 @@ var _ = Describe("Apicast controller", func() {
 					}
 
 					if testutil.GetResourceVersion(k8sClient, &appsv1.Deployment{}, "apicast-production-canary", namespace, timeout, poll) == "" {
-						return fmt.Errorf("not ready")
+						return errors.New("not ready")
 					}
 					if testutil.GetResourceVersion(k8sClient, &appsv1.Deployment{}, "apicast-staging-canary", namespace, timeout, poll) == "" {
-						return fmt.Errorf("not ready")
+						return errors.New("not ready")
 					}
 
 					return nil
@@ -477,7 +477,7 @@ var _ = Describe("Apicast controller", func() {
 				Expect(svc.Spec.Selector["deployment"]).To(Equal("apicast-production"))
 				Expect(svc.Spec.Selector["saas.3scale.net/traffic"]).To(Equal("apicast-production"))
 				Expect(svc.Spec.Ports[0].Name).To(Equal("management"))
-				Expect(svc.Annotations).To(HaveLen(0))
+				Expect(svc.Annotations).To(BeEmpty())
 
 				By("keeping the apicast-staging service spec",
 					(&testutil.ExpectedResource{
@@ -493,7 +493,7 @@ var _ = Describe("Apicast controller", func() {
 				Expect(svc.Spec.Selector["deployment"]).To(Equal("apicast-staging"))
 				Expect(svc.Spec.Selector["saas.3scale.net/traffic"]).To(Equal("apicast-staging"))
 				Expect(svc.Spec.Ports[0].Name).To(Equal("management"))
-				Expect(svc.Annotations).To(HaveLen(0))
+				Expect(svc.Annotations).To(BeEmpty())
 
 			})
 
@@ -516,11 +516,12 @@ var _ = Describe("Apicast controller", func() {
 
 						patch := client.MergeFrom(apicast.DeepCopy())
 						apicast.Spec.Production.Canary = &saasv1alpha1.Canary{
-							SendTraffic: *util.Pointer(true),
+							SendTraffic: *ptr.To(true),
 						}
 						apicast.Spec.Staging.Canary = &saasv1alpha1.Canary{
-							SendTraffic: *util.Pointer(true),
+							SendTraffic: *ptr.To(true),
 						}
+
 						return k8sClient.Patch(context.Background(), apicast, patch)
 					}, timeout, poll).ShouldNot(HaveOccurred())
 				})
@@ -566,6 +567,7 @@ var _ = Describe("Apicast controller", func() {
 						patch := client.MergeFrom(apicast.DeepCopy())
 						apicast.Spec.Production.Canary = nil
 						apicast.Spec.Staging.Canary = nil
+
 						return k8sClient.Patch(context.Background(), apicast, patch)
 					}, timeout, poll).ShouldNot(HaveOccurred())
 				})
@@ -615,11 +617,11 @@ var _ = Describe("Apicast controller", func() {
 
 					patch := client.MergeFrom(apicast.DeepCopy())
 
-					apicast.Spec.Production.Replicas = util.Pointer[int32](0)
+					apicast.Spec.Production.Replicas = ptr.To[int32](0)
 					apicast.Spec.Production.HPA = &saasv1alpha1.HorizontalPodAutoscalerSpec{}
 					apicast.Spec.Production.PDB = &saasv1alpha1.PodDisruptionBudgetSpec{}
 
-					apicast.Spec.Staging.Replicas = util.Pointer[int32](0)
+					apicast.Spec.Staging.Replicas = ptr.To[int32](0)
 					apicast.Spec.Staging.HPA = &saasv1alpha1.HorizontalPodAutoscalerSpec{}
 					apicast.Spec.Staging.PDB = &saasv1alpha1.PodDisruptionBudgetSpec{}
 

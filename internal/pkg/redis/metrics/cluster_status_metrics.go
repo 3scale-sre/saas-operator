@@ -41,7 +41,6 @@ func init() {
 }
 
 func FromShardedCluster(ctx context.Context, cluster *sharded.Cluster, refresh bool, resource string) error {
-
 	if refresh {
 		err := cluster.SentinelDiscover(ctx, sharded.SlaveReadOnlyDiscoveryOpt)
 		if err != nil {
@@ -58,6 +57,7 @@ func FromShardedCluster(ctx context.Context, cluster *sharded.Cluster, refresh b
 			if !ok {
 				ro = "no"
 			}
+
 			serverInfo.With(prometheus.Labels{"resource": resource, "shard": shard.Name,
 				"redis_server_host": server.ID(), "redis_server_alias": server.GetAlias(),
 				"role": string(server.Role), "read_only": ro,

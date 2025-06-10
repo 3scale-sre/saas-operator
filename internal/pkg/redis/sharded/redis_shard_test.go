@@ -7,10 +7,10 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/3scale-sre/basereconciler/util"
 	"github.com/3scale-sre/saas-operator/internal/pkg/redis/client"
 	redis "github.com/3scale-sre/saas-operator/internal/pkg/redis/server"
 	"github.com/go-test/deep"
+	"k8s.io/utils/ptr"
 )
 
 func DiscoveredServersAreEqual(a, b *Shard) (bool, []string) {
@@ -22,13 +22,16 @@ func DiscoveredServersAreEqual(a, b *Shard) (bool, []string) {
 		if a.Servers[idx].ID() != b.Servers[idx].ID() {
 			return false, []string{fmt.Sprintf("%s != %s", a.Servers[idx].ID(), b.Servers[idx].ID())}
 		}
+
 		if a.Servers[idx].Role != b.Servers[idx].Role {
 			return false, []string{fmt.Sprintf("%s != %s", a.Servers[idx].Role, b.Servers[idx].Role)}
 		}
+
 		if diff := deep.Equal(a.Servers[idx].Config, b.Servers[idx].Config); len(diff) > 0 {
 			return false, diff
 		}
 	}
+
 	return true, []string{}
 }
 
@@ -38,6 +41,7 @@ func TestNewShard(t *testing.T) {
 		servers map[string]string
 		pool    *redis.ServerPool
 	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -59,25 +63,25 @@ func TestNewShard(t *testing.T) {
 				Name: "test",
 				Servers: []*RedisServer{
 					NewRedisServerFromParams(
-						redis.MustNewServer("redis://127.0.0.1:1000", util.Pointer("srv0")),
+						redis.MustNewServer("redis://127.0.0.1:1000", ptr.To("srv0")),
 						client.Unknown,
 						map[string]string{},
 					),
 					NewRedisServerFromParams(
-						redis.MustNewServer("redis://127.0.0.1:2000", util.Pointer("srv1")),
+						redis.MustNewServer("redis://127.0.0.1:2000", ptr.To("srv1")),
 						client.Unknown,
 						map[string]string{},
 					),
 					NewRedisServerFromParams(
-						redis.MustNewServer("redis://127.0.0.1:3000", util.Pointer("srv2")),
+						redis.MustNewServer("redis://127.0.0.1:3000", ptr.To("srv2")),
 						client.Unknown,
 						map[string]string{},
 					),
 				},
 				pool: redis.NewServerPool(
-					redis.MustNewServer("redis://127.0.0.1:1000", util.Pointer("srv0")),
-					redis.MustNewServer("redis://127.0.0.1:2000", util.Pointer("srv1")),
-					redis.MustNewServer("redis://127.0.0.1:3000", util.Pointer("srv2")),
+					redis.MustNewServer("redis://127.0.0.1:1000", ptr.To("srv0")),
+					redis.MustNewServer("redis://127.0.0.1:2000", ptr.To("srv1")),
+					redis.MustNewServer("redis://127.0.0.1:3000", ptr.To("srv2")),
 				),
 			},
 			wantErr: false,
@@ -97,19 +101,19 @@ func TestNewShard(t *testing.T) {
 				Name: "test",
 				Servers: []*RedisServer{
 					NewRedisServerFromParams(
-						redis.MustNewServer("redis://127.0.0.1:1000", util.Pointer("srv0")),
+						redis.MustNewServer("redis://127.0.0.1:1000", ptr.To("srv0")),
 						client.Unknown,
 						map[string]string{},
 					),
 					NewRedisServerFromParams(
-						redis.MustNewServer("redis://127.0.0.1:3000", util.Pointer("srv2")),
+						redis.MustNewServer("redis://127.0.0.1:3000", ptr.To("srv2")),
 						client.Unknown,
 						map[string]string{},
 					),
 				},
 				pool: redis.NewServerPool(
-					redis.MustNewServer("redis://127.0.0.1:1000", util.Pointer("srv0")),
-					redis.MustNewServer("redis://127.0.0.1:3000", util.Pointer("srv2")),
+					redis.MustNewServer("redis://127.0.0.1:1000", ptr.To("srv0")),
+					redis.MustNewServer("redis://127.0.0.1:3000", ptr.To("srv2")),
 				),
 			},
 			wantErr: true,
@@ -125,8 +129,8 @@ func TestNewShard(t *testing.T) {
 				},
 				pool: redis.NewServerPool(
 					redis.MustNewServer("redis://127.0.0.1:1000", nil),
-					redis.MustNewServer("redis://127.0.0.1:2000", util.Pointer("srv1")),
-					redis.MustNewServer("redis://127.0.0.1:3000", util.Pointer("srv2")),
+					redis.MustNewServer("redis://127.0.0.1:2000", ptr.To("srv1")),
+					redis.MustNewServer("redis://127.0.0.1:3000", ptr.To("srv2")),
 				),
 			},
 			want: &Shard{
@@ -138,20 +142,20 @@ func TestNewShard(t *testing.T) {
 						map[string]string{},
 					),
 					NewRedisServerFromParams(
-						redis.MustNewServer("redis://127.0.0.1:2000", util.Pointer("srv1")),
+						redis.MustNewServer("redis://127.0.0.1:2000", ptr.To("srv1")),
 						client.Unknown,
 						map[string]string{},
 					),
 					NewRedisServerFromParams(
-						redis.MustNewServer("redis://127.0.0.1:3000", util.Pointer("srv2")),
+						redis.MustNewServer("redis://127.0.0.1:3000", ptr.To("srv2")),
 						client.Unknown,
 						map[string]string{},
 					),
 				},
 				pool: redis.NewServerPool(
 					redis.MustNewServer("redis://127.0.0.1:1000", nil),
-					redis.MustNewServer("redis://127.0.0.1:2000", util.Pointer("srv1")),
-					redis.MustNewServer("redis://127.0.0.1:3000", util.Pointer("srv2")),
+					redis.MustNewServer("redis://127.0.0.1:2000", ptr.To("srv1")),
+					redis.MustNewServer("redis://127.0.0.1:3000", ptr.To("srv2")),
 				),
 			},
 			wantErr: false,
@@ -160,10 +164,12 @@ func TestNewShard(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := NewShardFromTopology(tt.args.name, tt.args.servers, tt.args.pool)
-			if (error(err) != nil) != tt.wantErr {
+			if (err != nil) != tt.wantErr {
 				t.Errorf("NewShard() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
+
 			if diff := deep.Equal(got, tt.want); len(diff) > 0 {
 				t.Errorf("NewShard() got diff: %v", diff)
 			}
@@ -177,11 +183,13 @@ func TestShard_Discover(t *testing.T) {
 		Servers []*RedisServer
 		pool    *redis.ServerPool
 	}
+
 	type args struct {
 		ctx      context.Context
 		sentinel *SentinelServer
 		options  DiscoveryOptionSet
 	}
+
 	tests := []struct {
 		name    string
 		fields  fields
@@ -300,29 +308,29 @@ func TestShard_Discover(t *testing.T) {
 				sentinel: NewSentinelServerFromParams(redis.NewFakeServerWithFakeClient("host", "port",
 					client.FakeResponse{
 						// cmd: SentinelMaster
-						InjectResponse: func() interface{} {
+						InjectResponse: func() any {
 							return &client.SentinelMasterCmdResult{Name: "test", IP: "127.0.0.1", Port: 1000, Flags: "master"}
 						},
 						InjectError: func() error { return nil },
 					},
 					client.FakeResponse{
 						// cmd: SentinelGetMasterAddrByName
-						InjectResponse: func() interface{} {
+						InjectResponse: func() any {
 							return []string{"127.0.0.1", "1000"}
 						},
 						InjectError: func() error { return nil },
 					},
 					client.FakeResponse{
 						// cmd: SentinelSlaves
-						InjectResponse: func() interface{} {
-							return []interface{}{
-								[]interface{}{
+						InjectResponse: func() any {
+							return []any{
+								[]any{
 									"name", "127.0.0.1:2000",
 									"ip", "127.0.0.1",
 									"port", "2000",
 									"flags", "slave",
 								},
-								[]interface{}{
+								[]any{
 									"name", "127.0.0.1:3000",
 									"ip", "127.0.0.1",
 									"port", "3000",
@@ -359,7 +367,7 @@ func TestShard_Discover(t *testing.T) {
 				sentinel: NewSentinelServerFromParams(redis.NewFakeServerWithFakeClient("host", "port",
 					client.FakeResponse{
 						// cmd: SentinelMaster
-						InjectResponse: func() interface{} {
+						InjectResponse: func() any {
 							return &client.SentinelMasterCmdResult{Name: "test", IP: "127.0.0.1", Port: 1000, Flags: "master"}
 						},
 						InjectError: func() error { return errors.New("error") },
@@ -394,14 +402,14 @@ func TestShard_Discover(t *testing.T) {
 				sentinel: NewSentinelServerFromParams(redis.NewFakeServerWithFakeClient("host", "port",
 					client.FakeResponse{
 						// cmd: SentinelMaster
-						InjectResponse: func() interface{} {
+						InjectResponse: func() any {
 							return &client.SentinelMasterCmdResult{Name: "test", IP: "127.0.0.1", Port: 1000, Flags: "master,o_down"}
 						},
 						InjectError: func() error { return nil },
 					},
 					client.FakeResponse{
 						// cmd: SentinelGetMasterAddrByName
-						InjectResponse: func() interface{} {
+						InjectResponse: func() any {
 							return []string{"127.0.0.1", "1000"}
 						},
 						InjectError: func() error { return nil },
@@ -431,14 +439,14 @@ func TestShard_Discover(t *testing.T) {
 				sentinel: NewSentinelServerFromParams(redis.NewFakeServerWithFakeClient("host", "port",
 					client.FakeResponse{
 						// cmd: SentinelMaster
-						InjectResponse: func() interface{} {
+						InjectResponse: func() any {
 							return &client.SentinelMasterCmdResult{Name: "test", IP: "127.0.0.1", Port: 1000, Flags: "master"}
 						},
 						InjectError: func() error { return nil },
 					},
 					client.FakeResponse{
 						// cmd: SentinelGetMasterAddrByName
-						InjectResponse: func() interface{} {
+						InjectResponse: func() any {
 							return []string{"127.0.0.1", "1000"}
 						},
 						InjectError: func() error { return nil },
@@ -473,14 +481,14 @@ func TestShard_Discover(t *testing.T) {
 				sentinel: NewSentinelServerFromParams(redis.NewFakeServerWithFakeClient("host", "port",
 					client.FakeResponse{
 						// cmd: SentinelMaster
-						InjectResponse: func() interface{} {
+						InjectResponse: func() any {
 							return &client.SentinelMasterCmdResult{Name: "test", IP: "127.0.0.1", Port: 1000, Flags: "master"}
 						},
 						InjectError: func() error { return nil },
 					},
 					client.FakeResponse{
 						// cmd: SentinelGetMasterAddrByName
-						InjectResponse: func() interface{} {
+						InjectResponse: func() any {
 							return []string{"127.0.0.1", "1000"}
 						},
 						InjectError: func() error { return nil },
@@ -509,22 +517,22 @@ func TestShard_Discover(t *testing.T) {
 				sentinel: NewSentinelServerFromParams(redis.NewFakeServerWithFakeClient("host", "port",
 					client.FakeResponse{
 						// cmd: SentinelMaster
-						InjectResponse: func() interface{} {
+						InjectResponse: func() any {
 							return &client.SentinelMasterCmdResult{Name: "test", IP: "127.0.0.1", Port: 1000, Flags: "master"}
 						},
 						InjectError: func() error { return nil },
 					},
 					client.FakeResponse{
 						// cmd: SentinelGetMasterAddrByName
-						InjectResponse: func() interface{} {
+						InjectResponse: func() any {
 							return []string{"127.0.0.1", "1000"}
 						},
 						InjectError: func() error { return nil },
 					},
 					client.FakeResponse{
 						// cmd: SentinelSlaves
-						InjectResponse: func() interface{} {
-							return []interface{}{}
+						InjectResponse: func() any {
+							return []any{}
 						},
 						InjectError: func() error { return errors.New("error") },
 					},
@@ -560,29 +568,29 @@ func TestShard_Discover(t *testing.T) {
 				sentinel: NewSentinelServerFromParams(redis.NewFakeServerWithFakeClient("host", "port",
 					client.FakeResponse{
 						// cmd: SentinelMaster
-						InjectResponse: func() interface{} {
+						InjectResponse: func() any {
 							return &client.SentinelMasterCmdResult{Name: "test", IP: "127.0.0.1", Port: 1000, Flags: "master"}
 						},
 						InjectError: func() error { return nil },
 					},
 					client.FakeResponse{
 						// cmd: SentinelGetMasterAddrByName
-						InjectResponse: func() interface{} {
+						InjectResponse: func() any {
 							return []string{"127.0.0.1", "1000"}
 						},
 						InjectError: func() error { return nil },
 					},
 					client.FakeResponse{
 						// cmd: SentinelSlaves
-						InjectResponse: func() interface{} {
-							return []interface{}{
-								[]interface{}{
+						InjectResponse: func() any {
+							return []any{
+								[]any{
 									"name", "127.0.0.1:2000",
 									"ip", "127.0.0.1",
 									"port", "2000",
 									"flags", "slave,s_down",
 								},
-								[]interface{}{
+								[]any{
 									"name", "127.0.0.1:3000",
 									"ip", "127.0.0.1",
 									"port", "3000",
@@ -625,29 +633,29 @@ func TestShard_Discover(t *testing.T) {
 				sentinel: NewSentinelServerFromParams(redis.NewFakeServerWithFakeClient("host", "port",
 					client.FakeResponse{
 						// cmd: SentinelMaster
-						InjectResponse: func() interface{} {
+						InjectResponse: func() any {
 							return &client.SentinelMasterCmdResult{Name: "test", IP: "127.0.0.1", Port: 1000, Flags: "master"}
 						},
 						InjectError: func() error { return nil },
 					},
 					client.FakeResponse{
 						// cmd: SentinelGetMasterAddrByName
-						InjectResponse: func() interface{} {
+						InjectResponse: func() any {
 							return []string{"127.0.0.1", "1000"}
 						},
 						InjectError: func() error { return nil },
 					},
 					client.FakeResponse{
 						// cmd: SentinelSlaves
-						InjectResponse: func() interface{} {
-							return []interface{}{
-								[]interface{}{
+						InjectResponse: func() any {
+							return []any{
+								[]any{
 									"name", "127.0.0.1:2000",
 									"ip", "127.0.0.1",
 									"port", "2000",
 									"flags", "slave",
 								},
-								[]interface{}{
+								[]any{
 									"name", "127.0.0.1:3000",
 									"ip", "127.0.0.1",
 									"port", "3000",
@@ -693,29 +701,29 @@ func TestShard_Discover(t *testing.T) {
 				sentinel: NewSentinelServerFromParams(redis.NewFakeServerWithFakeClient("host", "port",
 					client.FakeResponse{
 						// cmd: SentinelMaster
-						InjectResponse: func() interface{} {
+						InjectResponse: func() any {
 							return &client.SentinelMasterCmdResult{Name: "test", IP: "127.0.0.1", Port: 1000, Flags: "master"}
 						},
 						InjectError: func() error { return nil },
 					},
 					client.FakeResponse{
 						// cmd: SentinelGetMasterAddrByName
-						InjectResponse: func() interface{} {
+						InjectResponse: func() any {
 							return []string{"127.0.0.1", "1000"}
 						},
 						InjectError: func() error { return nil },
 					},
 					client.FakeResponse{
 						// cmd: SentinelSlaves
-						InjectResponse: func() interface{} {
-							return []interface{}{
-								[]interface{}{
+						InjectResponse: func() any {
+							return []any{
+								[]any{
 									"name", "127.0.0.1:2000",
 									"ip", "127.0.0.1",
 									"port", "2000",
 									"flags", "slave",
 								},
-								[]interface{}{
+								[]any{
 									"name", "127.0.0.1:3000",
 									"ip", "127.0.0.1",
 									"port", "3000",
@@ -754,14 +762,14 @@ func TestShard_Discover(t *testing.T) {
 				sentinel: NewSentinelServerFromParams(redis.NewFakeServerWithFakeClient("host", "port",
 					client.FakeResponse{
 						// cmd: SentinelMaster
-						InjectResponse: func() interface{} {
+						InjectResponse: func() any {
 							return &client.SentinelMasterCmdResult{Name: "test", IP: "127.0.0.1", Port: 1000, Flags: "master"}
 						},
 						InjectError: func() error { return nil },
 					},
 					client.FakeResponse{
 						// cmd: SentinelGetMasterAddrByName
-						InjectResponse: func() interface{} {
+						InjectResponse: func() any {
 							return []string{"127.0.0.1", "1000"}
 						},
 						InjectError: func() error { return nil },
@@ -795,14 +803,14 @@ func TestShard_Discover(t *testing.T) {
 				sentinel: NewSentinelServerFromParams(redis.NewFakeServerWithFakeClient("host", "port",
 					client.FakeResponse{
 						// cmd: SentinelMaster
-						InjectResponse: func() interface{} {
+						InjectResponse: func() any {
 							return &client.SentinelMasterCmdResult{Name: "test", IP: "127.0.0.1", Port: 1000, Flags: "master"}
 						},
 						InjectError: func() error { return nil },
 					},
 					client.FakeResponse{
 						// cmd: SentinelGetMasterAddrByName
-						InjectResponse: func() interface{} {
+						InjectResponse: func() any {
 							return []string{"127.0.0.1", "2000"}
 						},
 						InjectError: func() error { return nil },
@@ -827,6 +835,7 @@ func TestShard_Discover(t *testing.T) {
 			if err := s.Discover(tt.args.ctx, tt.args.sentinel, tt.args.options...); (err != nil) != tt.wantErr {
 				t.Errorf("Shard.Discover() error = %v, wantErr %v", err, tt.wantErr)
 			}
+
 			if equal, diff := DiscoveredServersAreEqual(s, tt.want); !equal {
 				t.Errorf("Shard.Discover() got diff = %v", diff)
 			}
@@ -839,10 +848,12 @@ func TestShard_Init(t *testing.T) {
 		Name    string
 		Servers []*RedisServer
 	}
+
 	type args struct {
 		ctx            context.Context
 		masterHostPort string
 	}
+
 	tests := []struct {
 		name    string
 		fields  fields
@@ -858,13 +869,13 @@ func TestShard_Init(t *testing.T) {
 					NewRedisServerFromParams(
 						redis.NewFakeServerWithFakeClient("127.0.0.1", "1000",
 							client.FakeResponse{
-								InjectResponse: func() interface{} {
-									return []interface{}{"slave", "127.0.0.1"}
+								InjectResponse: func() any {
+									return []any{"slave", "127.0.0.1"}
 								},
 								InjectError: func() error { return nil },
 							},
 							client.FakeResponse{
-								InjectResponse: func() interface{} { return nil },
+								InjectResponse: func() any { return nil },
 								InjectError:    func() error { return nil },
 							},
 							client.NewPredefinedRedisFakeResponse("role-master", nil),
@@ -876,13 +887,13 @@ func TestShard_Init(t *testing.T) {
 					NewRedisServerFromParams(
 						redis.NewFakeServerWithFakeClient("127.0.0.1", "2000",
 							client.FakeResponse{
-								InjectResponse: func() interface{} {
-									return []interface{}{"slave", "127.0.0.1"}
+								InjectResponse: func() any {
+									return []any{"slave", "127.0.0.1"}
 								},
 								InjectError: func() error { return nil },
 							},
 							client.FakeResponse{
-								InjectResponse: func() interface{} { return nil },
+								InjectResponse: func() any { return nil },
 								InjectError:    func() error { return nil },
 							},
 						),
@@ -892,13 +903,13 @@ func TestShard_Init(t *testing.T) {
 					NewRedisServerFromParams(
 						redis.NewFakeServerWithFakeClient("127.0.0.1", "3000",
 							client.FakeResponse{
-								InjectResponse: func() interface{} {
-									return []interface{}{"slave", "127.0.0.1"}
+								InjectResponse: func() any {
+									return []any{"slave", "127.0.0.1"}
 								},
 								InjectError: func() error { return nil },
 							},
 							client.FakeResponse{
-								InjectResponse: func() interface{} { return nil },
+								InjectResponse: func() any { return nil },
 								InjectError:    func() error { return nil },
 							},
 						),
@@ -926,8 +937,8 @@ func TestShard_Init(t *testing.T) {
 					NewRedisServerFromParams(
 						redis.NewFakeServerWithFakeClient("127.0.0.1", "2000",
 							client.FakeResponse{
-								InjectResponse: func() interface{} {
-									return []interface{}{"slave", "10.0.0.1"}
+								InjectResponse: func() any {
+									return []any{"slave", "10.0.0.1"}
 								},
 								InjectError: func() error { return nil },
 							},
@@ -938,8 +949,8 @@ func TestShard_Init(t *testing.T) {
 					NewRedisServerFromParams(
 						redis.NewFakeServerWithFakeClient("127.0.0.1", "3000",
 							client.FakeResponse{
-								InjectResponse: func() interface{} {
-									return []interface{}{"slave", "10.0.0.1"}
+								InjectResponse: func() any {
+									return []any{"slave", "10.0.0.1"}
 								},
 								InjectError: func() error { return nil },
 							},
@@ -961,7 +972,7 @@ func TestShard_Init(t *testing.T) {
 					NewRedisServerFromParams(
 						redis.NewFakeServerWithFakeClient("127.0.0.1", "1000",
 							client.FakeResponse{
-								InjectResponse: func() interface{} { return []interface{}{} },
+								InjectResponse: func() any { return []any{} },
 								InjectError:    func() error { return errors.New("error") },
 							},
 						),
@@ -981,11 +992,14 @@ func TestShard_Init(t *testing.T) {
 				Name:    tt.fields.Name,
 				Servers: tt.fields.Servers,
 			}
+
 			got, err := s.Init(tt.args.ctx, tt.args.masterHostPort)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Shard.Init() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
+
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Shard.Init() = %v, want %v", got, tt.want)
 			}
@@ -999,6 +1013,7 @@ func TestShard_GetMasterAddr(t *testing.T) {
 		Servers []*RedisServer
 		pool    *redis.ServerPool
 	}
+
 	tests := []struct {
 		name    string
 		fields  fields
@@ -1016,12 +1031,12 @@ func TestShard_GetMasterAddr(t *testing.T) {
 						map[string]string{},
 					),
 					NewRedisServerFromParams(
-						redis.MustNewServer("redis://127.0.0.2:2000", util.Pointer("srv1")),
+						redis.MustNewServer("redis://127.0.0.2:2000", ptr.To("srv1")),
 						client.Unknown,
 						map[string]string{},
 					),
 					NewRedisServerFromParams(
-						redis.MustNewServer("redis://127.0.0.3:3000", util.Pointer("srv2")),
+						redis.MustNewServer("redis://127.0.0.3:3000", ptr.To("srv2")),
 						client.Unknown,
 						map[string]string{},
 					),
@@ -1042,12 +1057,12 @@ func TestShard_GetMasterAddr(t *testing.T) {
 						map[string]string{},
 					),
 					NewRedisServerFromParams(
-						redis.MustNewServer("redis://127.0.0.2:2000", util.Pointer("srv1")),
+						redis.MustNewServer("redis://127.0.0.2:2000", ptr.To("srv1")),
 						client.Unknown,
 						map[string]string{},
 					),
 					NewRedisServerFromParams(
-						redis.MustNewServer("redis://127.0.0.3:3000", util.Pointer("srv2")),
+						redis.MustNewServer("redis://127.0.0.3:3000", ptr.To("srv2")),
 						client.Unknown,
 						map[string]string{},
 					),
@@ -1068,12 +1083,12 @@ func TestShard_GetMasterAddr(t *testing.T) {
 						map[string]string{},
 					),
 					NewRedisServerFromParams(
-						redis.MustNewServer("redis://127.0.0.2:2000", util.Pointer("srv1")),
+						redis.MustNewServer("redis://127.0.0.2:2000", ptr.To("srv1")),
 						client.Slave,
 						map[string]string{},
 					),
 					NewRedisServerFromParams(
-						redis.MustNewServer("redis://127.0.0.3:3000", util.Pointer("srv2")),
+						redis.MustNewServer("redis://127.0.0.3:3000", ptr.To("srv2")),
 						client.Master,
 						map[string]string{},
 					),
@@ -1091,10 +1106,12 @@ func TestShard_GetMasterAddr(t *testing.T) {
 				Servers: tt.fields.Servers,
 				pool:    tt.fields.pool,
 			}
+
 			got, err := shard.GetMaster()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Shard.GetMasterAddr() error = %v, wantErr %v", err, tt.wantErr)
 			}
+
 			if err == nil && got.ID() != tt.want {
 				t.Errorf("Shard.GetMasterAddr() got = %v, want %v", got, tt.want)
 			}
@@ -1106,6 +1123,7 @@ func TestShard_GetServerByID(t *testing.T) {
 	type args struct {
 		hostport string
 	}
+
 	tests := []struct {
 		name      string
 		servers   map[string]string
@@ -1141,11 +1159,14 @@ func TestShard_GetServerByID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			shard, _ := NewShardFromTopology("test", tt.servers, redis.NewServerPool())
+
 			got, err := shard.GetServerByID(tt.args.hostport)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Shard.GetServerByID() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
+
 			if got != shard.Servers[tt.wantIndex] {
 				t.Errorf("Shard.GetServerByID() = %v, want %v", got, shard.Servers[tt.wantIndex])
 			}

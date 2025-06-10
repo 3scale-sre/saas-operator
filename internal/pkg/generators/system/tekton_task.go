@@ -1,13 +1,11 @@
 package system
 
 import (
-	"fmt"
-
-	"github.com/3scale-sre/basereconciler/util"
 	"github.com/3scale-sre/saas-operator/internal/pkg/resource_builders/twemproxy"
 	pipelinev1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/ptr"
 )
 
 func (gen *SystemTektonGenerator) task() *pipelinev1.Task {
@@ -25,7 +23,7 @@ func (gen *SystemTektonGenerator) task() *pipelinev1.Task {
 					Name:        "container-image",
 					Description: "Container image for the task",
 					Default: &pipelinev1.ParamValue{
-						StringVal: fmt.Sprint(*gen.Image.Name),
+						StringVal: *gen.Image.Name,
 						Type:      pipelinev1.ParamTypeString,
 					},
 					Type: pipelinev1.ParamTypeString,
@@ -34,7 +32,7 @@ func (gen *SystemTektonGenerator) task() *pipelinev1.Task {
 					Name:        "container-tag",
 					Description: "Container tag for the task",
 					Default: &pipelinev1.ParamValue{
-						StringVal: fmt.Sprint(*gen.Image.Tag),
+						StringVal: *gen.Image.Tag,
 						Type:      pipelinev1.ParamTypeString,
 					},
 					Type: pipelinev1.ParamTypeString,
@@ -65,7 +63,7 @@ func (gen *SystemTektonGenerator) task() *pipelinev1.Task {
 					Name: "system-config",
 					VolumeSource: corev1.VolumeSource{
 						Secret: &corev1.SecretVolumeSource{
-							DefaultMode: util.Pointer[int32](420),
+							DefaultMode: ptr.To[int32](420),
 							SecretName:  gen.ConfigFilesSecret,
 						},
 					},

@@ -1,8 +1,6 @@
 package echoapi
 
 import (
-	"fmt"
-
 	"github.com/3scale-sre/basereconciler/mutators"
 	"github.com/3scale-sre/basereconciler/resource"
 	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
@@ -81,7 +79,7 @@ func (gen *Generator) MonitoredEndpoints() []monitoringv1.PodMetricsEndpoint {
 func (gen *Generator) SendTraffic() bool { return gen.Traffic }
 func (gen *Generator) TrafficSelector() map[string]string {
 	return map[string]string{
-		fmt.Sprintf("%s/traffic", saasv1alpha1.GroupVersion.Group): component,
+		saasv1alpha1.GroupVersion.Group + "/traffic": component,
 	}
 }
 

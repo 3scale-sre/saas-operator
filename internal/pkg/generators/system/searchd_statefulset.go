@@ -10,6 +10,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
 )
 
 func (gen *SearchdGenerator) statefulset() *appsv1.StatefulSet {
@@ -20,7 +21,7 @@ func (gen *SearchdGenerator) statefulset() *appsv1.StatefulSet {
 			Labels:    gen.GetLabels(),
 		},
 		Spec: appsv1.StatefulSetSpec{
-			Replicas: util.Pointer[int32](1),
+			Replicas: ptr.To[int32](1),
 			Selector: &metav1.LabelSelector{MatchLabels: gen.GetSelector()},
 			UpdateStrategy: appsv1.StatefulSetUpdateStrategy{
 				Type: appsv1.RollingUpdateStatefulSetStrategyType,
@@ -35,22 +36,23 @@ func (gen *SearchdGenerator) statefulset() *appsv1.StatefulSet {
 						if gen.Image.PullSecretName != nil {
 							return []corev1.LocalObjectReference{{Name: *gen.Image.PullSecretName}}
 						}
+
 						return nil
 					}(),
 					Containers: []corev1.Container{
 						{
-							Name:  strings.Join([]string{component, searchd}, "-"),
+							Name:  strings.Join([]string{component, searched}, "-"),
 							Image: fmt.Sprintf("%s:%s", *gen.Image.Name, *gen.Image.Tag),
 							Args:  []string{},
 							Ports: pod.ContainerPorts(
-								pod.ContainerPortTCP("searchd", gen.DatabasePort),
+								pod.ContainerPortTCP("searched", gen.DatabasePort),
 							),
 							Resources:       corev1.ResourceRequirements(*gen.Spec.Resources),
-							LivenessProbe:   pod.TCPProbe(intstr.FromString("searchd"), *gen.Spec.LivenessProbe),
-							ReadinessProbe:  pod.TCPProbe(intstr.FromString("searchd"), *gen.Spec.ReadinessProbe),
+							LivenessProbe:   pod.TCPProbe(intstr.FromString("searched"), *gen.Spec.LivenessProbe),
+							ReadinessProbe:  pod.TCPProbe(intstr.FromString("searched"), *gen.Spec.ReadinessProbe),
 							ImagePullPolicy: *gen.Image.PullPolicy,
 							VolumeMounts: []corev1.VolumeMount{{
-								Name:      "system-searchd-database",
+								Name:      "system-searched-database",
 								MountPath: gen.DatabasePath,
 							}},
 						},
@@ -62,7 +64,7 @@ func (gen *SearchdGenerator) statefulset() *appsv1.StatefulSet {
 			},
 			VolumeClaimTemplates: []corev1.PersistentVolumeClaim{{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: "system-searchd-database",
+					Name: "system-searched-database",
 				},
 				Status: corev1.PersistentVolumeClaimStatus{
 					Phase: corev1.ClaimPending,
@@ -71,7 +73,7 @@ func (gen *SearchdGenerator) statefulset() *appsv1.StatefulSet {
 					AccessModes:      []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
 					Resources:        corev1.VolumeResourceRequirements{Requests: corev1.ResourceList{corev1.ResourceStorage: gen.DatabaseStorageSize}},
 					StorageClassName: gen.DatabaseStorageClass,
-					VolumeMode:       (*corev1.PersistentVolumeMode)(util.Pointer(string(corev1.PersistentVolumeFilesystem))),
+					VolumeMode:       (*corev1.PersistentVolumeMode)(ptr.To(string(corev1.PersistentVolumeFilesystem))),
 					DataSource:       &corev1.TypedLocalObjectReference{},
 				},
 			}},

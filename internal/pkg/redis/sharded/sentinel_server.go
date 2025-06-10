@@ -36,6 +36,7 @@ func NewSentinelServerFromParams(srv *redis.Server) *SentinelServer {
 
 func NewHighAvailableSentinel(servers map[string]string, pool *redis.ServerPool) ([]*SentinelServer, error) {
 	var merr operatorutils.MultiError
+
 	sentinels := make([]*SentinelServer, 0, len(servers))
 
 	for key, connectionString := range servers {
@@ -43,11 +44,14 @@ func NewHighAvailableSentinel(servers map[string]string, pool *redis.ServerPool)
 		if key != connectionString {
 			alias = &key
 		}
+
 		srv, err := NewSentinelServerFromPool(connectionString, alias, pool)
 		if err != nil {
 			merr = append(merr, err)
+
 			continue
 		}
+
 		sentinels = append(sentinels, srv)
 	}
 
@@ -60,7 +64,6 @@ func NewHighAvailableSentinel(servers map[string]string, pool *redis.ServerPool)
 
 // IsMonitoringShards checks whether or all the shards in the passed list are being monitored by the SentinelServer
 func (sentinel *SentinelServer) IsMonitoringShards(ctx context.Context, shards []string) (bool, error) {
-
 	monitoredShards, err := sentinel.SentinelMasters(ctx)
 	if err != nil {
 		return false, err
@@ -72,11 +75,13 @@ func (sentinel *SentinelServer) IsMonitoringShards(ctx context.Context, shards [
 
 	for _, name := range shards {
 		found := false
+
 		for _, monitored := range monitoredShards {
 			if monitored.Name == name {
 				found = true
 			}
 		}
+
 		if !found {
 			return false, nil
 		}
@@ -92,12 +97,11 @@ func (sentinel *SentinelServer) Monitor(ctx context.Context, cluster *Cluster, q
 	// Initialize unmonitored shards
 	shardNames := cluster.GetShardNames()
 	for _, name := range shardNames {
-
 		_, err := sentinel.SentinelMaster(ctx, name)
 		if err != nil {
 			if err.Error() == shardNotInitializedError {
-
 				shard := cluster.LookupShardByName(name)
+
 				master, err := shard.GetMaster()
 				if err != nil {
 					return changed, err
@@ -114,9 +118,6 @@ func (sentinel *SentinelServer) Monitor(ctx context.Context, cluster *Cluster, q
 				if err != nil {
 					return changed, operatorutils.WrapError("redis-sentinel/SentinelServer.Monitor", err)
 				}
-				// TODO: change the default failover timeout.
-				// TODO: maybe add a generic mechanism to set/modify parameters
-
 			} else {
 				return changed, err
 			}

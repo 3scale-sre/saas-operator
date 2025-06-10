@@ -4,11 +4,11 @@ import (
 	"testing"
 
 	"dario.cat/mergo"
-	"github.com/3scale-sre/basereconciler/util"
 	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	"github.com/google/go-cmp/cmp"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
 )
 
 func TestMergeWithDefaultPublishingStrategy(t *testing.T) {
@@ -16,6 +16,7 @@ func TestMergeWithDefaultPublishingStrategy(t *testing.T) {
 		def []ServiceDescriptor
 		in  *saasv1alpha1.PublishingStrategies
 	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -31,16 +32,16 @@ func TestMergeWithDefaultPublishingStrategy(t *testing.T) {
 							Strategy:     saasv1alpha1.SimpleStrategy,
 							EndpointName: "Gateway",
 							Simple: &saasv1alpha1.Simple{
-								ServiceType: util.Pointer(saasv1alpha1.ServiceTypeELB),
+								ServiceType: ptr.To(saasv1alpha1.ServiceTypeELB),
 								ElasticLoadBalancerConfig: &saasv1alpha1.ElasticLoadBalancerSpec{
-									ProxyProtocol:                 util.Pointer(true),
-									CrossZoneLoadBalancingEnabled: util.Pointer(true),
-									ConnectionDrainingEnabled:     util.Pointer(true),
-									ConnectionDrainingTimeout:     util.Pointer[int32](60),
-									HealthcheckHealthyThreshold:   util.Pointer[int32](2),
-									HealthcheckUnhealthyThreshold: util.Pointer[int32](2),
-									HealthcheckInterval:           util.Pointer[int32](5),
-									HealthcheckTimeout:            util.Pointer[int32](3),
+									ProxyProtocol:                 ptr.To(true),
+									CrossZoneLoadBalancingEnabled: ptr.To(true),
+									ConnectionDrainingEnabled:     ptr.To(true),
+									ConnectionDrainingTimeout:     ptr.To[int32](60),
+									HealthcheckHealthyThreshold:   ptr.To[int32](2),
+									HealthcheckUnhealthyThreshold: ptr.To[int32](2),
+									HealthcheckInterval:           ptr.To[int32](5),
+									HealthcheckTimeout:            ptr.To[int32](3),
 								},
 							},
 						},
@@ -53,25 +54,25 @@ func TestMergeWithDefaultPublishingStrategy(t *testing.T) {
 					},
 				},
 				in: &saasv1alpha1.PublishingStrategies{
-					Mode: util.Pointer(saasv1alpha1.PublishingStrategiesReconcileModeMerge),
+					Mode: ptr.To(saasv1alpha1.PublishingStrategiesReconcileModeMerge),
 					Endpoints: []saasv1alpha1.PublishingStrategy{{
 						Strategy:     saasv1alpha1.Marin3rSidecarStrategy,
 						EndpointName: "Gateway",
 						Marin3rSidecar: &saasv1alpha1.Marin3rSidecarSpec{
 							Simple: &saasv1alpha1.Simple{
-								ServiceType: util.Pointer(saasv1alpha1.ServiceTypeELB),
+								ServiceType: ptr.To(saasv1alpha1.ServiceTypeELB),
 								ElasticLoadBalancerConfig: &saasv1alpha1.ElasticLoadBalancerSpec{
-									ProxyProtocol:                 util.Pointer(true),
-									CrossZoneLoadBalancingEnabled: util.Pointer(true),
-									ConnectionDrainingEnabled:     util.Pointer(true),
-									ConnectionDrainingTimeout:     util.Pointer[int32](60),
-									HealthcheckHealthyThreshold:   util.Pointer[int32](2),
-									HealthcheckUnhealthyThreshold: util.Pointer[int32](2),
-									HealthcheckInterval:           util.Pointer[int32](5),
-									HealthcheckTimeout:            util.Pointer[int32](3),
+									ProxyProtocol:                 ptr.To(true),
+									CrossZoneLoadBalancingEnabled: ptr.To(true),
+									ConnectionDrainingEnabled:     ptr.To(true),
+									ConnectionDrainingTimeout:     ptr.To[int32](60),
+									HealthcheckHealthyThreshold:   ptr.To[int32](2),
+									HealthcheckUnhealthyThreshold: ptr.To[int32](2),
+									HealthcheckInterval:           ptr.To[int32](5),
+									HealthcheckTimeout:            ptr.To[int32](3),
 								},
 							},
-							NodeID: util.Pointer("test"),
+							NodeID: ptr.To("test"),
 						},
 					}},
 				},
@@ -83,19 +84,19 @@ func TestMergeWithDefaultPublishingStrategy(t *testing.T) {
 						EndpointName: "Gateway",
 						Marin3rSidecar: &saasv1alpha1.Marin3rSidecarSpec{
 							Simple: &saasv1alpha1.Simple{
-								ServiceType: util.Pointer(saasv1alpha1.ServiceTypeELB),
+								ServiceType: ptr.To(saasv1alpha1.ServiceTypeELB),
 								ElasticLoadBalancerConfig: &saasv1alpha1.ElasticLoadBalancerSpec{
-									ProxyProtocol:                 util.Pointer(true),
-									CrossZoneLoadBalancingEnabled: util.Pointer(true),
-									ConnectionDrainingEnabled:     util.Pointer(true),
-									ConnectionDrainingTimeout:     util.Pointer[int32](60),
-									HealthcheckHealthyThreshold:   util.Pointer[int32](2),
-									HealthcheckUnhealthyThreshold: util.Pointer[int32](2),
-									HealthcheckInterval:           util.Pointer[int32](5),
-									HealthcheckTimeout:            util.Pointer[int32](3),
+									ProxyProtocol:                 ptr.To(true),
+									CrossZoneLoadBalancingEnabled: ptr.To(true),
+									ConnectionDrainingEnabled:     ptr.To(true),
+									ConnectionDrainingTimeout:     ptr.To[int32](60),
+									HealthcheckHealthyThreshold:   ptr.To[int32](2),
+									HealthcheckUnhealthyThreshold: ptr.To[int32](2),
+									HealthcheckInterval:           ptr.To[int32](5),
+									HealthcheckTimeout:            ptr.To[int32](3),
 								},
 							},
-							NodeID: util.Pointer("test"),
+							NodeID: ptr.To("test"),
 						},
 					},
 					PortDefinitions: []corev1.ServicePort{{
@@ -117,16 +118,16 @@ func TestMergeWithDefaultPublishingStrategy(t *testing.T) {
 							Strategy:     saasv1alpha1.SimpleStrategy,
 							EndpointName: "Gateway",
 							Simple: &saasv1alpha1.Simple{
-								ServiceType: util.Pointer(saasv1alpha1.ServiceTypeELB),
+								ServiceType: ptr.To(saasv1alpha1.ServiceTypeELB),
 								ElasticLoadBalancerConfig: &saasv1alpha1.ElasticLoadBalancerSpec{
-									ProxyProtocol:                 util.Pointer(true),
-									CrossZoneLoadBalancingEnabled: util.Pointer(true),
-									ConnectionDrainingEnabled:     util.Pointer(true),
-									ConnectionDrainingTimeout:     util.Pointer[int32](60),
-									HealthcheckHealthyThreshold:   util.Pointer[int32](2),
-									HealthcheckUnhealthyThreshold: util.Pointer[int32](2),
-									HealthcheckInterval:           util.Pointer[int32](5),
-									HealthcheckTimeout:            util.Pointer[int32](3),
+									ProxyProtocol:                 ptr.To(true),
+									CrossZoneLoadBalancingEnabled: ptr.To(true),
+									ConnectionDrainingEnabled:     ptr.To(true),
+									ConnectionDrainingTimeout:     ptr.To[int32](60),
+									HealthcheckHealthyThreshold:   ptr.To[int32](2),
+									HealthcheckUnhealthyThreshold: ptr.To[int32](2),
+									HealthcheckInterval:           ptr.To[int32](5),
+									HealthcheckTimeout:            ptr.To[int32](3),
 								},
 							},
 						},
@@ -139,15 +140,15 @@ func TestMergeWithDefaultPublishingStrategy(t *testing.T) {
 					},
 				},
 				in: &saasv1alpha1.PublishingStrategies{
-					Mode: util.Pointer(saasv1alpha1.PublishingStrategiesReconcileModeMerge),
+					Mode: ptr.To(saasv1alpha1.PublishingStrategiesReconcileModeMerge),
 					Endpoints: []saasv1alpha1.PublishingStrategy{{
 						Strategy:     saasv1alpha1.SimpleStrategy,
 						EndpointName: "Gateway",
 						Simple: &saasv1alpha1.Simple{
-							ServiceType: util.Pointer(saasv1alpha1.ServiceTypeELB),
+							ServiceType: ptr.To(saasv1alpha1.ServiceTypeELB),
 							ElasticLoadBalancerConfig: &saasv1alpha1.ElasticLoadBalancerSpec{
-								ProxyProtocol:      util.Pointer(false),
-								HealthcheckTimeout: util.Pointer[int32](10),
+								ProxyProtocol:      ptr.To(false),
+								HealthcheckTimeout: ptr.To[int32](10),
 							},
 						},
 					}},
@@ -159,16 +160,16 @@ func TestMergeWithDefaultPublishingStrategy(t *testing.T) {
 						Strategy:     saasv1alpha1.SimpleStrategy,
 						EndpointName: "Gateway",
 						Simple: &saasv1alpha1.Simple{
-							ServiceType: util.Pointer(saasv1alpha1.ServiceTypeELB),
+							ServiceType: ptr.To(saasv1alpha1.ServiceTypeELB),
 							ElasticLoadBalancerConfig: &saasv1alpha1.ElasticLoadBalancerSpec{
-								ProxyProtocol:                 util.Pointer(false),
-								CrossZoneLoadBalancingEnabled: util.Pointer(true),
-								ConnectionDrainingEnabled:     util.Pointer(true),
-								ConnectionDrainingTimeout:     util.Pointer[int32](60),
-								HealthcheckHealthyThreshold:   util.Pointer[int32](2),
-								HealthcheckUnhealthyThreshold: util.Pointer[int32](2),
-								HealthcheckInterval:           util.Pointer[int32](5),
-								HealthcheckTimeout:            util.Pointer[int32](10),
+								ProxyProtocol:                 ptr.To(false),
+								CrossZoneLoadBalancingEnabled: ptr.To(true),
+								ConnectionDrainingEnabled:     ptr.To(true),
+								ConnectionDrainingTimeout:     ptr.To[int32](60),
+								HealthcheckHealthyThreshold:   ptr.To[int32](2),
+								HealthcheckUnhealthyThreshold: ptr.To[int32](2),
+								HealthcheckInterval:           ptr.To[int32](5),
+								HealthcheckTimeout:            ptr.To[int32](10),
 							},
 						},
 					},
@@ -191,16 +192,16 @@ func TestMergeWithDefaultPublishingStrategy(t *testing.T) {
 							Strategy:     saasv1alpha1.SimpleStrategy,
 							EndpointName: "Gateway",
 							Simple: &saasv1alpha1.Simple{
-								ServiceType: util.Pointer(saasv1alpha1.ServiceTypeELB),
+								ServiceType: ptr.To(saasv1alpha1.ServiceTypeELB),
 								ElasticLoadBalancerConfig: &saasv1alpha1.ElasticLoadBalancerSpec{
-									ProxyProtocol:                 util.Pointer(true),
-									CrossZoneLoadBalancingEnabled: util.Pointer(true),
-									ConnectionDrainingEnabled:     util.Pointer(true),
-									ConnectionDrainingTimeout:     util.Pointer[int32](60),
-									HealthcheckHealthyThreshold:   util.Pointer[int32](2),
-									HealthcheckUnhealthyThreshold: util.Pointer[int32](2),
-									HealthcheckInterval:           util.Pointer[int32](5),
-									HealthcheckTimeout:            util.Pointer[int32](3),
+									ProxyProtocol:                 ptr.To(true),
+									CrossZoneLoadBalancingEnabled: ptr.To(true),
+									ConnectionDrainingEnabled:     ptr.To(true),
+									ConnectionDrainingTimeout:     ptr.To[int32](60),
+									HealthcheckHealthyThreshold:   ptr.To[int32](2),
+									HealthcheckUnhealthyThreshold: ptr.To[int32](2),
+									HealthcheckInterval:           ptr.To[int32](5),
+									HealthcheckTimeout:            ptr.To[int32](3),
 								},
 							},
 						},
@@ -213,13 +214,13 @@ func TestMergeWithDefaultPublishingStrategy(t *testing.T) {
 					},
 				},
 				in: &saasv1alpha1.PublishingStrategies{
-					Mode: util.Pointer(saasv1alpha1.PublishingStrategiesReconcileModeReplace),
+					Mode: ptr.To(saasv1alpha1.PublishingStrategiesReconcileModeReplace),
 					Endpoints: []saasv1alpha1.PublishingStrategy{
 						{
 							Strategy:     saasv1alpha1.SimpleStrategy,
 							EndpointName: "Gateway",
 							Simple: &saasv1alpha1.Simple{
-								ServiceType: util.Pointer(saasv1alpha1.ServiceTypeELB),
+								ServiceType: ptr.To(saasv1alpha1.ServiceTypeELB),
 							},
 						},
 						{
@@ -236,7 +237,7 @@ func TestMergeWithDefaultPublishingStrategy(t *testing.T) {
 						Strategy:     saasv1alpha1.SimpleStrategy,
 						EndpointName: "Gateway",
 						Simple: &saasv1alpha1.Simple{
-							ServiceType: util.Pointer(saasv1alpha1.ServiceTypeELB),
+							ServiceType: ptr.To(saasv1alpha1.ServiceTypeELB),
 						},
 					},
 					PortDefinitions: []corev1.ServicePort{{
@@ -269,7 +270,7 @@ func TestMergeWithDefaultPublishingStrategy(t *testing.T) {
 					{PublishingStrategy: saasv1alpha1.PublishingStrategy{EndpointName: "Gateway"}},
 				},
 				in: &saasv1alpha1.PublishingStrategies{
-					Mode:      util.Pointer(saasv1alpha1.PublishingStrategiesReconcileModeMerge),
+					Mode:      ptr.To(saasv1alpha1.PublishingStrategiesReconcileModeMerge),
 					Endpoints: []saasv1alpha1.PublishingStrategy{{EndpointName: "Other"}},
 				},
 			},
@@ -283,7 +284,7 @@ func TestMergeWithDefaultPublishingStrategy(t *testing.T) {
 					{PublishingStrategy: saasv1alpha1.PublishingStrategy{EndpointName: "Gateway"}},
 				},
 				in: &saasv1alpha1.PublishingStrategies{
-					Mode:      util.Pointer(saasv1alpha1.PublishingStrategiesReconcileModeReplace),
+					Mode:      ptr.To(saasv1alpha1.PublishingStrategiesReconcileModeReplace),
 					Endpoints: []saasv1alpha1.PublishingStrategy{{EndpointName: "Other"}},
 				},
 			},
@@ -297,11 +298,11 @@ func TestMergeWithDefaultPublishingStrategy(t *testing.T) {
 					{PublishingStrategy: saasv1alpha1.PublishingStrategy{EndpointName: "Gateway"}},
 				},
 				in: &saasv1alpha1.PublishingStrategies{
-					Mode: util.Pointer(saasv1alpha1.PublishingStrategiesReconcileModeMerge),
+					Mode: ptr.To(saasv1alpha1.PublishingStrategiesReconcileModeMerge),
 					Endpoints: []saasv1alpha1.PublishingStrategy{{
 						Strategy:     saasv1alpha1.SimpleStrategy,
 						EndpointName: "Other",
-						Create:       util.Pointer(true),
+						Create:       ptr.To(true),
 					}},
 				},
 			},
@@ -310,7 +311,7 @@ func TestMergeWithDefaultPublishingStrategy(t *testing.T) {
 				{PublishingStrategy: saasv1alpha1.PublishingStrategy{
 					Strategy:     saasv1alpha1.SimpleStrategy,
 					EndpointName: "Other",
-					Create:       util.Pointer(true),
+					Create:       ptr.To(true),
 				}},
 			},
 			wantErr: false,
@@ -322,11 +323,11 @@ func TestMergeWithDefaultPublishingStrategy(t *testing.T) {
 					{PublishingStrategy: saasv1alpha1.PublishingStrategy{EndpointName: "Gateway"}},
 				},
 				in: &saasv1alpha1.PublishingStrategies{
-					Mode: util.Pointer(saasv1alpha1.PublishingStrategiesReconcileModeReplace),
+					Mode: ptr.To(saasv1alpha1.PublishingStrategiesReconcileModeReplace),
 					Endpoints: []saasv1alpha1.PublishingStrategy{{
 						Strategy:     saasv1alpha1.SimpleStrategy,
 						EndpointName: "Other",
-						Create:       util.Pointer(true),
+						Create:       ptr.To(true),
 					}},
 				},
 			},
@@ -334,7 +335,7 @@ func TestMergeWithDefaultPublishingStrategy(t *testing.T) {
 				PublishingStrategy: saasv1alpha1.PublishingStrategy{
 					Strategy:     saasv1alpha1.SimpleStrategy,
 					EndpointName: "Other",
-					Create:       util.Pointer(true),
+					Create:       ptr.To(true),
 				},
 			}},
 			wantErr: false,
@@ -346,7 +347,7 @@ func TestMergeWithDefaultPublishingStrategy(t *testing.T) {
 					{PublishingStrategy: saasv1alpha1.PublishingStrategy{EndpointName: "Gateway"}},
 				},
 				in: &saasv1alpha1.PublishingStrategies{
-					Mode: util.Pointer(saasv1alpha1.PublishingStrategiesReconcileModeMerge),
+					Mode: ptr.To(saasv1alpha1.PublishingStrategiesReconcileModeMerge),
 				},
 			},
 			want: []ServiceDescriptor{{
@@ -361,7 +362,7 @@ func TestMergeWithDefaultPublishingStrategy(t *testing.T) {
 					{PublishingStrategy: saasv1alpha1.PublishingStrategy{EndpointName: "Gateway"}},
 				},
 				in: &saasv1alpha1.PublishingStrategies{
-					Mode: util.Pointer(saasv1alpha1.PublishingStrategiesReconcileModeReplace),
+					Mode: ptr.To(saasv1alpha1.PublishingStrategiesReconcileModeReplace),
 				},
 			},
 			want:    []ServiceDescriptor{},
@@ -373,8 +374,10 @@ func TestMergeWithDefaultPublishingStrategy(t *testing.T) {
 			got, err := MergeWithDefaultPublishingStrategy(tt.args.def, tt.args.in)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MergeWithDefaultPublishingStrategy() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
+
 			if diff := cmp.Diff(got, tt.want); len(diff) > 0 {
 				t.Errorf("MergeWithDefaultPublishingStrategy() got diff %v", diff)
 			}
@@ -383,7 +386,6 @@ func TestMergeWithDefaultPublishingStrategy(t *testing.T) {
 }
 
 func TestNullTransformer(t *testing.T) {
-
 	type P struct {
 		D *bool
 		E *int
@@ -396,26 +398,26 @@ func TestNullTransformer(t *testing.T) {
 	}
 
 	in := Foo{
-		A: util.Pointer(false),
-		B: util.Pointer(3),
+		A: ptr.To(false),
+		B: ptr.To(3),
 		C: &P{
-			D: util.Pointer(false),
+			D: ptr.To(false),
 		},
 	}
 	def := Foo{
-		A: util.Pointer(true),
-		B: util.Pointer(10),
+		A: ptr.To(true),
+		B: ptr.To(10),
 		C: &P{
-			D: util.Pointer(true),
-			E: util.Pointer(3),
+			D: ptr.To(true),
+			E: ptr.To(3),
 		},
 	}
 	want := Foo{
-		A: util.Pointer(false),
-		B: util.Pointer(3),
+		A: ptr.To(false),
+		B: ptr.To(3),
 		C: &P{
-			D: util.Pointer(false),
-			E: util.Pointer(3),
+			D: ptr.To(false),
+			E: ptr.To(3),
 		},
 	}
 

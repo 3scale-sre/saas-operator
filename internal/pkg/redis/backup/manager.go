@@ -88,20 +88,27 @@ func (br *Runner) Start(parentCtx context.Context, l logr.Logger) error {
 	go func() {
 		if err := br.BackgroundSave(ctx); err != nil {
 			errCh <- err
+
 			return
 		}
+
 		if err := br.UploadBackup(ctx); err != nil {
 			errCh <- err
+
 			return
 		}
+
 		if err := br.CheckBackup(ctx); err != nil {
 			errCh <- err
+
 			return
 		}
+
 		close(done)
 	}()
 
 	br.status = RunnerStatus{Started: true, Finished: false, Error: nil}
+
 	logger.Info("backup running")
 
 	// this goroutine controls the max time execution of the backup
@@ -109,34 +116,40 @@ func (br *Runner) Start(parentCtx context.Context, l logr.Logger) error {
 	go func() {
 		// apply a time boundary to the backup and listen for errors
 		timer := time.NewTimer(br.Timeout)
+
 		for {
 			select {
-
 			case <-timer.C:
 				err := fmt.Errorf("timeout reached (%v)", br.Timeout)
 				br.cancel()
 				logger.Error(err, "backup failed")
+
 				br.status.Finished = true
 				br.status.Error = err
 				br.eventsCh <- event.GenericEvent{Object: br.Instance}
 				br.publishMetrics()
+
 				return
 
 			case err := <-errCh:
 				logger.Error(err, "backup failed")
+
 				br.status.Finished = true
 				br.status.Error = err
 				br.eventsCh <- event.GenericEvent{Object: br.Instance}
 				br.publishMetrics()
+
 				return
 
 			case <-done:
 				logger.Info("backup completed successfully")
+
 				br.status.Finished = true
 				br.status.BackupFile = fmt.Sprintf("s3://%s/%s/%s", br.S3Bucket, br.S3Path, br.BackupFileCompressed())
 				br.status.FinishedAt = time.Now()
 				br.eventsCh <- event.GenericEvent{Object: br.Instance}
 				br.publishMetrics()
+
 				return
 			}
 		}

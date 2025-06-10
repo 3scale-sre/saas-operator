@@ -128,6 +128,7 @@ func (sew *SentinelEventWatcher) Start(parentCtx context.Context, l logr.Logger)
 	log := l.WithValues("sentinel", sew.sentinelURI)
 	if sew.started {
 		log.Info("the event watcher is already running")
+
 		return nil
 	}
 
@@ -145,16 +146,20 @@ func (sew *SentinelEventWatcher) Start(parentCtx context.Context, l logr.Logger)
 			`-failover-abort-no-good-slave`,
 			`[+\-]sdown`,
 		)
-		defer closeWatch()
+		defer func() {
+			if err := closeWatch(); err != nil {
+				l.Error(err, "unable to close SentinelPSubscribe")
+			}
+		}()
 
 		log.Info("event watcher running")
 
 		for {
 			select {
-
 			case msg := <-ch:
 				log.V(1).Info("received event from sentinel", "event", msg.String())
 				sew.eventsCh <- event.GenericEvent{Object: sew.instance}
+
 				rem, err := NewRedisEventMessage(msg)
 				if err == nil {
 					log.V(3).Info("redis event message parsed",
@@ -164,6 +169,7 @@ func (sew *SentinelEventWatcher) Start(parentCtx context.Context, l logr.Logger)
 						"master-type", rem.master.role, "master-name", rem.master.name,
 						"master-ip", rem.master.ip, "master-port", rem.target.port,
 					)
+
 					if sew.exportMetrics {
 						sew.metricsFromEvent(rem)
 					}
@@ -173,13 +179,16 @@ func (sew *SentinelEventWatcher) Start(parentCtx context.Context, l logr.Logger)
 
 			case <-ctx.Done():
 				log.Info("shutting down event watcher")
+
 				sew.started = false
+
 				return
 			}
 		}
 	}()
 
 	sew.started = true
+
 	return nil
 }
 
@@ -245,7 +254,6 @@ func (sew *SentinelEventWatcher) metricsFromEvent(rem RedisEventMessage) {
 
 func (sew *SentinelEventWatcher) initCounters() {
 	if sew.topology != nil {
-
 		for _, shard := range sew.topology.Shards {
 			failoverAbortNoGoodSlaveCount.With(
 				prometheus.Labels{
@@ -289,6 +297,5 @@ func (sew *SentinelEventWatcher) initCounters() {
 				).Add(0)
 			}
 		}
-
 	}
 }

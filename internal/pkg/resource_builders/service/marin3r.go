@@ -1,7 +1,7 @@
 package service
 
 import (
-	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/3scale-sre/basereconciler/util"
@@ -26,13 +26,14 @@ var (
 // AddMarin3rSidecar adds the appropriate labels and annotations for marin3r sidecar
 // injection to work for this Deployment
 func AddMarin3rSidecar(dep *appsv1.Deployment, spec saasv1alpha1.Marin3rSidecarSpec) *appsv1.Deployment {
-
 	if dep.Spec.Template.ObjectMeta.Labels == nil {
 		dep.Spec.Template.ObjectMeta.Labels = map[string]string{}
 	}
+
 	if dep.Spec.Template.ObjectMeta.Annotations == nil {
 		dep.Spec.Template.ObjectMeta.Annotations = map[string]string{}
 	}
+
 	dep.Spec.Template.ObjectMeta.Labels[sidecarEnabledLabelKey] = sidecarEnabledLabelValue
 	dep.Spec.Template.ObjectMeta.Annotations = util.MergeMaps(
 		dep.Spec.Template.ObjectMeta.Annotations,
@@ -57,6 +58,7 @@ func nodeIDAnnotation(key types.NamespacedName, nodeID *string) map[string]strin
 	} else {
 		value = key.Name
 	}
+
 	return map[string]string{marin3rDomain + "/node-id": value}
 }
 
@@ -64,6 +66,7 @@ func imageAnnotation(image *string) map[string]string {
 	if image != nil {
 		return map[string]string{marin3rDomain + "/envoy-image": *image}
 	}
+
 	return nil
 }
 
@@ -71,13 +74,15 @@ func apiVersionAnnotation(version *string) map[string]string {
 	if version != nil {
 		return map[string]string{marin3rDomain + "/envoy-api-version": *version}
 	}
+
 	return nil
 }
 
 func shtdnmgrPortAnnotation(port *uint32) map[string]string {
 	if port != nil {
-		return map[string]string{marin3rDomain + "/shutdown-manager.port": fmt.Sprintf("%d", *port)}
+		return map[string]string{marin3rDomain + "/shutdown-manager.port": strconv.FormatUint(uint64(*port), 10)}
 	}
+
 	return nil
 }
 
@@ -85,6 +90,7 @@ func shtdnmgrExtraLifecycleHooksAnnotation(hooks []string) map[string]string {
 	if len(hooks) > 0 {
 		return map[string]string{marin3rDomain + "/shutdown-manager.extra-lifecycle-hooks": strings.Join(hooks, ",")}
 	}
+
 	return nil
 }
 
@@ -100,6 +106,7 @@ func resourcesAnnotations(resources *saasv1alpha1.ResourceRequirementsSpec) map[
 		if value, ok := resources.Requests[corev1.ResourceCPU]; ok {
 			annotations[marin3rDomain+"/resources.requests.cpu"] = value.String()
 		}
+
 		if value, ok := resources.Requests[corev1.ResourceMemory]; ok {
 			annotations[marin3rDomain+"/resources.requests.memory"] = value.String()
 		}
@@ -109,6 +116,7 @@ func resourcesAnnotations(resources *saasv1alpha1.ResourceRequirementsSpec) map[
 		if value, ok := resources.Limits[corev1.ResourceCPU]; ok {
 			annotations[marin3rDomain+"/resources.limits.cpu"] = value.String()
 		}
+
 		if value, ok := resources.Limits[corev1.ResourceMemory]; ok {
 			annotations[marin3rDomain+"/resources.limits.memory"] = value.String()
 		}
@@ -124,8 +132,9 @@ func portsAnnotation(ports []saasv1alpha1.SidecarPort) map[string]string {
 	if len(ports) > 0 {
 		portSpec := []string{}
 		for _, port := range ports {
-			portSpec = append(portSpec, strings.Join([]string{port.Name, fmt.Sprintf("%d", port.Port)}, ":"))
+			portSpec = append(portSpec, strings.Join([]string{port.Name, strconv.Itoa(int(port.Port))}, ":"))
 		}
+
 		return map[string]string{
 			marin3rDomain + "/ports": strings.Join(portSpec, ","),
 		}
