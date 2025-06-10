@@ -64,10 +64,11 @@ var _ = Describe("EchoAPI controller", func() {
 					Namespace:     namespace,
 					Replicas:      2,
 					ContainerName: "echo-api",
+					Health:        "Progressing",
 					PDB:           true,
 					HPA:           true,
 					PodMonitor:    true,
-				}).Assert(k8sClient, dep, timeout, poll))
+				}).Assert(k8sClient, echoapi, dep, timeout, poll))
 
 			Expect(dep.Spec.Template.Spec.Volumes).To(HaveLen(0))
 
@@ -166,7 +167,7 @@ var _ = Describe("EchoAPI controller", func() {
 						PodMonitor:    true,
 						EnvoyConfig:   true,
 						LastVersion:   rvs["deployment/echoapi"],
-					}).Assert(k8sClient, dep, timeout, poll))
+					}).Assert(k8sClient, echoapi, dep, timeout, poll))
 
 				Expect(dep.Spec.Template.Spec.Containers[0].LivenessProbe).To(BeNil())
 				Expect(dep.Spec.Template.Spec.Containers[0].ReadinessProbe).To(BeNil())
@@ -225,7 +226,7 @@ var _ = Describe("EchoAPI controller", func() {
 						PDB:         false,
 						PodMonitor:  true,
 						LastVersion: rvs["deployment/echoapi"],
-					}).Assert(k8sClient, dep, timeout, poll))
+					}).Assert(k8sClient, echoapi, dep, timeout, poll))
 
 			})
 

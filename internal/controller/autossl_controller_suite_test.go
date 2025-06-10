@@ -73,10 +73,11 @@ var _ = Describe("AutoSSL controller", func() {
 					Namespace:     namespace,
 					Replicas:      2,
 					ContainerName: "autossl",
+					Health:        "Progressing",
 					PDB:           true,
 					HPA:           true,
 					PodMonitor:    true,
-				}).Assert(k8sClient, dep, timeout, poll))
+				}).Assert(k8sClient, autossl, dep, timeout, poll))
 
 			Expect(dep.Spec.Template.Spec.Volumes).To(HaveLen(2))
 			Expect(dep.Spec.Template.Spec.Volumes[0].Name).To(Equal("autossl-cache"))
@@ -186,7 +187,7 @@ var _ = Describe("AutoSSL controller", func() {
 						PDB:           true,
 						PodMonitor:    true,
 						LastVersion:   rvs["deployment/autossl"],
-					}).Assert(k8sClient, dep, timeout, poll))
+					}).Assert(k8sClient, autossl, dep, timeout, poll))
 
 				Expect(dep.Spec.Template.Spec.Containers[0].Name).To(Equal("autossl"))
 				for _, env := range dep.Spec.Template.Spec.Containers[0].Env {
@@ -256,7 +257,7 @@ var _ = Describe("AutoSSL controller", func() {
 						Replicas:      1,
 						ContainerName: "autossl",
 						PodMonitor:    true,
-					}).Assert(k8sClient, dep, timeout, poll))
+					}).Assert(k8sClient, autossl, dep, timeout, poll))
 
 				Expect(dep.Spec.Template.Spec.Containers[0].Name).To(Equal("autossl"))
 				for _, env := range dep.Spec.Template.Spec.Containers[0].Env {
@@ -372,7 +373,7 @@ var _ = Describe("AutoSSL controller", func() {
 						PDB:         false,
 						PodMonitor:  true,
 						LastVersion: rvs["deployment/autossl"],
-					}).Assert(k8sClient, dep, timeout, poll))
+					}).Assert(k8sClient, autossl, dep, timeout, poll))
 
 			})
 

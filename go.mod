@@ -7,7 +7,7 @@ go 1.24.2
 
 require (
 	dario.cat/mergo v1.0.1
-	github.com/3scale-sre/basereconciler v0.5.6
+	github.com/3scale-sre/basereconciler v0.6.0
 	github.com/3scale-sre/marin3r/api v0.13.2
 	github.com/MakeNowJust/heredoc v1.0.0
 	github.com/aws/aws-sdk-go-v2 v1.36.3

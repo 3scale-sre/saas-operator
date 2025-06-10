@@ -169,10 +169,11 @@ var _ = Describe("System controller", func() {
 						"env", "PORT=3000", "container-entrypoint", "bundle", "exec",
 						"unicorn", "-c", "config/unicorn.rb",
 					},
+					Health:     "Progressing",
 					PDB:        true,
 					HPA:        true,
 					PodMonitor: true,
-				}).Assert(k8sClient, dep, timeout, poll))
+				}).Assert(k8sClient, system, dep, timeout, poll))
 
 			for _, env := range dep.Spec.Template.Spec.Containers[0].Env {
 				switch env.Name {
@@ -216,7 +217,7 @@ var _ = Describe("System controller", func() {
 					PDB:        true,
 					HPA:        true,
 					PodMonitor: true,
-				}).Assert(k8sClient, dep, timeout, poll))
+				}).Assert(k8sClient, system, dep, timeout, poll))
 
 			Expect(dep.Spec.Template.Spec.Volumes[0].Name).To(Equal("system-tmp"))
 			Expect(dep.Spec.Template.Spec.Volumes[1].Secret.SecretName).To(Equal("system-config"))
@@ -243,7 +244,7 @@ var _ = Describe("System controller", func() {
 					PDB:            true,
 					HPA:            true,
 					PodMonitor:     true,
-				}).Assert(k8sClient, dep, timeout, poll))
+				}).Assert(k8sClient, system, dep, timeout, poll))
 
 			Expect(dep.Spec.Template.Spec.Volumes[0].Name).To(Equal("system-tmp"))
 			Expect(dep.Spec.Template.Spec.Volumes[1].Secret.SecretName).To(Equal("system-config"))
@@ -262,7 +263,7 @@ var _ = Describe("System controller", func() {
 					PDB:            true,
 					HPA:            true,
 					PodMonitor:     true,
-				}).Assert(k8sClient, dep, timeout, poll))
+				}).Assert(k8sClient, system, dep, timeout, poll))
 
 			Expect(dep.Spec.Template.Spec.Volumes[0].Name).To(Equal("system-tmp"))
 			Expect(dep.Spec.Template.Spec.Volumes[1].Secret.SecretName).To(Equal("system-config"))
@@ -531,7 +532,7 @@ var _ = Describe("System controller", func() {
 							"unicorn", "-c", "config/unicorn.rb",
 						},
 						PodMonitor: true,
-					}).Assert(k8sClient, dep, timeout, poll))
+					}).Assert(k8sClient, system, dep, timeout, poll))
 
 				Expect(dep.Spec.Template.Spec.Volumes[0].Secret.SecretName).To(Equal("system-config"))
 				Expect(dep.Spec.Template.Spec.TerminationGracePeriodSeconds).To(Equal(util.Pointer[int64](60)))
@@ -557,7 +558,7 @@ var _ = Describe("System controller", func() {
 							"--queue", "web_hooks,10", "--queue", "deletion,5",
 						},
 						PodMonitor: true,
-					}).Assert(k8sClient, dep, timeout, poll))
+					}).Assert(k8sClient, system, dep, timeout, poll))
 
 				Expect(dep.Spec.Template.Spec.Volumes[0].Name).To(Equal("system-tmp"))
 				Expect(dep.Spec.Template.Spec.Volumes[1].Secret.SecretName).To(Equal("system-config"))
@@ -571,7 +572,7 @@ var _ = Describe("System controller", func() {
 						ContainerName:  "system-sidekiq",
 						ContainterArgs: []string{"sidekiq", "--queue", "billing"},
 						PodMonitor:     true,
-					}).Assert(k8sClient, dep, timeout, poll))
+					}).Assert(k8sClient, system, dep, timeout, poll))
 
 				Expect(dep.Spec.Template.Spec.Volumes[0].Name).To(Equal("system-tmp"))
 				Expect(dep.Spec.Template.Spec.Volumes[1].Secret.SecretName).To(Equal("system-config"))
@@ -585,7 +586,7 @@ var _ = Describe("System controller", func() {
 						ContainerName:  "system-sidekiq",
 						ContainterArgs: []string{"sidekiq", "--queue", "mailers", "--queue", "low", "--queue", "bulk_indexing"},
 						PodMonitor:     true,
-					}).Assert(k8sClient, dep, timeout, poll))
+					}).Assert(k8sClient, system, dep, timeout, poll))
 
 				Expect(dep.Spec.Template.Spec.Volumes[0].Name).To(Equal("system-tmp"))
 				Expect(dep.Spec.Template.Spec.Volumes[1].Secret.SecretName).To(Equal("system-config"))
@@ -784,7 +785,7 @@ var _ = Describe("System controller", func() {
 						HPA:         true,
 						PodMonitor:  true,
 						LastVersion: rvs["deployment/system-app"],
-					}).Assert(k8sClient, dep, timeout, poll))
+					}).Assert(k8sClient, system, dep, timeout, poll))
 
 				Expect(dep.Spec.Template.Spec.Volumes).To(HaveLen(2))
 				Expect(dep.Spec.Template.Spec.Volumes[0].Name).To(Equal("system-config"))
@@ -801,7 +802,7 @@ var _ = Describe("System controller", func() {
 						Replicas:   2,
 						Namespace:  namespace,
 						PodMonitor: true,
-					}).Assert(k8sClient, dep, timeout, poll))
+					}).Assert(k8sClient, system, dep, timeout, poll))
 
 				Expect(dep.Spec.Template.Spec.Volumes).To(HaveLen(2))
 				Expect(dep.Spec.Template.Spec.Volumes[0].Name).To(Equal("system-config"))
@@ -823,7 +824,7 @@ var _ = Describe("System controller", func() {
 						HPA:         true,
 						PodMonitor:  true,
 						LastVersion: rvs["deployment/system-sidekiq-billing"],
-					}).Assert(k8sClient, dep, timeout, poll))
+					}).Assert(k8sClient, system, dep, timeout, poll))
 
 				Expect(dep.Spec.Template.Spec.Volumes).To(HaveLen(3))
 				Expect(dep.Spec.Template.Spec.Volumes[0].Name).To(Equal("system-tmp"))
@@ -844,7 +845,7 @@ var _ = Describe("System controller", func() {
 						Replicas:   3,
 						Namespace:  namespace,
 						PodMonitor: true,
-					}).Assert(k8sClient, dep, timeout, poll))
+					}).Assert(k8sClient, system, dep, timeout, poll))
 
 				Expect(dep.Spec.Template.Spec.Volumes).To(HaveLen(3))
 				Expect(dep.Spec.Template.Spec.Volumes[0].Name).To(Equal("system-tmp"))
@@ -868,7 +869,7 @@ var _ = Describe("System controller", func() {
 						HPA:         true,
 						PodMonitor:  true,
 						LastVersion: rvs["deployment/system-sidekiq-low"],
-					}).Assert(k8sClient, dep, timeout, poll))
+					}).Assert(k8sClient, system, dep, timeout, poll))
 
 				Expect(dep.Spec.Template.Spec.Volumes).To(HaveLen(3))
 				Expect(dep.Spec.Template.Spec.Volumes[0].Name).To(Equal("system-tmp"))
@@ -889,7 +890,7 @@ var _ = Describe("System controller", func() {
 						Replicas:   5,
 						Namespace:  namespace,
 						PodMonitor: true,
-					}).Assert(k8sClient, dep, timeout, poll))
+					}).Assert(k8sClient, system, dep, timeout, poll))
 
 				Expect(dep.Spec.Template.Spec.Volumes).To(HaveLen(3))
 				Expect(dep.Spec.Template.Spec.Volumes[0].Name).To(Equal("system-tmp"))

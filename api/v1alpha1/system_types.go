@@ -19,6 +19,7 @@ package v1alpha1
 import (
 	"time"
 
+	"github.com/3scale-sre/basereconciler/reconciler"
 	"github.com/3scale-sre/basereconciler/util"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -999,7 +1000,9 @@ func (spec *SystemRailsConsoleSpec) Default(systemDefaultImage *ImageSpec) {
 }
 
 // SystemStatus defines the observed state of System
-type SystemStatus struct{}
+type SystemStatus struct {
+	AggregatedStatus `json:",inline"`
+}
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
@@ -1016,6 +1019,12 @@ type System struct {
 // Default implements defaulting for the System resource
 func (s *System) Default() {
 	s.Spec.Default()
+}
+
+var _ reconciler.ObjectWithAppStatus = &System{}
+
+func (d *System) GetStatus() any {
+	return &d.Status
 }
 
 // +kubebuilder:object:root=true
@@ -1040,10 +1049,6 @@ func (sl *SystemList) CountItems() int {
 func init() {
 	SchemeBuilder.Register(&System{}, &SystemList{})
 }
-
-/*
-x
-*/
 
 // SystemTektonTaskSpec configures the Sidekiq component of System
 type SystemTektonTaskSpec struct {

@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"github.com/3scale-sre/basereconciler/reconciler"
 	"github.com/3scale-sre/basereconciler/util"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -145,7 +146,9 @@ func (cfg *CORSProxyConfig) Default() {
 }
 
 // CORSProxyStatus defines the observed state of CORSProxy
-type CORSProxyStatus struct{}
+type CORSProxyStatus struct {
+	AggregatedStatus `json:",inline"`
+}
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
@@ -162,6 +165,12 @@ type CORSProxy struct {
 // Default implements defaulting for the CORSProxy resource
 func (c *CORSProxy) Default() {
 	c.Spec.Default()
+}
+
+var _ reconciler.ObjectWithAppStatus = &CORSProxy{}
+
+func (d *CORSProxy) GetStatus() any {
+	return &d.Status
 }
 
 // +kubebuilder:object:root=true
