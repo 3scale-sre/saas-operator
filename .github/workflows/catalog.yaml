@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - catalog/saas-operator/stable-channel.yaml
+  workflow_dispatch:
+
 permissions:
   contents: read
 jobs:
