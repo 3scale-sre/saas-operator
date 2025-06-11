@@ -18,33 +18,33 @@ package v1alpha1
 
 import (
 	"github.com/3scale-sre/basereconciler/reconciler"
-	"github.com/3scale-sre/basereconciler/util"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
 )
 
 var (
 	backendDefaultImage defaultImageSpec = defaultImageSpec{
-		Name:       util.Pointer("quay.io/3scale/apisonator"),
-		Tag:        util.Pointer("nightly"),
-		PullPolicy: (*corev1.PullPolicy)(util.Pointer(string(corev1.PullIfNotPresent))),
+		Name:       ptr.To("quay.io/3scale/apisonator"),
+		Tag:        ptr.To("nightly"),
+		PullPolicy: (*corev1.PullPolicy)(ptr.To(string(corev1.PullIfNotPresent))),
 	}
 	backendDefaultGrafanaDashboard defaultGrafanaDashboardSpec = defaultGrafanaDashboardSpec{
-		SelectorKey:   util.Pointer("monitoring-key"),
-		SelectorValue: util.Pointer("middleware"),
+		SelectorKey:   ptr.To("monitoring-key"),
+		SelectorValue: ptr.To("middleware"),
 	}
 	backendDefaultConfigRackEnv         string                             = "dev"
 	backendDefaultConfigMasterServiceID int32                              = 6
 	backendDefaultListenerHPA           defaultHorizontalPodAutoscalerSpec = defaultHorizontalPodAutoscalerSpec{
-		MinReplicas:         util.Pointer[int32](2),
-		MaxReplicas:         util.Pointer[int32](4),
-		ResourceUtilization: util.Pointer[int32](90),
-		ResourceName:        util.Pointer("cpu"),
+		MinReplicas:         ptr.To[int32](2),
+		MaxReplicas:         ptr.To[int32](4),
+		ResourceUtilization: ptr.To[int32](90),
+		ResourceName:        ptr.To("cpu"),
 	}
 	backendDefaultListenerPDB defaultPodDisruptionBudgetSpec = defaultPodDisruptionBudgetSpec{
-		MaxUnavailable: util.Pointer(intstr.FromInt(1)),
+		MaxUnavailable: ptr.To(intstr.FromInt(1)),
 	}
 	backendDefaultListenerReplicas  int32                           = 2
 	backendDefaultListenerResources defaultResourceRequirementsSpec = defaultResourceRequirementsSpec{
@@ -58,18 +58,18 @@ var (
 		},
 	}
 	backendDefaultListenerLivenessProbe defaultProbeSpec = defaultProbeSpec{
-		InitialDelaySeconds: util.Pointer[int32](30),
-		TimeoutSeconds:      util.Pointer[int32](1),
-		PeriodSeconds:       util.Pointer[int32](10),
-		SuccessThreshold:    util.Pointer[int32](1),
-		FailureThreshold:    util.Pointer[int32](3),
+		InitialDelaySeconds: ptr.To[int32](30),
+		TimeoutSeconds:      ptr.To[int32](1),
+		PeriodSeconds:       ptr.To[int32](10),
+		SuccessThreshold:    ptr.To[int32](1),
+		FailureThreshold:    ptr.To[int32](3),
 	}
 	backendDefaultListenerReadinessProbe defaultProbeSpec = defaultProbeSpec{
-		InitialDelaySeconds: util.Pointer[int32](30),
-		TimeoutSeconds:      util.Pointer[int32](5),
-		PeriodSeconds:       util.Pointer[int32](10),
-		SuccessThreshold:    util.Pointer[int32](1),
-		FailureThreshold:    util.Pointer[int32](3),
+		InitialDelaySeconds: ptr.To[int32](30),
+		TimeoutSeconds:      ptr.To[int32](5),
+		PeriodSeconds:       ptr.To[int32](10),
+		SuccessThreshold:    ptr.To[int32](1),
+		FailureThreshold:    ptr.To[int32](3),
 	}
 	backendDefaultListenerMarin3rSpec                 defaultMarin3rSidecarSpec          = defaultMarin3rSidecarSpec{}
 	backendDefaultListenerConfigLogFormat             string                             = "json"
@@ -77,13 +77,13 @@ var (
 	backendDefaultListenerConfigListenerWorkers       int32                              = 16
 	backendDefaultListenerConfigLegacyReferrerFilters bool                               = true
 	backendDefaultWorkerHPA                           defaultHorizontalPodAutoscalerSpec = defaultHorizontalPodAutoscalerSpec{
-		MinReplicas:         util.Pointer[int32](2),
-		MaxReplicas:         util.Pointer[int32](4),
-		ResourceUtilization: util.Pointer[int32](90),
-		ResourceName:        util.Pointer("cpu"),
+		MinReplicas:         ptr.To[int32](2),
+		MaxReplicas:         ptr.To[int32](4),
+		ResourceUtilization: ptr.To[int32](90),
+		ResourceName:        ptr.To("cpu"),
 	}
 	backendDefaultWorkerPDB defaultPodDisruptionBudgetSpec = defaultPodDisruptionBudgetSpec{
-		MaxUnavailable: util.Pointer(intstr.FromInt(1)),
+		MaxUnavailable: ptr.To(intstr.FromInt(1)),
 	}
 	backendDefaultWorkerReplicas  int32                           = 2
 	backendDefaultWorkerResources defaultResourceRequirementsSpec = defaultResourceRequirementsSpec{
@@ -97,18 +97,18 @@ var (
 		},
 	}
 	backendDefaultWorkerLivenessProbe defaultProbeSpec = defaultProbeSpec{
-		InitialDelaySeconds: util.Pointer[int32](10),
-		TimeoutSeconds:      util.Pointer[int32](3),
-		PeriodSeconds:       util.Pointer[int32](15),
-		SuccessThreshold:    util.Pointer[int32](1),
-		FailureThreshold:    util.Pointer[int32](3),
+		InitialDelaySeconds: ptr.To[int32](10),
+		TimeoutSeconds:      ptr.To[int32](3),
+		PeriodSeconds:       ptr.To[int32](15),
+		SuccessThreshold:    ptr.To[int32](1),
+		FailureThreshold:    ptr.To[int32](3),
 	}
 	backendDefaultWorkerReadinessProbe defaultProbeSpec = defaultProbeSpec{
-		InitialDelaySeconds: util.Pointer[int32](10),
-		TimeoutSeconds:      util.Pointer[int32](5),
-		PeriodSeconds:       util.Pointer[int32](30),
-		SuccessThreshold:    util.Pointer[int32](1),
-		FailureThreshold:    util.Pointer[int32](3),
+		InitialDelaySeconds: ptr.To[int32](10),
+		TimeoutSeconds:      ptr.To[int32](5),
+		PeriodSeconds:       ptr.To[int32](30),
+		SuccessThreshold:    ptr.To[int32](1),
+		FailureThreshold:    ptr.To[int32](3),
 	}
 	backendDefaultWorkerConfigLogFormat  string                          = "json"
 	backendDefaultWorkerConfigRedisAsync bool                            = false
@@ -157,18 +157,22 @@ type BackendSpec struct {
 
 // Default implements defaulting for BackendSpec
 func (spec *BackendSpec) Default() {
-
 	spec.Image = InitializeImageSpec(spec.Image, backendDefaultImage)
 	spec.Config.Default()
 	spec.Listener.Default()
+
 	if spec.Worker == nil {
 		spec.Worker = &WorkerSpec{}
 	}
+
 	spec.Worker.Default()
+
 	if spec.Cron == nil {
 		spec.Cron = &CronSpec{}
 	}
+
 	spec.Cron.Default()
+
 	spec.GrafanaDashboard = InitializeGrafanaDashboardSpec(spec.GrafanaDashboard, backendDefaultGrafanaDashboard)
 	if spec.Twemproxy != nil {
 		spec.Twemproxy.Default()
@@ -185,9 +189,11 @@ func (spec *BackendSpec) ResolveCanarySpec(canary *Canary) (*BackendSpec, error)
 	if canary.ImageName != nil {
 		canarySpec.Image.Name = canary.ImageName
 	}
+
 	if canary.ImageTag != nil {
 		canarySpec.Image.Tag = canary.ImageTag
 	}
+
 	canarySpec.Listener.Replicas = canary.Replicas
 	canarySpec.Worker.Replicas = canary.Replicas
 	canarySpec.Cron.Replicas = canary.Replicas
@@ -265,7 +271,6 @@ type ListenerSpec struct {
 
 // Default implements defaulting for the each backend listener
 func (spec *ListenerSpec) Default() {
-
 	spec.HPA = InitializeHorizontalPodAutoscalerSpec(spec.HPA, backendDefaultListenerHPA)
 	spec.Replicas = intOrDefault(spec.Replicas, &backendDefaultListenerReplicas)
 	spec.PDB = InitializePodDisruptionBudgetSpec(spec.PDB, backendDefaultListenerPDB)
@@ -275,9 +280,11 @@ func (spec *ListenerSpec) Default() {
 	spec.LoadBalancer = InitializeNetworkLoadBalancerSpec(spec.LoadBalancer, DefaultNetworkLoadBalancerSpec)
 	spec.Marin3r = InitializeMarin3rSidecarSpec(spec.Marin3r, backendDefaultListenerMarin3rSpec)
 	spec.PublishingStrategies = InitializePublishingStrategies(spec.PublishingStrategies)
+
 	if spec.Config == nil {
 		spec.Config = &ListenerConfig{}
 	}
+
 	spec.Config.Default()
 }
 
@@ -328,16 +335,17 @@ type WorkerSpec struct {
 
 // Default implements defaulting for the each backend worker
 func (spec *WorkerSpec) Default() {
-
 	spec.HPA = InitializeHorizontalPodAutoscalerSpec(spec.HPA, backendDefaultWorkerHPA)
 	spec.Replicas = intOrDefault(spec.Replicas, &backendDefaultWorkerReplicas)
 	spec.PDB = InitializePodDisruptionBudgetSpec(spec.PDB, backendDefaultWorkerPDB)
 	spec.Resources = InitializeResourceRequirementsSpec(spec.Resources, backendDefaultWorkerResources)
 	spec.LivenessProbe = InitializeProbeSpec(spec.LivenessProbe, backendDefaultWorkerLivenessProbe)
 	spec.ReadinessProbe = InitializeProbeSpec(spec.ReadinessProbe, backendDefaultWorkerReadinessProbe)
+
 	if spec.Config == nil {
 		spec.Config = &WorkerConfig{}
 	}
+
 	spec.Config.Default()
 }
 
@@ -363,7 +371,6 @@ type CronSpec struct {
 
 // Default implements defaulting for the each backend cron
 func (spec *CronSpec) Default() {
-
 	spec.Replicas = intOrDefault(spec.Replicas, &backendDefaultCronReplicas)
 	spec.Resources = InitializeResourceRequirementsSpec(spec.Resources, backendDefaultCronResources)
 }
@@ -412,8 +419,8 @@ type BackendConfig struct {
 
 // Default sets default values for any value not specifically set in the BackendConfig struct
 func (cfg *BackendConfig) Default() {
-	cfg.RackEnv = stringOrDefault(cfg.RackEnv, util.Pointer(backendDefaultConfigRackEnv))
-	cfg.MasterServiceID = intOrDefault(cfg.MasterServiceID, util.Pointer[int32](backendDefaultConfigMasterServiceID))
+	cfg.RackEnv = stringOrDefault(cfg.RackEnv, ptr.To(backendDefaultConfigRackEnv))
+	cfg.MasterServiceID = intOrDefault(cfg.MasterServiceID, ptr.To[int32](backendDefaultConfigMasterServiceID))
 	cfg.ExternalSecret.SecretStoreRef = InitializeExternalSecretSecretStoreReferenceSpec(cfg.ExternalSecret.SecretStoreRef, defaultExternalSecretSecretStoreReference)
 	cfg.ExternalSecret.RefreshInterval = durationOrDefault(cfg.ExternalSecret.RefreshInterval, &defaultExternalSecretRefreshInterval)
 }
@@ -441,10 +448,10 @@ type ListenerConfig struct {
 
 // Default sets default values for any value not specifically set in the ListenerConfig struct
 func (cfg *ListenerConfig) Default() {
-	cfg.LogFormat = stringOrDefault(cfg.LogFormat, util.Pointer(backendDefaultListenerConfigLogFormat))
-	cfg.RedisAsync = boolOrDefault(cfg.RedisAsync, util.Pointer(backendDefaultListenerConfigRedisAsync))
-	cfg.ListenerWorkers = intOrDefault(cfg.ListenerWorkers, util.Pointer[int32](backendDefaultListenerConfigListenerWorkers))
-	cfg.LegacyReferrerFilters = boolOrDefault(cfg.LegacyReferrerFilters, util.Pointer(backendDefaultListenerConfigLegacyReferrerFilters))
+	cfg.LogFormat = stringOrDefault(cfg.LogFormat, ptr.To(backendDefaultListenerConfigLogFormat))
+	cfg.RedisAsync = boolOrDefault(cfg.RedisAsync, ptr.To(backendDefaultListenerConfigRedisAsync))
+	cfg.ListenerWorkers = intOrDefault(cfg.ListenerWorkers, ptr.To[int32](backendDefaultListenerConfigListenerWorkers))
+	cfg.LegacyReferrerFilters = boolOrDefault(cfg.LegacyReferrerFilters, ptr.To(backendDefaultListenerConfigLegacyReferrerFilters))
 }
 
 // WorkerConfig configures app behavior for Backend Worker
@@ -462,8 +469,8 @@ type WorkerConfig struct {
 
 // Default sets default values for any value not specifically set in the WorkerConfig struct
 func (cfg *WorkerConfig) Default() {
-	cfg.LogFormat = stringOrDefault(cfg.LogFormat, util.Pointer(backendDefaultWorkerConfigLogFormat))
-	cfg.RedisAsync = boolOrDefault(cfg.RedisAsync, util.Pointer(backendDefaultWorkerConfigRedisAsync))
+	cfg.LogFormat = stringOrDefault(cfg.LogFormat, ptr.To(backendDefaultWorkerConfigLogFormat))
+	cfg.RedisAsync = boolOrDefault(cfg.RedisAsync, ptr.To(backendDefaultWorkerConfigRedisAsync))
 }
 
 // BackendStatus defines the observed state of Backend

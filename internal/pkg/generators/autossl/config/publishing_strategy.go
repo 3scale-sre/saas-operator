@@ -1,11 +1,11 @@
 package config
 
 import (
-	"github.com/3scale-sre/basereconciler/util"
 	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	"github.com/3scale-sre/saas-operator/internal/pkg/resource_builders/service"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
 )
 
 func DefaultPublishingStrategy() []service.ServiceDescriptor {
@@ -14,7 +14,7 @@ func DefaultPublishingStrategy() []service.ServiceDescriptor {
 			PublishingStrategy: saasv1alpha1.PublishingStrategy{
 				Strategy:     saasv1alpha1.SimpleStrategy,
 				EndpointName: "Proxy",
-				Simple:       &saasv1alpha1.Simple{ServiceType: util.Pointer(saasv1alpha1.ServiceTypeClusterIP)},
+				Simple:       &saasv1alpha1.Simple{ServiceType: ptr.To(saasv1alpha1.ServiceTypeClusterIP)},
 			},
 			PortDefinitions: []corev1.ServicePort{
 				{

@@ -18,19 +18,19 @@ package v1alpha1
 
 import (
 	"github.com/3scale-sre/basereconciler/reconciler"
-	"github.com/3scale-sre/basereconciler/util"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
 )
 
 var (
 	mappingserviceDefaultReplicas int32            = 2
 	mappingserviceDefaultImage    defaultImageSpec = defaultImageSpec{
-		Name:       util.Pointer("quay.io/3scale/apicast-cloud-hosted"),
-		Tag:        util.Pointer("latest"),
-		PullPolicy: (*corev1.PullPolicy)(util.Pointer(string(corev1.PullIfNotPresent))),
+		Name:       ptr.To("quay.io/3scale/apicast-cloud-hosted"),
+		Tag:        ptr.To("latest"),
+		PullPolicy: (*corev1.PullPolicy)(ptr.To(string(corev1.PullIfNotPresent))),
 	}
 	mappingserviceDefaultResources defaultResourceRequirementsSpec = defaultResourceRequirementsSpec{
 		Requests: corev1.ResourceList{
@@ -43,32 +43,32 @@ var (
 		},
 	}
 	mappingserviceDefaultHPA defaultHorizontalPodAutoscalerSpec = defaultHorizontalPodAutoscalerSpec{
-		MinReplicas:         util.Pointer[int32](2),
-		MaxReplicas:         util.Pointer[int32](4),
-		ResourceUtilization: util.Pointer[int32](90),
-		ResourceName:        util.Pointer("cpu"),
+		MinReplicas:         ptr.To[int32](2),
+		MaxReplicas:         ptr.To[int32](4),
+		ResourceUtilization: ptr.To[int32](90),
+		ResourceName:        ptr.To("cpu"),
 	}
 	mappingserviceLivenessDefaultProbe defaultProbeSpec = defaultProbeSpec{
-		InitialDelaySeconds: util.Pointer[int32](5),
-		TimeoutSeconds:      util.Pointer[int32](5),
-		PeriodSeconds:       util.Pointer[int32](10),
-		SuccessThreshold:    util.Pointer[int32](1),
-		FailureThreshold:    util.Pointer[int32](3),
+		InitialDelaySeconds: ptr.To[int32](5),
+		TimeoutSeconds:      ptr.To[int32](5),
+		PeriodSeconds:       ptr.To[int32](10),
+		SuccessThreshold:    ptr.To[int32](1),
+		FailureThreshold:    ptr.To[int32](3),
 	}
 	mappingserviceReadinessDefaultProbe defaultProbeSpec = defaultProbeSpec{
-		InitialDelaySeconds: util.Pointer[int32](5),
-		TimeoutSeconds:      util.Pointer[int32](5),
-		PeriodSeconds:       util.Pointer[int32](30),
-		SuccessThreshold:    util.Pointer[int32](1),
-		FailureThreshold:    util.Pointer[int32](3),
+		InitialDelaySeconds: ptr.To[int32](5),
+		TimeoutSeconds:      ptr.To[int32](5),
+		PeriodSeconds:       ptr.To[int32](30),
+		SuccessThreshold:    ptr.To[int32](1),
+		FailureThreshold:    ptr.To[int32](3),
 	}
 	mappingserviceDefaultPDB defaultPodDisruptionBudgetSpec = defaultPodDisruptionBudgetSpec{
-		MaxUnavailable: util.Pointer(intstr.FromInt(1)),
+		MaxUnavailable: ptr.To(intstr.FromInt(1)),
 	}
 
 	mappingserviceDefaultGrafanaDashboard defaultGrafanaDashboardSpec = defaultGrafanaDashboardSpec{
-		SelectorKey:   util.Pointer("monitoring-key"),
-		SelectorValue: util.Pointer("middleware"),
+		SelectorKey:   ptr.To("monitoring-key"),
+		SelectorValue: ptr.To("middleware"),
 	}
 	mappingserviceDefaultLogLevel string = "warn"
 )
@@ -124,7 +124,6 @@ type MappingServiceSpec struct {
 
 // Default implements defaulting for MappingServiceSpec
 func (spec *MappingServiceSpec) Default() {
-
 	spec.Image = InitializeImageSpec(spec.Image, mappingserviceDefaultImage)
 	spec.HPA = InitializeHorizontalPodAutoscalerSpec(spec.HPA, mappingserviceDefaultHPA)
 	spec.Replicas = intOrDefault(spec.Replicas, &mappingserviceDefaultReplicas)
@@ -161,7 +160,7 @@ type MappingServiceConfig struct {
 
 // Default sets default values for any value not specifically set in the MappingServiceConfig struct
 func (cfg *MappingServiceConfig) Default() {
-	cfg.LogLevel = stringOrDefault(cfg.LogLevel, util.Pointer(mappingserviceDefaultLogLevel))
+	cfg.LogLevel = stringOrDefault(cfg.LogLevel, ptr.To(mappingserviceDefaultLogLevel))
 	cfg.ExternalSecret.SecretStoreRef = InitializeExternalSecretSecretStoreReferenceSpec(cfg.ExternalSecret.SecretStoreRef, defaultExternalSecretSecretStoreReference)
 	cfg.ExternalSecret.RefreshInterval = durationOrDefault(cfg.ExternalSecret.RefreshInterval, &defaultExternalSecretRefreshInterval)
 }

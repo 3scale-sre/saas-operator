@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/3scale-sre/basereconciler/reconciler"
-	"github.com/3scale-sre/basereconciler/util"
 	marin3rv1alpha1 "github.com/3scale-sre/marin3r/api/marin3r/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -15,6 +14,7 @@ import (
 	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	policyv1 "k8s.io/api/policy/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -39,8 +39,7 @@ type ExpectedWorkload struct {
 func (ew *ExpectedWorkload) Assert(c client.Client, cr reconciler.ObjectWithAppStatus,
 	dep *appsv1.Deployment, timeout, poll time.Duration) func() {
 	return func() {
-
-		By(fmt.Sprintf("%s workload Deployment", ew.Name),
+		By(ew.Name+" workload Deployment",
 			(&ExpectedResource{
 				Name:        ew.Name,
 				Namespace:   ew.Namespace,
@@ -70,70 +69,75 @@ func (ew *ExpectedWorkload) Assert(c client.Client, cr reconciler.ObjectWithAppS
 				if err := c.Get(context.TODO(), client.ObjectKeyFromObject(cr), cr); err != nil {
 					return err.Error()
 				}
+
 				return (cr.GetStatus()).(reconciler.AppStatusWithAggregatedHealth).GetAggregatedHealthStatus()
 			}, timeout, poll).Should(Equal(ew.Health))
 		}
 
 		hpa := &autoscalingv2.HorizontalPodAutoscaler{}
-		By(fmt.Sprintf("%s workload HPA", ew.Name),
+		By(ew.Name+" workload HPA",
 			(&ExpectedResource{
 				Name:      ew.Name,
 				Namespace: ew.Namespace, Missing: !ew.HPA,
 			}).Assert(c, hpa, timeout, poll),
 		)
+
 		if ew.HPA {
 			Expect(hpa.Spec.ScaleTargetRef.Kind).Should(Equal("Deployment"))
 			Expect(hpa.Spec.ScaleTargetRef.Name).Should(Equal(ew.Name))
-			Expect(hpa.Spec.MinReplicas).Should(Equal(util.Pointer[int32](ew.Replicas)))
+			Expect(hpa.Spec.MinReplicas).Should(Equal(ptr.To[int32](ew.Replicas)))
 		} else {
-			Expect(dep.Spec.Replicas).To(Equal(util.Pointer[int32](ew.Replicas)))
+			Expect(dep.Spec.Replicas).To(Equal(ptr.To[int32](ew.Replicas)))
 		}
 
 		pdb := &policyv1.PodDisruptionBudget{}
-		By(fmt.Sprintf("%s workload PDB", ew.Name),
+		By(ew.Name+" workload PDB",
 			(&ExpectedResource{
 				Name:      ew.Name,
 				Namespace: ew.Namespace, Missing: !ew.PDB,
 			}).Assert(c, pdb, timeout, poll),
 		)
+
 		if ew.PDB {
 			Expect(pdb.Spec.Selector.MatchLabels["deployment"]).Should(Equal(ew.Name))
 		}
 
 		pm := &monitoringv1.PodMonitor{}
-		By(fmt.Sprintf("%s workload PodMonitor", ew.Name),
+		By(ew.Name+" workload PodMonitor",
 			(&ExpectedResource{
 				Name:      ew.Name,
 				Namespace: ew.Namespace, Missing: !ew.PodMonitor,
 			}).Assert(c, pm, timeout, poll),
 		)
+
 		if ew.PodMonitor {
 			Expect(pm.Spec.Selector.MatchLabels["deployment"]).Should(Equal(ew.Name))
 		}
 
 		ec := &marin3rv1alpha1.EnvoyConfig{}
-		By(fmt.Sprintf("%s workload EnvoyConfig", ew.Name),
+		By(ew.Name+" workload EnvoyConfig",
 			(&ExpectedResource{
 				Name:      ew.Name,
 				Namespace: ew.Namespace, Missing: !ew.EnvoyConfig,
 			}).Assert(c, ec, timeout, poll),
 		)
+
 		if ew.EnvoyConfig {
 			Expect(ec.Spec.NodeID).Should(Equal(ew.Name))
 		}
-
 	}
 }
 
 // getResourceVersion fetches the current resource version for an object,
 // returns an empty string if the object doesn't exists
 func GetResourceVersion(c client.Client, o client.Object, name, namespace string, timeout, poll time.Duration) string {
-	By(fmt.Sprintf("%s feching resource version", name),
+	By(name+" feching resource version",
 		(&ExpectedResource{
 			Name:      name,
 			Namespace: namespace,
 		}).Assert(c, o, timeout, poll),
 	)
+
 	return o.GetResourceVersion()
 }
 
@@ -146,10 +150,9 @@ type ExpectedResource struct {
 
 // checkResource checks if a k8s resource exists, has been updated or is missing)
 func (er *ExpectedResource) Assert(c client.Client, o client.Object, timeout, poll time.Duration) func() {
-
 	if er.Missing {
 		return func() {
-			By(fmt.Sprintf("%s object does NOT exist", er.Name))
+			By(er.Name + " object does NOT exist")
 			Eventually(func() error {
 				return c.Get(context.Background(),
 					types.NamespacedName{Name: er.Name, Namespace: er.Namespace}, o,
@@ -160,20 +163,21 @@ func (er *ExpectedResource) Assert(c client.Client, o client.Object, timeout, po
 
 	if er.LastVersion != "" {
 		return func() {
-			By(fmt.Sprintf("%s object has been updated", er.Name))
+			By(er.Name + " object has been updated")
 			Eventually(func() bool {
 				if err := c.Get(context.Background(),
 					types.NamespacedName{Name: er.Name, Namespace: er.Namespace}, o,
 				); err != nil {
 					return false
 				}
+
 				return o.GetResourceVersion() != er.LastVersion
 			}, timeout, poll).Should(BeTrue())
 		}
 	}
 
 	return func() {
-		By(fmt.Sprintf("%s object does exist", er.Name))
+		By(er.Name + " object does exist")
 		Eventually(func() error {
 			return c.Get(context.Background(),
 				types.NamespacedName{Name: er.Name, Namespace: er.Namespace}, o,

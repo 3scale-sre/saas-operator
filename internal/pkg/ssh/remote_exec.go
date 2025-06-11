@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/3scale-sre/saas-operator/internal/pkg/util"
 	"github.com/go-logr/logr"
 	"golang.org/x/crypto/ssh"
 )
@@ -22,7 +23,6 @@ type RemoteExecutor struct {
 }
 
 func (re *RemoteExecutor) Run() error {
-
 	key, err := ssh.ParsePrivateKey([]byte(re.PrivateKey))
 	if err != nil {
 		return err
@@ -36,31 +36,37 @@ func (re *RemoteExecutor) Run() error {
 		},
 		Timeout: re.CmdTimeout,
 	}
-	client, err := ssh.Dial("tcp", net.JoinHostPort(re.Host, strconv.Itoa(int(re.Port))), config)
+
+	addr := net.JoinHostPort(re.Host, strconv.Itoa(int(re.Port)))
+
+	client, err := ssh.Dial("tcp", addr, config)
 	if err != nil {
 		return err
 	}
-	defer client.Close()
+
+	defer util.CloseOrLog(client, addr, re.Logger)
 
 	for _, cmd := range re.Commands {
 		re.Logger.V(1).Info(cmd.Info())
-		output, err := cmd.Run(client)
+
+		output, err := cmd.Run(client, re.Logger)
 		if output != "" {
-			re.Logger.V(1).Info(fmt.Sprintf("remote ssh command output: %s", output))
+			re.Logger.V(1).Info("remote ssh command output: " + output)
 		}
+
 		if err != nil {
-			re.Logger.V(1).Info(fmt.Sprintf("remote ssh command error: %s", err.Error()))
+			re.Logger.V(1).Info("remote ssh command error: " + err.Error())
+
 			return fmt.Errorf("remote ssh command failed: %w (%s)", err, output)
 		}
 	}
 
 	// be silent on success
 	return nil
-
 }
 
 type Runnable interface {
-	Run(*ssh.Client) (string, error)
+	Run(*ssh.Client, logr.Logger) (string, error)
 	Info() string
 	WithSudo(bool) Runnable
 }
@@ -79,6 +85,7 @@ func NewCommand(value string, sensitive ...string) *Command {
 
 func (c *Command) WithSudo(sudo bool) Runnable {
 	c.sudo = sudo
+
 	return c
 }
 
@@ -86,19 +93,21 @@ func (c *Command) resolveValue() string {
 	if c.sudo {
 		return "sudo " + c.value
 	}
+
 	return c.value
 }
 
 func (c *Command) Info() string {
-	return fmt.Sprintf("run command: %s", hideSensitive(c.resolveValue(), c.sensitive...))
+	return "run command: " + hideSensitive(c.resolveValue(), c.sensitive...)
 }
 
-func (c *Command) Run(client *ssh.Client) (string, error) {
+func (c *Command) Run(client *ssh.Client, logger logr.Logger) (string, error) {
 	// Create a session. It is one session per command.
 	session, err := client.NewSession()
 	if err != nil {
 		return "", err
 	}
+	// nolint: errcheck
 	defer session.Close()
 
 	output, err := session.CombinedOutput(c.resolveValue())
@@ -128,6 +137,7 @@ func NewScript(interpreter string, script string, sensitive ...string) *Script {
 
 func (s *Script) WithSudo(sudo bool) Runnable {
 	s.sudo = sudo
+
 	return s
 }
 
@@ -142,21 +152,24 @@ func (s *Script) resolveInterpreter() string {
 	if s.sudo {
 		return "sudo " + s.interpreter
 	}
+
 	return s.interpreter
 }
 
-func (s *Script) Run(client *ssh.Client) (string, error) {
+func (s *Script) Run(client *ssh.Client, logger logr.Logger) (string, error) {
 	// Create a session. It is one session per command.
 	session, err := client.NewSession()
 	if err != nil {
 		return "", err
 	}
+	// nolint: errcheck
 	defer session.Close()
 
 	stdin, err := session.StdinPipe()
 	if err != nil {
 		return "", err
 	}
+	// nolint: errcheck
 	defer stdin.Close()
 
 	type response struct {
@@ -170,6 +183,7 @@ func (s *Script) Run(client *ssh.Client) (string, error) {
 		output, err := session.CombinedOutput(s.resolveInterpreter())
 		if err != nil {
 			chRsp <- response{output: output, err: err}
+
 			return
 		}
 		chRsp <- response{output: []byte(""), err: nil}
@@ -179,7 +193,10 @@ func (s *Script) Run(client *ssh.Client) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	stdin.Close()
+
+	if err := stdin.Close(); err != nil {
+		logger.Error(err, "unable to close pipe")
+	}
 
 	rsp := <-chRsp
 
@@ -190,5 +207,6 @@ func hideSensitive(msg string, hide ...string) string {
 	for _, ss := range hide {
 		msg = strings.ReplaceAll(msg, ss, "*****")
 	}
+
 	return msg
 }

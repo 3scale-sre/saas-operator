@@ -11,11 +11,11 @@ import (
 // EnvoyDynamicConfigClass contains properties to generate specific types
 // of Envoy dynamic configurations
 type EnvoyDynamicConfigClass struct {
-	Function func(name string, opts interface{}) (envoy.Resource, error)
+	Function func(name string, opts any) (envoy.Resource, error)
 	Produces envoy.Resource
 }
 
-func RegisterTemplate(f func(name string, opts interface{}) (envoy.Resource, error), p envoy.Resource) *EnvoyDynamicConfigClass {
+func RegisterTemplate(f func(name string, opts any) (envoy.Resource, error), p envoy.Resource) *EnvoyDynamicConfigClass {
 	return &EnvoyDynamicConfigClass{
 		Function: f,
 		Produces: p,
@@ -33,6 +33,7 @@ func (factory EnvoyDynamicConfigFactory) GetClass(v descriptor.EnvoyDynamicConfi
 	opts := v.GetOptions()
 	name := reflect.TypeOf(opts).Elem().Name() + "_" + v.GetGeneratorVersion()
 	class, ok := factory[name]
+
 	if !ok {
 		return nil, fmt.Errorf("unregistered function for '%s'", name)
 	}
@@ -41,7 +42,6 @@ func (factory EnvoyDynamicConfigFactory) GetClass(v descriptor.EnvoyDynamicConfi
 }
 
 func (factory EnvoyDynamicConfigFactory) NewResource(desc descriptor.EnvoyDynamicConfigDescriptor) (envoy.Resource, error) {
-
 	class, err := factory.GetClass(desc)
 	if err != nil {
 		return nil, err
@@ -51,5 +51,6 @@ func (factory EnvoyDynamicConfigFactory) NewResource(desc descriptor.EnvoyDynami
 	if err != nil {
 		return nil, err
 	}
+
 	return resource, nil
 }

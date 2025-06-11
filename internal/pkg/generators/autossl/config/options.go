@@ -18,6 +18,7 @@ func NewOptions(spec saasv1alpha1.AutoSSLSpec) pod.Options {
 		if *spec.Config.ACMEStaging {
 			return leACMEStagingEndpoint
 		}
+
 		return ""
 	}())
 	opts.AddEnvvar("CONTACT_EMAIL").Unpack(spec.Config.ContactEmail)

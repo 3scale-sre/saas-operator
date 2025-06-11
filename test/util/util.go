@@ -17,6 +17,7 @@ func MustParseRFC3339(in string) time.Time {
 	if err != nil {
 		panic(err)
 	}
+
 	return t
 }
 
@@ -37,10 +38,10 @@ func CreateNamespace(nameGenerator namegenerator.Generator, c client.Client,
 		}
 
 		return nil
-
 	}, timeout, poll).ShouldNot(HaveOccurred())
 
 	n := &corev1.Namespace{}
+
 	Eventually(func() error {
 		return c.Get(context.Background(), types.NamespacedName{Name: namespace}, n)
 	}, timeout, poll).ShouldNot(HaveOccurred())

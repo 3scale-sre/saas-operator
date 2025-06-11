@@ -64,6 +64,7 @@ var (
 	setupLog = ctrl.Log.WithName("setup")
 )
 
+// nolint:wsl
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
@@ -78,8 +79,11 @@ func init() {
 
 func main() {
 	var metricsAddr string
+
 	var enableLeaderElection bool
+
 	var probeAddr string
+
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", true,
@@ -114,6 +118,7 @@ func main() {
 
 	if strings.Contains(watchNamespace, ",") {
 		setupLog.Info(fmt.Sprintf("manager in MultiNamespaced mode will be watching namespaces %q", watchNamespace))
+
 		options.Cache = cache.Options{DefaultNamespaces: map[string]cache.Config{}}
 		for _, ns := range strings.Split(watchNamespace, ",") {
 			options.Cache.DefaultNamespaces[ns] = cache.Config{}
@@ -144,6 +149,7 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "Sentinel")
 		os.Exit(1)
 	}
+
 	if err = (&controllers.RedisShardReconciler{
 		Reconciler: reconciler.NewFromManager(mgr).
 			WithLogger(ctrl.Log.WithName("controllers").WithName("RedisShard")),
@@ -152,6 +158,7 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "RedisShard")
 		os.Exit(1)
 	}
+
 	if err = (&controllers.TwemproxyConfigReconciler{
 		Reconciler: reconciler.NewFromManager(mgr).
 			WithLogger(ctrl.Log.WithName("controllers").WithName("TwemproxyConfig")),
@@ -242,12 +249,14 @@ func main() {
 		setupLog.Error(err, "unable to set up health check")
 		os.Exit(1)
 	}
+
 	if err := mgr.AddReadyzCheck("check", healthz.Ping); err != nil {
 		setupLog.Error(err, "unable to set up ready check")
 		os.Exit(1)
 	}
 
 	setupLog.Info("starting manager")
+
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
@@ -256,16 +265,16 @@ func main() {
 
 // getWatchNamespace returns the Namespace the operator should be watching for changes
 func getWatchNamespace() (string, error) {
-
 	ns, found := os.LookupEnv(watchNamespaceEnvVar)
 	if !found {
 		return "", fmt.Errorf("%s must be set", watchNamespaceEnvVar)
 	}
+
 	return ns, nil
 }
 
 func printVersion() {
-	setupLog.Info(fmt.Sprintf("SaaS Operator Version: %s", version.Current()))
-	setupLog.Info(fmt.Sprintf("Go Version: %s", runtime.Version()))
+	setupLog.Info("SaaS Operator Version: " + version.Current())
+	setupLog.Info("Go Version: " + runtime.Version())
 	setupLog.Info(fmt.Sprintf("Go OS/Arch: %s/%s", runtime.GOOS, runtime.GOARCH))
 }

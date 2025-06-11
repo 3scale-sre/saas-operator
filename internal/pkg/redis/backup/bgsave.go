@@ -2,6 +2,7 @@ package backup
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -11,16 +12,20 @@ import (
 func (br *Runner) BackgroundSave(ctx context.Context) error {
 	logger := log.FromContext(ctx, "function", "(br *Runner) BackgroundSave")
 	prevsave, err := br.Server.RedisLastSave(ctx)
+
 	if err != nil {
 		logger.Error(errLastSave(err), "backup error")
+
 		return errLastSave(err)
 	}
 
 	err = br.Server.RedisBGSave(ctx)
 	if err != nil {
 		logger.Error(errBGSave(err), "backup error")
+
 		return errBGSave(err)
 	}
+
 	logger.V(1).Info("BGSave running")
 
 	ticker := time.NewTicker(br.PollInterval)
@@ -33,15 +38,18 @@ func (br *Runner) BackgroundSave(ctx context.Context) error {
 			if err != nil {
 				// retry at next tick
 				logger.Error(errLastSave(err), "transient backup error")
+
 				continue
 			}
+
 			if lastsave > prevsave {
 				// BGSAVE completed
 				logger.V(1).Info("BGSave finished")
+
 				return nil
 			}
 		case <-ctx.Done():
-			return fmt.Errorf("context cancelled")
+			return errors.New("context cancelled")
 		}
 	}
 }

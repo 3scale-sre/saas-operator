@@ -9,7 +9,6 @@ import (
 func New(key types.NamespacedName, labels map[string]string,
 	secretStoreName, secretStoreKind string, refreshInterval metav1.Duration,
 	data []externalsecretsv1beta1.ExternalSecretData) *externalsecretsv1beta1.ExternalSecret {
-
 	return &externalsecretsv1beta1.ExternalSecret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      key.Name,

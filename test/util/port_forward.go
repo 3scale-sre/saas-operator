@@ -17,7 +17,6 @@ import (
 
 func NewTestPortForwarder(cfg *rest.Config, key types.NamespacedName, localPort, podPort uint32,
 	out io.Writer, stopCh chan struct{}, readyCh chan struct{}) (*portforward.PortForwarder, error) {
-
 	path := fmt.Sprintf("/api/v1/namespaces/%s/pods/%s/portforward",
 		key.Namespace, key.Name)
 	hostIP := strings.TrimPrefix(cfg.Host, "https://")
@@ -26,16 +25,18 @@ func NewTestPortForwarder(cfg *rest.Config, key types.NamespacedName, localPort,
 	if err != nil {
 		return nil, err
 	}
+
 	dialer := spdy.NewDialer(upgrader, &http.Client{Transport: transport}, http.MethodPost, &url.URL{Scheme: "https", Path: path, Host: hostIP})
+
 	fw, err := portforward.New(dialer, []string{fmt.Sprintf("%d:%d", localPort, podPort)}, stopCh, readyCh, out, out)
 	if err != nil {
 		return nil, err
 	}
+
 	return fw, nil
 }
 
 func PortForward(cfg *rest.Config, key types.NamespacedName, podPort uint32) (uint32, chan struct{}, error) {
-
 	localPort, err := freeport.GetFreePort()
 	if err != nil {
 		return 0, nil, err
@@ -47,10 +48,12 @@ func PortForward(cfg *rest.Config, key types.NamespacedName, podPort uint32) (ui
 
 	go func() {
 		defer GinkgoRecover()
+
 		fw, err := NewTestPortForwarder(cfg, key, uint32(localPort), podPort, GinkgoWriter, stopCh, readyCh)
 		if err != nil {
 			errCh <- err
 		}
+
 		err = fw.ForwardPorts()
 		if err != nil {
 			errCh <- err

@@ -1,8 +1,6 @@
 package corsproxy
 
 import (
-	"fmt"
-
 	"github.com/3scale-sre/basereconciler/mutators"
 	"github.com/3scale-sre/basereconciler/resource"
 	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
@@ -70,6 +68,7 @@ func (gen *Generator) Resources() ([]resource.TemplateInterface, error) {
 			grafanadashboard.New(gen.GetKey(), gen.GetLabels(), *gen.Spec.GrafanaDashboard, "dashboards/cors-proxy.json.gtpl")).
 			WithEnabled(!gen.Spec.GrafanaDashboard.IsDeactivated()),
 	}
+
 	return operatorutil.ConcatSlices(workload, externalsecrets, misc), nil
 }
 
@@ -97,7 +96,7 @@ func (gen *Generator) SendTraffic() bool { return gen.Traffic }
 
 func (gen *Generator) TrafficSelector() map[string]string {
 	return map[string]string{
-		fmt.Sprintf("%s/traffic", saasv1alpha1.GroupVersion.Group): component,
+		saasv1alpha1.GroupVersion.Group + "/traffic": component,
 	}
 }
 

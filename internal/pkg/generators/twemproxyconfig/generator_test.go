@@ -2,10 +2,9 @@ package twemproxyconfig
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"testing"
 
-	"github.com/3scale-sre/basereconciler/util"
 	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	"github.com/3scale-sre/saas-operator/internal/pkg/generators"
 	redis_client "github.com/3scale-sre/saas-operator/internal/pkg/redis/client"
@@ -16,6 +15,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -27,6 +27,7 @@ func TestNewGenerator(t *testing.T) {
 		pool     *server.ServerPool
 		log      logr.Logger
 	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -43,7 +44,7 @@ func TestNewGenerator(t *testing.T) {
 						SentinelURIs: []string{"redis://127.0.0.1:26379"},
 						ServerPools: []saasv1alpha1.TwemproxyServerPool{{
 							Name:   "test-pool",
-							Target: util.Pointer(saasv1alpha1.Masters),
+							Target: ptr.To(saasv1alpha1.Masters),
 							Topology: []saasv1alpha1.ShardedRedisTopology{
 								{ShardName: "l-shard00", PhysicalShard: "shard0"},
 								{ShardName: "l-shard01", PhysicalShard: "shard0"},
@@ -56,7 +57,7 @@ func TestNewGenerator(t *testing.T) {
 							TCPBacklog:  512,
 							PreConnect:  false,
 						}},
-						ReconcileServerPools: util.Pointer(true),
+						ReconcileServerPools: ptr.To(true),
 					},
 				},
 				cl: nil,
@@ -72,43 +73,43 @@ func TestNewGenerator(t *testing.T) {
 					server.NewFakeServerWithFakeClient("127.0.0.1", "26379",
 						redis_client.FakeResponse{
 							// cmd: Ping
-							InjectResponse: func() interface{} { return nil },
+							InjectResponse: func() any { return nil },
 							InjectError:    func() error { return nil },
 						},
 						redis_client.FakeResponse{
 							// cmd: SentinelMasters()
-							InjectResponse: func() interface{} {
-								return []interface{}{
-									[]interface{}{"name", "shard0", "ip", "127.0.0.1", "port", "1000"},
-									[]interface{}{"name", "shard1", "ip", "127.0.0.1", "port", "5000"},
+							InjectResponse: func() any {
+								return []any{
+									[]any{"name", "shard0", "ip", "127.0.0.1", "port", "1000"},
+									[]any{"name", "shard1", "ip", "127.0.0.1", "port", "5000"},
 								}
 							},
 							InjectError: func() error { return nil },
 						},
 						redis_client.FakeResponse{
 							// cmd: SentinelMaster (shard0)
-							InjectResponse: func() interface{} {
+							InjectResponse: func() any {
 								return &redis_client.SentinelMasterCmdResult{Name: "shard0", IP: "127.0.0.1", Port: 1000, Flags: "master"}
 							},
 							InjectError: func() error { return nil },
 						},
 						redis_client.FakeResponse{
 							// cmd: SentinelGetMasterAddrByName (shard0)
-							InjectResponse: func() interface{} {
+							InjectResponse: func() any {
 								return []string{"127.0.0.1", "1000"}
 							},
 							InjectError: func() error { return nil },
 						},
 						redis_client.FakeResponse{
 							// cmd: SentinelMaster (shard1)
-							InjectResponse: func() interface{} {
+							InjectResponse: func() any {
 								return &redis_client.SentinelMasterCmdResult{Name: "shard1", IP: "127.0.0.1", Port: 5000, Flags: "master"}
 							},
 							InjectError: func() error { return nil },
 						},
 						redis_client.FakeResponse{
 							// cmd: SentinelGetMasterAddrByName (shard1)
-							InjectResponse: func() interface{} {
+							InjectResponse: func() any {
 								return []string{"127.0.0.1", "5000"}
 							},
 							InjectError: func() error { return nil },
@@ -130,7 +131,7 @@ func TestNewGenerator(t *testing.T) {
 					SentinelURIs: []string{"redis://127.0.0.1:26379"},
 					ServerPools: []saasv1alpha1.TwemproxyServerPool{{
 						Name:   "test-pool",
-						Target: util.Pointer(saasv1alpha1.Masters),
+						Target: ptr.To(saasv1alpha1.Masters),
 						Topology: []saasv1alpha1.ShardedRedisTopology{
 							{ShardName: "l-shard00", PhysicalShard: "shard0"},
 							{ShardName: "l-shard01", PhysicalShard: "shard0"},
@@ -143,7 +144,7 @@ func TestNewGenerator(t *testing.T) {
 						TCPBacklog:  512,
 						PreConnect:  false,
 					}},
-					ReconcileServerPools: util.Pointer(true),
+					ReconcileServerPools: ptr.To(true),
 				},
 				masterTargets: map[string]twemproxy.Server{
 					"shard0": {
@@ -169,7 +170,7 @@ func TestNewGenerator(t *testing.T) {
 						SentinelURIs: []string{"redis://127.0.0.1:26379"},
 						ServerPools: []saasv1alpha1.TwemproxyServerPool{{
 							Name:   "test-pool",
-							Target: util.Pointer(saasv1alpha1.Masters),
+							Target: ptr.To(saasv1alpha1.Masters),
 							Topology: []saasv1alpha1.ShardedRedisTopology{
 								{ShardName: "l-shard00", PhysicalShard: "shard0"},
 								{ShardName: "l-shard01", PhysicalShard: "shard0"},
@@ -182,7 +183,7 @@ func TestNewGenerator(t *testing.T) {
 							TCPBacklog:  512,
 							PreConnect:  false,
 						}},
-						ReconcileServerPools: util.Pointer(true),
+						ReconcileServerPools: ptr.To(true),
 					},
 				},
 				cl: nil,
@@ -191,8 +192,8 @@ func TestNewGenerator(t *testing.T) {
 					server.NewFakeServerWithFakeClient("127.0.0.1", "26379",
 						redis_client.FakeResponse{
 							// cmd: Ping
-							InjectResponse: func() interface{} { return nil },
-							InjectError:    func() error { return fmt.Errorf("error") },
+							InjectResponse: func() any { return nil },
+							InjectError:    func() error { return errors.New("error") },
 						},
 					),
 				),
@@ -211,7 +212,7 @@ func TestNewGenerator(t *testing.T) {
 						SentinelURIs: []string{"redis://127.0.0.1:26379"},
 						ServerPools: []saasv1alpha1.TwemproxyServerPool{{
 							Name:   "test-pool",
-							Target: util.Pointer(saasv1alpha1.SlavesRW),
+							Target: ptr.To(saasv1alpha1.SlavesRW),
 							Topology: []saasv1alpha1.ShardedRedisTopology{
 								{ShardName: "l-shard00", PhysicalShard: "shard0"},
 								{ShardName: "l-shard01", PhysicalShard: "shard0"},
@@ -224,7 +225,7 @@ func TestNewGenerator(t *testing.T) {
 							TCPBacklog:  512,
 							PreConnect:  false,
 						}},
-						ReconcileServerPools: util.Pointer(true),
+						ReconcileServerPools: ptr.To(true),
 					},
 				},
 				cl: nil,
@@ -252,44 +253,44 @@ func TestNewGenerator(t *testing.T) {
 					server.NewFakeServerWithFakeClient("127.0.0.1", "26379",
 						redis_client.FakeResponse{
 							// cmd: Ping
-							InjectResponse: func() interface{} { return nil },
+							InjectResponse: func() any { return nil },
 							InjectError:    func() error { return nil },
 						},
 						redis_client.FakeResponse{
 							// cmd: SentinelMasters()
-							InjectResponse: func() interface{} {
-								return []interface{}{
-									[]interface{}{"name", "shard0", "ip", "127.0.0.1", "port", "1000"},
-									[]interface{}{"name", "shard1", "ip", "127.0.0.1", "port", "5000"},
+							InjectResponse: func() any {
+								return []any{
+									[]any{"name", "shard0", "ip", "127.0.0.1", "port", "1000"},
+									[]any{"name", "shard1", "ip", "127.0.0.1", "port", "5000"},
 								}
 							},
 							InjectError: func() error { return nil },
 						},
 						redis_client.FakeResponse{
 							// cmd: SentinelMaster (shard0)
-							InjectResponse: func() interface{} {
+							InjectResponse: func() any {
 								return &redis_client.SentinelMasterCmdResult{Name: "shard0", IP: "127.0.0.1", Port: 1000, Flags: "master"}
 							},
 							InjectError: func() error { return nil },
 						},
 						redis_client.FakeResponse{
 							// cmd: SentinelGetMasterAddrByName (shard0)
-							InjectResponse: func() interface{} {
+							InjectResponse: func() any {
 								return []string{"127.0.0.1", "1000"}
 							},
 							InjectError: func() error { return nil },
 						},
 						redis_client.FakeResponse{
 							// cmd: SentinelSlaves (shard0)
-							InjectResponse: func() interface{} {
-								return []interface{}{
-									[]interface{}{
+							InjectResponse: func() any {
+								return []any{
+									[]any{
 										"name", "127.0.0.1:2000",
 										"ip", "127.0.0.1",
 										"port", "2000",
 										"flags", "slave",
 									},
-									[]interface{}{
+									[]any{
 										"name", "127.0.0.1:3000",
 										"ip", "127.0.0.1",
 										"port", "3000",
@@ -301,29 +302,29 @@ func TestNewGenerator(t *testing.T) {
 						},
 						redis_client.FakeResponse{
 							// cmd: SentinelMaster (shard1)
-							InjectResponse: func() interface{} {
+							InjectResponse: func() any {
 								return &redis_client.SentinelMasterCmdResult{Name: "shard1", IP: "127.0.0.1", Port: 5000, Flags: "master"}
 							},
 							InjectError: func() error { return nil },
 						},
 						redis_client.FakeResponse{
 							// cmd: SentinelGetMasterAddrByName (shard1)
-							InjectResponse: func() interface{} {
+							InjectResponse: func() any {
 								return []string{"127.0.0.1", "5000"}
 							},
 							InjectError: func() error { return nil },
 						},
 						redis_client.FakeResponse{
 							// cmd: SentinelSlaves (shard1)
-							InjectResponse: func() interface{} {
-								return []interface{}{
-									[]interface{}{
+							InjectResponse: func() any {
+								return []any{
+									[]any{
 										"name", "127.0.0.1:4000",
 										"ip", "127.0.0.1",
 										"port", "4000",
 										"flags", "slave",
 									},
-									[]interface{}{
+									[]any{
 										"name", "127.0.0.1:6000",
 										"ip", "127.0.0.1",
 										"port", "6000",
@@ -350,7 +351,7 @@ func TestNewGenerator(t *testing.T) {
 					SentinelURIs: []string{"redis://127.0.0.1:26379"},
 					ServerPools: []saasv1alpha1.TwemproxyServerPool{{
 						Name:   "test-pool",
-						Target: util.Pointer(saasv1alpha1.SlavesRW),
+						Target: ptr.To(saasv1alpha1.SlavesRW),
 						Topology: []saasv1alpha1.ShardedRedisTopology{
 							{ShardName: "l-shard00", PhysicalShard: "shard0"},
 							{ShardName: "l-shard01", PhysicalShard: "shard0"},
@@ -363,7 +364,7 @@ func TestNewGenerator(t *testing.T) {
 						TCPBacklog:  512,
 						PreConnect:  false,
 					}},
-					ReconcileServerPools: util.Pointer(true),
+					ReconcileServerPools: ptr.To(true),
 				},
 				masterTargets: map[string]twemproxy.Server{
 					"shard0": {
@@ -398,7 +399,7 @@ func TestNewGenerator(t *testing.T) {
 						SentinelURIs: []string{"redis://127.0.0.1:26379"},
 						ServerPools: []saasv1alpha1.TwemproxyServerPool{{
 							Name:   "test-pool",
-							Target: util.Pointer(saasv1alpha1.SlavesRW),
+							Target: ptr.To(saasv1alpha1.SlavesRW),
 							Topology: []saasv1alpha1.ShardedRedisTopology{
 								{ShardName: "l-shard00", PhysicalShard: "shard0"},
 								{ShardName: "l-shard01", PhysicalShard: "shard0"},
@@ -411,7 +412,7 @@ func TestNewGenerator(t *testing.T) {
 							TCPBacklog:  512,
 							PreConnect:  false,
 						}},
-						ReconcileServerPools: util.Pointer(true),
+						ReconcileServerPools: ptr.To(true),
 					},
 				},
 				cl: nil,
@@ -436,44 +437,44 @@ func TestNewGenerator(t *testing.T) {
 					server.NewFakeServerWithFakeClient("127.0.0.1", "26379",
 						redis_client.FakeResponse{
 							// cmd: Ping
-							InjectResponse: func() interface{} { return nil },
+							InjectResponse: func() any { return nil },
 							InjectError:    func() error { return nil },
 						},
 						redis_client.FakeResponse{
 							// cmd: SentinelMasters()
-							InjectResponse: func() interface{} {
-								return []interface{}{
-									[]interface{}{"name", "shard0", "ip", "127.0.0.1", "port", "1000"},
-									[]interface{}{"name", "shard1", "ip", "127.0.0.1", "port", "5000"},
+							InjectResponse: func() any {
+								return []any{
+									[]any{"name", "shard0", "ip", "127.0.0.1", "port", "1000"},
+									[]any{"name", "shard1", "ip", "127.0.0.1", "port", "5000"},
 								}
 							},
 							InjectError: func() error { return nil },
 						},
 						redis_client.FakeResponse{
 							// cmd: SentinelMaster (shard0)
-							InjectResponse: func() interface{} {
+							InjectResponse: func() any {
 								return &redis_client.SentinelMasterCmdResult{Name: "shard0", IP: "127.0.0.1", Port: 1000, Flags: "master"}
 							},
 							InjectError: func() error { return nil },
 						},
 						redis_client.FakeResponse{
 							// cmd: SentinelGetMasterAddrByName (shard0)
-							InjectResponse: func() interface{} {
+							InjectResponse: func() any {
 								return []string{"127.0.0.1", "1000"}
 							},
 							InjectError: func() error { return nil },
 						},
 						redis_client.FakeResponse{
 							// cmd: SentinelSlaves (shard0)
-							InjectResponse: func() interface{} {
-								return []interface{}{
-									[]interface{}{
+							InjectResponse: func() any {
+								return []any{
+									[]any{
 										"name", "127.0.0.1:2000",
 										"ip", "127.0.0.1",
 										"port", "2000",
 										"flags", "slave,s_down", // slave is down
 									},
-									[]interface{}{
+									[]any{
 										"name", "127.0.0.1:3000",
 										"ip", "127.0.0.1",
 										"port", "3000",
@@ -485,29 +486,29 @@ func TestNewGenerator(t *testing.T) {
 						},
 						redis_client.FakeResponse{
 							// cmd: SentinelMaster (shard1)
-							InjectResponse: func() interface{} {
+							InjectResponse: func() any {
 								return &redis_client.SentinelMasterCmdResult{Name: "shard1", IP: "127.0.0.1", Port: 5000, Flags: "master"}
 							},
 							InjectError: func() error { return nil },
 						},
 						redis_client.FakeResponse{
 							// cmd: SentinelGetMasterAddrByName (shard1)
-							InjectResponse: func() interface{} {
+							InjectResponse: func() any {
 								return []string{"127.0.0.1", "5000"}
 							},
 							InjectError: func() error { return nil },
 						},
 						redis_client.FakeResponse{
 							// cmd: SentinelSlaves (shard1)
-							InjectResponse: func() interface{} {
-								return []interface{}{
-									[]interface{}{
+							InjectResponse: func() any {
+								return []any{
+									[]any{
 										"name", "127.0.0.1:4000",
 										"ip", "127.0.0.1",
 										"port", "4000",
 										"flags", "slave",
 									},
-									[]interface{}{
+									[]any{
 										"name", "127.0.0.1:6000",
 										"ip", "127.0.0.1",
 										"port", "6000",
@@ -534,7 +535,7 @@ func TestNewGenerator(t *testing.T) {
 					SentinelURIs: []string{"redis://127.0.0.1:26379"},
 					ServerPools: []saasv1alpha1.TwemproxyServerPool{{
 						Name:   "test-pool",
-						Target: util.Pointer(saasv1alpha1.SlavesRW),
+						Target: ptr.To(saasv1alpha1.SlavesRW),
 						Topology: []saasv1alpha1.ShardedRedisTopology{
 							{ShardName: "l-shard00", PhysicalShard: "shard0"},
 							{ShardName: "l-shard01", PhysicalShard: "shard0"},
@@ -547,7 +548,7 @@ func TestNewGenerator(t *testing.T) {
 						TCPBacklog:  512,
 						PreConnect:  false,
 					}},
-					ReconcileServerPools: util.Pointer(true),
+					ReconcileServerPools: ptr.To(true),
 				},
 				masterTargets: map[string]twemproxy.Server{
 					"shard0": {
@@ -582,7 +583,7 @@ func TestNewGenerator(t *testing.T) {
 						SentinelURIs: []string{"redis://127.0.0.1:26379"},
 						ServerPools: []saasv1alpha1.TwemproxyServerPool{{
 							Name:   "test-pool",
-							Target: util.Pointer(saasv1alpha1.SlavesRW),
+							Target: ptr.To(saasv1alpha1.SlavesRW),
 							Topology: []saasv1alpha1.ShardedRedisTopology{
 								{ShardName: "l-shard00", PhysicalShard: "shard0"},
 								{ShardName: "l-shard01", PhysicalShard: "shard0"},
@@ -595,7 +596,7 @@ func TestNewGenerator(t *testing.T) {
 							TCPBacklog:  512,
 							PreConnect:  false,
 						}},
-						ReconcileServerPools: util.Pointer(true),
+						ReconcileServerPools: ptr.To(true),
 					},
 				},
 				cl: nil,
@@ -615,58 +616,58 @@ func TestNewGenerator(t *testing.T) {
 					server.NewFakeServerWithFakeClient("127.0.0.1", "26379",
 						redis_client.FakeResponse{
 							// cmd: Ping
-							InjectResponse: func() interface{} { return nil },
+							InjectResponse: func() any { return nil },
 							InjectError:    func() error { return nil },
 						},
 						redis_client.FakeResponse{
 							// cmd: SentinelMasters()
-							InjectResponse: func() interface{} {
-								return []interface{}{
-									[]interface{}{"name", "shard0", "ip", "127.0.0.1", "port", "1000"},
-									[]interface{}{"name", "shard1", "ip", "127.0.0.1", "port", "5000"},
+							InjectResponse: func() any {
+								return []any{
+									[]any{"name", "shard0", "ip", "127.0.0.1", "port", "1000"},
+									[]any{"name", "shard1", "ip", "127.0.0.1", "port", "5000"},
 								}
 							},
 							InjectError: func() error { return nil },
 						},
 						redis_client.FakeResponse{
 							// cmd: SentinelMaster (shard0)
-							InjectResponse: func() interface{} {
+							InjectResponse: func() any {
 								return &redis_client.SentinelMasterCmdResult{Name: "shard0", IP: "127.0.0.1", Port: 1000, Flags: "master,o_down"}
 							},
 							InjectError: func() error { return nil },
 						},
 						redis_client.FakeResponse{
 							// cmd: SentinelGetMasterAddrByName (shard0)
-							InjectResponse: func() interface{} {
+							InjectResponse: func() any {
 								return []string{"127.0.0.1", "1000"}
 							},
 							InjectError: func() error { return nil },
 						},
 						redis_client.FakeResponse{
 							// cmd: SentinelMaster (shard1)
-							InjectResponse: func() interface{} {
+							InjectResponse: func() any {
 								return &redis_client.SentinelMasterCmdResult{Name: "shard1", IP: "127.0.0.1", Port: 5000, Flags: "master"}
 							},
 							InjectError: func() error { return nil },
 						},
 						redis_client.FakeResponse{
 							// cmd: SentinelGetMasterAddrByName (shard1)
-							InjectResponse: func() interface{} {
+							InjectResponse: func() any {
 								return []string{"127.0.0.1", "5000"}
 							},
 							InjectError: func() error { return nil },
 						},
 						redis_client.FakeResponse{
 							// cmd: SentinelSlaves (shard1)
-							InjectResponse: func() interface{} {
-								return []interface{}{
-									[]interface{}{
+							InjectResponse: func() any {
+								return []any{
+									[]any{
 										"name", "127.0.0.1:4000",
 										"ip", "127.0.0.1",
 										"port", "4000",
 										"flags", "slave",
 									},
-									[]interface{}{
+									[]any{
 										"name", "127.0.0.1:6000",
 										"ip", "127.0.0.1",
 										"port", "6000",
@@ -689,9 +690,12 @@ func TestNewGenerator(t *testing.T) {
 			got, err := NewGenerator(tt.args.ctx, tt.args.instance, tt.args.cl, tt.args.pool, tt.args.log)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewGenerator() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
+
 			deep.CompareUnexportedFields = true
+
 			if diff := cmp.Diff(got, tt.want, cmp.AllowUnexported(Generator{}), cmpopts.IgnoreUnexported(twemproxy.Server{})); len(diff) != 0 {
 				t.Errorf("NewGenerator() = diff %v", diff)
 			}

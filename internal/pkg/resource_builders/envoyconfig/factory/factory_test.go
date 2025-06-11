@@ -13,7 +13,7 @@ import (
 type unregisteredType struct{ opts *opts }
 type opts struct{}
 
-func (x *unregisteredType) GetOptions() interface{}     { return x.opts }
+func (x *unregisteredType) GetOptions() any             { return x.opts }
 func (x *unregisteredType) GetGeneratorVersion() string { return "" }
 func (x *unregisteredType) GetName() string             { return "" }
 
@@ -27,11 +27,11 @@ type testOptions struct {
 	structpb *structpb.Struct
 }
 
-func (x *testDescriptor) GetOptions() interface{}     { return x.opts }
+func (x *testDescriptor) GetOptions() any             { return x.opts }
 func (x *testDescriptor) GetGeneratorVersion() string { return x.generatorVersion }
 func (x *testDescriptor) GetName() string             { return x.name }
 
-func testTemplate(name string, opts interface{}) (envoy.Resource, error) {
+func testTemplate(name string, opts any) (envoy.Resource, error) {
 	o := opts.(*testOptions)
 
 	return &envoy_service_runtime_v3.Runtime{
@@ -48,6 +48,7 @@ func TestEnvoyDynamicConfigFactory_NewResource(t *testing.T) {
 	type args struct {
 		descriptor descriptor.EnvoyDynamicConfigDescriptor
 	}
+
 	tests := []struct {
 		name    string
 		factory EnvoyDynamicConfigFactory
@@ -64,11 +65,12 @@ func TestEnvoyDynamicConfigFactory_NewResource(t *testing.T) {
 					generatorVersion: "v1",
 					opts: &testOptions{
 						structpb: func() *structpb.Struct {
-							l, _ := structpb.NewStruct(map[string]interface{}{
-								"key": map[string]interface{}{
-									"key": map[string]interface{}{},
+							l, _ := structpb.NewStruct(map[string]any{
+								"key": map[string]any{
+									"key": map[string]any{},
 								},
 							})
+
 							return l
 						}(),
 					},
@@ -78,11 +80,12 @@ func TestEnvoyDynamicConfigFactory_NewResource(t *testing.T) {
 				return &envoy_service_runtime_v3.Runtime{
 					Name: "test",
 					Layer: func() *structpb.Struct {
-						l, _ := structpb.NewStruct(map[string]interface{}{
-							"key": map[string]interface{}{
-								"key": map[string]interface{}{},
+						l, _ := structpb.NewStruct(map[string]any{
+							"key": map[string]any{
+								"key": map[string]any{},
 							},
 						})
+
 						return l
 					}(),
 				}
@@ -104,8 +107,10 @@ func TestEnvoyDynamicConfigFactory_NewResource(t *testing.T) {
 			got, err := tt.factory.NewResource(tt.args.descriptor)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("EnvoyDynamicConfigFactory.NewResource() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
+
 			if !proto.Equal(got, tt.want) {
 				t.Errorf("EnvoyDynamicConfigFactory.NewResource() = %v, want %v", got, tt.want)
 			}

@@ -13,7 +13,6 @@ import (
 // New returns a basereconciler_types.GeneratorFunction function that will return an HorizontalPodAutoscaler
 // resource when called
 func New(key types.NamespacedName, labels map[string]string, cfg saasv1alpha1.HorizontalPodAutoscalerSpec) func(client.Object) (*autoscalingv2.HorizontalPodAutoscaler, error) {
-
 	return func(client.Object) (*autoscalingv2.HorizontalPodAutoscaler, error) {
 		hpa := autoscalingv2.HorizontalPodAutoscaler{
 			ObjectMeta: metav1.ObjectMeta{

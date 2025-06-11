@@ -3,33 +3,32 @@ package v1alpha1
 import (
 	"time"
 
-	"github.com/3scale-sre/basereconciler/util"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/ptr"
 )
 
 var (
 	// Twemproxy defaults
 	defaultTwemproxyLivenessProbe defaultProbeSpec = defaultProbeSpec{
-		InitialDelaySeconds: util.Pointer[int32](0),
-		TimeoutSeconds:      util.Pointer[int32](1),
-		PeriodSeconds:       util.Pointer[int32](5),
-		SuccessThreshold:    util.Pointer[int32](1),
-		FailureThreshold:    util.Pointer[int32](3),
+		InitialDelaySeconds: ptr.To[int32](0),
+		TimeoutSeconds:      ptr.To[int32](1),
+		PeriodSeconds:       ptr.To[int32](5),
+		SuccessThreshold:    ptr.To[int32](1),
+		FailureThreshold:    ptr.To[int32](3),
 	}
 	defaultTwemproxyReadinessProbe defaultProbeSpec = defaultProbeSpec{
-		InitialDelaySeconds: util.Pointer[int32](0),
-		TimeoutSeconds:      util.Pointer[int32](1),
-		PeriodSeconds:       util.Pointer[int32](5),
-		SuccessThreshold:    util.Pointer[int32](1),
-		FailureThreshold:    util.Pointer[int32](3),
+		InitialDelaySeconds: ptr.To[int32](0),
+		TimeoutSeconds:      ptr.To[int32](1),
+		PeriodSeconds:       ptr.To[int32](5),
+		SuccessThreshold:    ptr.To[int32](1),
+		FailureThreshold:    ptr.To[int32](3),
 	}
-	// TODO: add requirements
 	defaultTwemproxyResources defaultResourceRequirementsSpec = defaultResourceRequirementsSpec{}
 	defaultTwemproxyImage     defaultImageSpec                = defaultImageSpec{
-		Name:       util.Pointer("quay.io/3scale/twemproxy"),
-		Tag:        util.Pointer("v0.5.0"),
-		PullPolicy: (*corev1.PullPolicy)(util.Pointer(string(corev1.PullIfNotPresent))),
+		Name:       ptr.To("quay.io/3scale/twemproxy"),
+		Tag:        ptr.To("v0.5.0"),
+		PullPolicy: (*corev1.PullPolicy)(ptr.To(string(corev1.PullIfNotPresent))),
 	}
 	twemproxyDefaultLogLevel      int32           = 6
 	twemproxyDefaultMetricsPort   int32           = 9151
@@ -71,14 +70,15 @@ func (spec *TwemproxySpec) ConfigMapName() string {
 
 // Default implements defaulting for the each backend cron
 func (spec *TwemproxySpec) Default() {
-
 	spec.Image = InitializeImageSpec(spec.Image, defaultTwemproxyImage)
 	spec.Resources = InitializeResourceRequirementsSpec(spec.Resources, defaultTwemproxyResources)
 	spec.LivenessProbe = InitializeProbeSpec(spec.LivenessProbe, defaultTwemproxyLivenessProbe)
 	spec.ReadinessProbe = InitializeProbeSpec(spec.ReadinessProbe, defaultTwemproxyReadinessProbe)
+
 	if spec.Options == nil {
 		spec.Options = &TwemproxyOptions{}
 	}
+
 	spec.Options.Default()
 }
 
@@ -100,6 +100,7 @@ type TwemproxyOptions struct {
 func (opts *TwemproxyOptions) Default() {
 	opts.LogLevel = intOrDefault(opts.LogLevel, &twemproxyDefaultLogLevel)
 	opts.MetricsPort = intOrDefault(opts.MetricsPort, &twemproxyDefaultMetricsPort)
+
 	if opts.StatsInterval == nil {
 		opts.StatsInterval = &twemproxyDefaultStatsInterval
 	}

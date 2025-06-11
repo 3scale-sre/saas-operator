@@ -62,9 +62,9 @@ type SentinelReconciler struct {
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
 func (r *SentinelReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-
 	ctx, logger := r.Logger(ctx, "name", req.Name, "namespace", req.Namespace)
 	instance := &saasv1alpha1.Sentinel{}
+
 	result := r.ManageResourceLifecycle(ctx, req, instance,
 		reconciler.WithInMemoryInitializationFunc(util.ResourceDefaulter(instance)),
 		reconciler.WithFinalizer(saasv1alpha1.Finalizer),
@@ -76,6 +76,7 @@ func (r *SentinelReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	gen := sentinel.NewGenerator(instance.GetName(), instance.GetNamespace(), instance.Spec)
+
 	result = r.ReconcileOwnedResources(ctx, instance, gen.Resources())
 	if result.ShouldReturn() {
 		return result.Values()
@@ -85,6 +86,7 @@ func (r *SentinelReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	if err != nil {
 		return ctrl.Result{}, err
 	}
+
 	shardedCluster, err := sharded.NewShardedClusterFromTopology(ctx, clustermap, r.Pool)
 	if err != nil {
 		return ctrl.Result{}, err
@@ -96,10 +98,12 @@ func (r *SentinelReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		if err != nil {
 			return ctrl.Result{}, err
 		}
+
 		if !allMonitored {
 			if err := shardedCluster.Discover(ctx); err != nil {
 				return ctrl.Result{}, err
 			}
+
 			if _, err := sentinel.Monitor(ctx, shardedCluster, saasv1alpha1.SentinelDefaultQuorum); err != nil {
 				return ctrl.Result{}, err
 			}
@@ -109,21 +113,26 @@ func (r *SentinelReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	// Reconcile sentinel the event watchers and metrics gatherers
 	eventWatchers := make([]threads.RunnableThread, 0, len(gen.SentinelURIs()))
 	metricsGatherers := make([]threads.RunnableThread, 0, len(gen.SentinelURIs()))
+
 	for _, uri := range gen.SentinelURIs() {
 		watcher, err := events.NewSentinelEventWatcher(uri, instance, shardedCluster, true, r.Pool)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
+
 		gatherer, err := metrics.NewSentinelMetricsGatherer(uri, *gen.Spec.Config.MetricsRefreshInterval, r.Pool)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
+
 		eventWatchers = append(eventWatchers, watcher)
 		metricsGatherers = append(metricsGatherers, gatherer)
 	}
+
 	if err := r.SentinelEvents.ReconcileThreads(ctx, instance, eventWatchers, logger.WithName("event-watcher")); err != nil {
 		return ctrl.Result{}, err
 	}
+
 	if err := r.Metrics.ReconcileThreads(ctx, instance, metricsGatherers, logger.WithName("metrics-gatherer")); err != nil {
 		return ctrl.Result{}, err
 	}
@@ -142,7 +151,6 @@ func (r *SentinelReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 func sentinelStatusReconciler(ctx context.Context,
 	instance *saasv1alpha1.Sentinel, cluster *sharded.Cluster, log logr.Logger) (bool, error) {
-
 	// sentinels info to the status
 	sentinels := make([]string, len(cluster.Sentinels))
 	for idx, srv := range cluster.Sentinels {
@@ -165,6 +173,7 @@ func sentinelStatusReconciler(ctx context.Context,
 	masterError := &sharded.DiscoveryError_Master_SingleServerFailure{}
 	slaveError := &sharded.DiscoveryError_Slave_SingleServerFailure{}
 	failoverInProgressError := &sharded.DiscoveryError_Slave_FailoverInProgress{}
+
 	if errors.As(merr, masterError) || errors.As(merr, slaveError) || errors.As(merr, failoverInProgressError) {
 		log.Error(merr, "DiscoveryError")
 	}
@@ -195,6 +204,7 @@ func sentinelStatusReconciler(ctx context.Context,
 		// update required
 		instance.Status.Sentinels = sentinels
 		instance.Status.MonitoredShards = shards
+
 		return true, nil
 	}
 

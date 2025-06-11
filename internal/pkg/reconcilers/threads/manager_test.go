@@ -27,6 +27,7 @@ func (trt *TestRunnableThread) Start(context.Context, logr.Logger) error {
 	if trt.TStartError == nil {
 		trt.started = true
 	}
+
 	return trt.TStartError
 }
 func (trt *TestRunnableThread) Stop()              { trt.started = false }
@@ -38,12 +39,14 @@ func TestManager_RunThread(t *testing.T) {
 		channel chan event.GenericEvent
 		threads map[string]RunnableThread
 	}
+
 	type args struct {
 		ctx    context.Context
 		key    string
 		thread RunnableThread
 		log    logr.Logger
 	}
+
 	tests := []struct {
 		name    string
 		fields  fields
@@ -105,9 +108,11 @@ func TestManager_StopThread(t *testing.T) {
 		channel chan event.GenericEvent
 		threads map[string]RunnableThread
 	}
+
 	type args struct {
 		key string
 	}
+
 	tests := []struct {
 		name   string
 		fields fields
@@ -133,6 +138,7 @@ func TestManager_StopThread(t *testing.T) {
 				threads: tt.fields.threads,
 			}
 			mgr.stopThread(tt.args.key)
+
 			if _, ok := mgr.threads[tt.args.key]; ok {
 				t.Errorf("Manager.RunThread() RunnableThread should have been deleted from manager")
 			}
@@ -141,7 +147,6 @@ func TestManager_StopThread(t *testing.T) {
 }
 
 func TestManager_GetChannel(t *testing.T) {
-
 	t.Run("Returns the channel", func(t *testing.T) {
 		ch := make(chan event.GenericEvent)
 		mgr := &Manager{
@@ -149,6 +154,7 @@ func TestManager_GetChannel(t *testing.T) {
 			threads: map[string]RunnableThread{},
 		}
 		msg := event.GenericEvent{Object: &corev1.Namespace{}}
+
 		go func() {
 			ch <- msg
 		}()
@@ -164,12 +170,14 @@ func TestManager_ReconcileThreads(t *testing.T) {
 		channel chan event.GenericEvent
 		threads map[string]RunnableThread
 	}
+
 	type args struct {
 		ctx      context.Context
 		instance client.Object
 		threads  []RunnableThread
 		log      logr.Logger
 	}
+
 	tests := []struct {
 		name    string
 		fields  fields
@@ -265,6 +273,7 @@ func TestManager_ReconcileThreads(t *testing.T) {
 			if err := mgr.ReconcileThreads(tt.args.ctx, tt.args.instance, tt.args.threads, tt.args.log); (err != nil) != tt.wantErr {
 				t.Errorf("Manager.ReconcileThreads() error = %v, wantErr %v", err, tt.wantErr)
 			}
+
 			if diff := deep.Equal(mgr.threads, tt.want); len(diff) > 0 {
 				t.Errorf("Manager.ReconcileThreads() = diff %v", diff)
 			}
@@ -277,9 +286,11 @@ func TestManager_CleanupThreads(t *testing.T) {
 		channel chan event.GenericEvent
 		threads map[string]RunnableThread
 	}
+
 	type args struct {
 		instance client.Object
 	}
+
 	tests := []struct {
 		name   string
 		fields fields
@@ -310,6 +321,7 @@ func TestManager_CleanupThreads(t *testing.T) {
 				threads: tt.fields.threads,
 			}
 			mgr.CleanupThreads(tt.args.instance)(context.TODO(), fake.NewClientBuilder().Build())
+
 			if diff := deep.Equal(mgr.threads, tt.want); len(diff) > 0 {
 				t.Errorf("Manager.CleanupThreads() = diff %v", diff)
 			}
@@ -321,6 +333,7 @@ func Test_prefix(t *testing.T) {
 	type args struct {
 		o client.Object
 	}
+
 	tests := []struct {
 		name string
 		args args

@@ -26,6 +26,7 @@ func (set DiscoveryOptionSet) Has(opt DiscoveryOption) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -39,8 +40,10 @@ func (srv *RedisServer) Discover(ctx context.Context, opts ...DiscoveryOption) e
 	if err != nil {
 		srv.Role = client.Unknown
 		logger.Error(err, fmt.Sprintf("unable to get %s|%s|%s role", srv.GetAlias(), srv.Role, srv.ID()))
+
 		return err
 	}
+
 	srv.Role = role
 
 	if srv.Config == nil {
@@ -48,12 +51,13 @@ func (srv *RedisServer) Discover(ctx context.Context, opts ...DiscoveryOption) e
 	}
 
 	if DiscoveryOptionSet(opts).Has(SaveConfigDiscoveryOpt) {
-
 		save, err := srv.RedisConfigGet(ctx, "save")
 		if err != nil {
 			logger.Error(err, fmt.Sprintf("unable to get %s|%s|%s 'save' option", srv.GetAlias(), srv.Role, srv.ID()))
+
 			return err
 		}
+
 		srv.Config["save"] = save
 	}
 
@@ -61,8 +65,10 @@ func (srv *RedisServer) Discover(ctx context.Context, opts ...DiscoveryOption) e
 		slaveReadOnly, err := srv.RedisConfigGet(ctx, "slave-read-only")
 		if err != nil {
 			logger.Error(err, fmt.Sprintf("unable to get %s|%s|%s 'slave-read-only' option", srv.GetAlias(), srv.Role, srv.ID()))
+
 			return err
 		}
+
 		srv.Config["slave-read-only"] = slaveReadOnly
 	}
 
@@ -70,8 +76,10 @@ func (srv *RedisServer) Discover(ctx context.Context, opts ...DiscoveryOption) e
 		slavePriority, err := srv.RedisConfigGet(ctx, "slave-priority")
 		if err != nil {
 			logger.Error(err, fmt.Sprintf("unable to get %s|%s|%s 'slave-priority' option", srv.GetAlias(), srv.Role, srv.ID()))
+
 			return err
 		}
+
 		srv.Config["slave-priority"] = slavePriority
 	}
 
@@ -79,10 +87,12 @@ func (srv *RedisServer) Discover(ctx context.Context, opts ...DiscoveryOption) e
 		repinfo, err := srv.RedisInfo(ctx, "replication")
 		if err != nil {
 			logger.Error(err, fmt.Sprintf("unable to get %s|%s|%s replication info", srv.GetAlias(), srv.Role, srv.ID()))
+
 			return err
 		}
 
 		var syncInProgress string
+
 		switch flag := repinfo["master_sync_in_progress"]; flag {
 		case "0":
 			syncInProgress = "no"
@@ -90,12 +100,14 @@ func (srv *RedisServer) Discover(ctx context.Context, opts ...DiscoveryOption) e
 			syncInProgress = "yes"
 		default:
 			logger.Error(err, fmt.Sprintf("unexpected value '%s' for 'master_sync_in_progress' %s|%s|%s", flag, srv.GetAlias(), srv.Role, srv.ID()))
+
 			syncInProgress = ""
 		}
 
 		if srv.Info == nil {
 			srv.Info = map[string]string{}
 		}
+
 		srv.Info["replication"] = fmt.Sprintf("master-link: %s, sync-in-progress: %s", repinfo["master_link_status"], syncInProgress)
 	}
 

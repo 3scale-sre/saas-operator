@@ -6,6 +6,7 @@ import "github.com/3scale-sre/saas-operator/internal/pkg/redis/client"
 // provided responses when called. This is only intended for testing.
 func NewFakeServerWithFakeClient(host, port string, responses ...client.FakeResponse) *Server {
 	rsp := []client.FakeResponse{}
+
 	return &Server{
 		host:   host,
 		port:   port,

@@ -532,7 +532,7 @@ spec:
                                   description: |-
                                     Allows defining configuration using directly envoy's config API.
                                     WARNING: no validation of this field's value is performed before
-                                    writting the custom resource to etcd.
+                                    writing the custom resource to etcd.
                                   type: object
                                   x-kubernetes-preserve-unknown-fields: true
                               required:
@@ -1069,7 +1069,7 @@ spec:
                           properties:
                             create:
                               description: |-
-                                Create explicitely tells the controller that this is a new endpoint that
+                                Create explicitly tells the controller that this is a new endpoint that
                                 should be added. Default is false, causing the controller to error when seeing
                                 an unknown endpoint.
                               type: boolean
@@ -1201,7 +1201,7 @@ spec:
                                             description: |-
                                               Allows defining configuration using directly envoy's config API.
                                               WARNING: no validation of this field's value is performed before
-                                              writting the custom resource to etcd.
+                                              writing the custom resource to etcd.
                                             type: object
                                             x-kubernetes-preserve-unknown-fields: true
                                         required:
@@ -1704,7 +1704,7 @@ spec:
                       mode:
                         description: |-
                           PublishingStrategiesReconcileMode specifies if the list of strategies
-                          should be merged with the defautls or replace them entirely. Allowed values
+                          should be merged with the defaults or replace them entirely. Allowed values
                           are "Merge" or "Replace". "Replace" strategy should be used to enable 2 strategies
                           at the same time for a single endpoint.
                         enum:
@@ -2327,7 +2327,7 @@ spec:
                                   description: |-
                                     Allows defining configuration using directly envoy's config API.
                                     WARNING: no validation of this field's value is performed before
-                                    writting the custom resource to etcd.
+                                    writing the custom resource to etcd.
                                   type: object
                                   x-kubernetes-preserve-unknown-fields: true
                               required:
@@ -2864,7 +2864,7 @@ spec:
                           properties:
                             create:
                               description: |-
-                                Create explicitely tells the controller that this is a new endpoint that
+                                Create explicitly tells the controller that this is a new endpoint that
                                 should be added. Default is false, causing the controller to error when seeing
                                 an unknown endpoint.
                               type: boolean
@@ -2996,7 +2996,7 @@ spec:
                                             description: |-
                                               Allows defining configuration using directly envoy's config API.
                                               WARNING: no validation of this field's value is performed before
-                                              writting the custom resource to etcd.
+                                              writing the custom resource to etcd.
                                             type: object
                                             x-kubernetes-preserve-unknown-fields: true
                                         required:
@@ -3499,7 +3499,7 @@ spec:
                       mode:
                         description: |-
                           PublishingStrategiesReconcileMode specifies if the list of strategies
-                          should be merged with the defautls or replace them entirely. Allowed values
+                          should be merged with the defaults or replace them entirely. Allowed values
                           are "Merge" or "Replace". "Replace" strategy should be used to enable 2 strategies
                           at the same time for a single endpoint.
                         enum:

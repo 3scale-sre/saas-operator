@@ -6,10 +6,10 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/3scale-sre/basereconciler/util"
 	"github.com/3scale-sre/saas-operator/internal/pkg/redis/client"
 	redis "github.com/3scale-sre/saas-operator/internal/pkg/redis/server"
 	"github.com/go-test/deep"
+	"k8s.io/utils/ptr"
 )
 
 func TestNewShardedCluster(t *testing.T) {
@@ -18,6 +18,7 @@ func TestNewShardedCluster(t *testing.T) {
 		serverList map[string]map[string]string
 		pool       *redis.ServerPool
 	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -41,60 +42,60 @@ func TestNewShardedCluster(t *testing.T) {
 						Name: "shard00",
 						Servers: []*RedisServer{
 							NewRedisServerFromParams(
-								redis.MustNewServer("redis://127.0.0.1:1000", util.Pointer("srv00-0")),
+								redis.MustNewServer("redis://127.0.0.1:1000", ptr.To("srv00-0")),
 								client.Unknown,
 								map[string]string{},
 							),
 							NewRedisServerFromParams(
-								redis.MustNewServer("redis://127.0.0.1:2000", util.Pointer("srv00-1")),
+								redis.MustNewServer("redis://127.0.0.1:2000", ptr.To("srv00-1")),
 								client.Unknown,
 								map[string]string{},
 							),
 						},
 						pool: redis.NewServerPool(
-							redis.MustNewServer("redis://127.0.0.1:1000", util.Pointer("srv00-0")),
-							redis.MustNewServer("redis://127.0.0.1:2000", util.Pointer("srv00-1")),
-							redis.MustNewServer("redis://127.0.0.1:3000", util.Pointer("srv01-0")),
-							redis.MustNewServer("redis://127.0.0.1:4000", util.Pointer("srv01-1")),
-							redis.MustNewServer("redis://127.0.0.1:5000", util.Pointer("sentinel-0")),
-							redis.MustNewServer("redis://127.0.0.1:6000", util.Pointer("sentinel-1")),
+							redis.MustNewServer("redis://127.0.0.1:1000", ptr.To("srv00-0")),
+							redis.MustNewServer("redis://127.0.0.1:2000", ptr.To("srv00-1")),
+							redis.MustNewServer("redis://127.0.0.1:3000", ptr.To("srv01-0")),
+							redis.MustNewServer("redis://127.0.0.1:4000", ptr.To("srv01-1")),
+							redis.MustNewServer("redis://127.0.0.1:5000", ptr.To("sentinel-0")),
+							redis.MustNewServer("redis://127.0.0.1:6000", ptr.To("sentinel-1")),
 						),
 					},
 					{
 						Name: "shard01",
 						Servers: []*RedisServer{
 							NewRedisServerFromParams(
-								redis.MustNewServer("redis://127.0.0.1:3000", util.Pointer("srv01-0")),
+								redis.MustNewServer("redis://127.0.0.1:3000", ptr.To("srv01-0")),
 								client.Unknown,
 								map[string]string{},
 							),
 							NewRedisServerFromParams(
-								redis.MustNewServer("redis://127.0.0.1:4000", util.Pointer("srv01-1")),
+								redis.MustNewServer("redis://127.0.0.1:4000", ptr.To("srv01-1")),
 								client.Unknown,
 								map[string]string{},
 							),
 						},
 						pool: redis.NewServerPool(
-							redis.MustNewServer("redis://127.0.0.1:1000", util.Pointer("srv00-0")),
-							redis.MustNewServer("redis://127.0.0.1:2000", util.Pointer("srv00-1")),
-							redis.MustNewServer("redis://127.0.0.1:3000", util.Pointer("srv01-0")),
-							redis.MustNewServer("redis://127.0.0.1:4000", util.Pointer("srv01-1")),
-							redis.MustNewServer("redis://127.0.0.1:5000", util.Pointer("sentinel-0")),
-							redis.MustNewServer("redis://127.0.0.1:6000", util.Pointer("sentinel-1")),
+							redis.MustNewServer("redis://127.0.0.1:1000", ptr.To("srv00-0")),
+							redis.MustNewServer("redis://127.0.0.1:2000", ptr.To("srv00-1")),
+							redis.MustNewServer("redis://127.0.0.1:3000", ptr.To("srv01-0")),
+							redis.MustNewServer("redis://127.0.0.1:4000", ptr.To("srv01-1")),
+							redis.MustNewServer("redis://127.0.0.1:5000", ptr.To("sentinel-0")),
+							redis.MustNewServer("redis://127.0.0.1:6000", ptr.To("sentinel-1")),
 						),
 					},
 				},
 				Sentinels: []*SentinelServer{
-					{Server: redis.MustNewServer("redis://127.0.0.1:5000", util.Pointer("sentinel-0"))},
-					{Server: redis.MustNewServer("redis://127.0.0.1:6000", util.Pointer("sentinel-1"))},
+					{Server: redis.MustNewServer("redis://127.0.0.1:5000", ptr.To("sentinel-0"))},
+					{Server: redis.MustNewServer("redis://127.0.0.1:6000", ptr.To("sentinel-1"))},
 				},
 				pool: redis.NewServerPool(
-					redis.MustNewServer("redis://127.0.0.1:1000", util.Pointer("srv00-0")),
-					redis.MustNewServer("redis://127.0.0.1:2000", util.Pointer("srv00-1")),
-					redis.MustNewServer("redis://127.0.0.1:3000", util.Pointer("srv01-0")),
-					redis.MustNewServer("redis://127.0.0.1:4000", util.Pointer("srv01-1")),
-					redis.MustNewServer("redis://127.0.0.1:5000", util.Pointer("sentinel-0")),
-					redis.MustNewServer("redis://127.0.0.1:6000", util.Pointer("sentinel-1")),
+					redis.MustNewServer("redis://127.0.0.1:1000", ptr.To("srv00-0")),
+					redis.MustNewServer("redis://127.0.0.1:2000", ptr.To("srv00-1")),
+					redis.MustNewServer("redis://127.0.0.1:3000", ptr.To("srv01-0")),
+					redis.MustNewServer("redis://127.0.0.1:4000", ptr.To("srv01-1")),
+					redis.MustNewServer("redis://127.0.0.1:5000", ptr.To("sentinel-0")),
+					redis.MustNewServer("redis://127.0.0.1:6000", ptr.To("sentinel-1")),
 				),
 			},
 			wantErr: false,
@@ -118,8 +119,10 @@ func TestNewShardedCluster(t *testing.T) {
 			got, err := NewShardedClusterFromTopology(tt.args.ctx, tt.args.serverList, tt.args.pool)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewShardedCluster() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
+
 			if diff := deep.Equal(got, tt.want); len(diff) > 0 {
 				t.Errorf("NewShardedCluster() got diff: %v", diff)
 			}
@@ -167,6 +170,7 @@ func TestShardedCluster_LookupShardByName(t *testing.T) {
 	type args struct {
 		name string
 	}
+
 	tests := []struct {
 		name string
 		sc   Cluster
@@ -181,7 +185,7 @@ func TestShardedCluster_LookupShardByName(t *testing.T) {
 						Name: "shard00",
 						Servers: []*RedisServer{
 							NewRedisServerFromParams(
-								redis.MustNewServer("redis://127.0.0.1:1000", util.Pointer("srv00-0")),
+								redis.MustNewServer("redis://127.0.0.1:1000", ptr.To("srv00-0")),
 								client.Unknown,
 								map[string]string{},
 							),
@@ -191,7 +195,7 @@ func TestShardedCluster_LookupShardByName(t *testing.T) {
 						Name: "shard01",
 						Servers: []*RedisServer{
 							NewRedisServerFromParams(
-								redis.MustNewServer("redis://127.0.0.1:2000", util.Pointer("srv01-0")),
+								redis.MustNewServer("redis://127.0.0.1:2000", ptr.To("srv01-0")),
 								client.Unknown,
 								map[string]string{},
 							),
@@ -206,7 +210,7 @@ func TestShardedCluster_LookupShardByName(t *testing.T) {
 				Name: "shard01",
 				Servers: []*RedisServer{
 					NewRedisServerFromParams(
-						redis.MustNewServer("redis://127.0.0.1:2000", util.Pointer("srv01-0")),
+						redis.MustNewServer("redis://127.0.0.1:2000", ptr.To("srv01-0")),
 						client.Unknown,
 						map[string]string{},
 					),
@@ -237,10 +241,12 @@ func TestCluster_Discover(t *testing.T) {
 		Sentinels []*SentinelServer
 		pool      *redis.ServerPool
 	}
+
 	type args struct {
 		ctx     context.Context
 		options []DiscoveryOption
 	}
+
 	tests := []struct {
 		name    string
 		fields  fields
@@ -363,10 +369,12 @@ func TestCluster_SentinelDiscover(t *testing.T) {
 		Sentinels []*SentinelServer
 		pool      *redis.ServerPool
 	}
+
 	type args struct {
 		ctx  context.Context
 		opts []DiscoveryOption
 	}
+
 	tests := []struct {
 		name    string
 		fields  fields
@@ -436,44 +444,44 @@ func TestCluster_SentinelDiscover(t *testing.T) {
 					NewSentinelServerFromParams(redis.NewFakeServerWithFakeClient("sentinel-0", "1000",
 						client.FakeResponse{
 							// cmd: Ping
-							InjectResponse: func() interface{} { return nil },
+							InjectResponse: func() any { return nil },
 							InjectError:    func() error { return nil },
 						},
 						client.FakeResponse{
 							// cmd: SentinelMasters()
-							InjectResponse: func() interface{} {
-								return []interface{}{
-									[]interface{}{"name", "shard0", "ip", "127.0.0.1", "port", "1000"},
-									[]interface{}{"name", "shard1", "ip", "127.0.0.1", "port", "5000"},
+							InjectResponse: func() any {
+								return []any{
+									[]any{"name", "shard0", "ip", "127.0.0.1", "port", "1000"},
+									[]any{"name", "shard1", "ip", "127.0.0.1", "port", "5000"},
 								}
 							},
 							InjectError: func() error { return nil },
 						},
 						client.FakeResponse{
 							// cmd: SentinelMaster (shard0)
-							InjectResponse: func() interface{} {
+							InjectResponse: func() any {
 								return &client.SentinelMasterCmdResult{Name: "shard0", IP: "127.0.0.1", Port: 1000, Flags: "master"}
 							},
 							InjectError: func() error { return nil },
 						},
 						client.FakeResponse{
 							// cmd: SentinelGetMasterAddrByName (shard0)
-							InjectResponse: func() interface{} {
+							InjectResponse: func() any {
 								return []string{"127.0.0.1", "1000"}
 							},
 							InjectError: func() error { return nil },
 						},
 						client.FakeResponse{
 							// cmd: SentinelSlaves (shard0)
-							InjectResponse: func() interface{} {
-								return []interface{}{
-									[]interface{}{
+							InjectResponse: func() any {
+								return []any{
+									[]any{
 										"name", "127.0.0.1:2000",
 										"ip", "127.0.0.1",
 										"port", "2000",
 										"flags", "slave",
 									},
-									[]interface{}{
+									[]any{
 										"name", "127.0.0.1:3000",
 										"ip", "127.0.0.1",
 										"port", "3000",
@@ -485,29 +493,29 @@ func TestCluster_SentinelDiscover(t *testing.T) {
 						},
 						client.FakeResponse{
 							// cmd: SentinelMaster (shard1)
-							InjectResponse: func() interface{} {
+							InjectResponse: func() any {
 								return &client.SentinelMasterCmdResult{Name: "shard1", IP: "127.0.0.1", Port: 5000, Flags: "master"}
 							},
 							InjectError: func() error { return nil },
 						},
 						client.FakeResponse{
 							// cmd: SentinelGetMasterAddrByName (shard1)
-							InjectResponse: func() interface{} {
+							InjectResponse: func() any {
 								return []string{"127.0.0.1", "5000"}
 							},
 							InjectError: func() error { return nil },
 						},
 						client.FakeResponse{
 							// cmd: SentinelSlaves (shard1)
-							InjectResponse: func() interface{} {
-								return []interface{}{
-									[]interface{}{
+							InjectResponse: func() any {
+								return []any{
+									[]any{
 										"name", "127.0.0.1:4000",
 										"ip", "127.0.0.1",
 										"port", "4000",
 										"flags", "slave",
 									},
-									[]interface{}{
+									[]any{
 										"name", "127.0.0.1:6000",
 										"ip", "127.0.0.1",
 										"port", "6000",
@@ -521,7 +529,7 @@ func TestCluster_SentinelDiscover(t *testing.T) {
 					NewSentinelServerFromParams(redis.NewFakeServerWithFakeClient("sentinel-1", "2000",
 						client.FakeResponse{
 							// cmd: Ping
-							InjectResponse: func() interface{} { return nil },
+							InjectResponse: func() any { return nil },
 							InjectError:    func() error { return errors.New("ping failed") },
 						},
 					)),
@@ -542,44 +550,44 @@ func TestCluster_SentinelDiscover(t *testing.T) {
 					NewSentinelServerFromParams(redis.NewFakeServerWithFakeClient("sentinel-0", "1000",
 						client.FakeResponse{
 							// cmd: Ping
-							InjectResponse: func() interface{} { return nil },
+							InjectResponse: func() any { return nil },
 							InjectError:    func() error { return nil },
 						},
 						client.FakeResponse{
 							// cmd: SentinelMasters()
-							InjectResponse: func() interface{} {
-								return []interface{}{
-									[]interface{}{"name", "shard0", "ip", "127.0.0.1", "port", "1000"},
-									[]interface{}{"name", "shard1", "ip", "127.0.0.1", "port", "5000"},
+							InjectResponse: func() any {
+								return []any{
+									[]any{"name", "shard0", "ip", "127.0.0.1", "port", "1000"},
+									[]any{"name", "shard1", "ip", "127.0.0.1", "port", "5000"},
 								}
 							},
 							InjectError: func() error { return nil },
 						},
 						client.FakeResponse{
 							// cmd: SentinelMaster (shard0)
-							InjectResponse: func() interface{} {
+							InjectResponse: func() any {
 								return &client.SentinelMasterCmdResult{Name: "shard0", IP: "127.0.0.1", Port: 1000, Flags: "master"}
 							},
 							InjectError: func() error { return nil },
 						},
 						client.FakeResponse{
 							// cmd: SentinelGetMasterAddrByName (shard0)
-							InjectResponse: func() interface{} {
+							InjectResponse: func() any {
 								return []string{"127.0.0.1", "1000"}
 							},
 							InjectError: func() error { return nil },
 						},
 						client.FakeResponse{
 							// cmd: SentinelSlaves (shard0)
-							InjectResponse: func() interface{} {
-								return []interface{}{
-									[]interface{}{
+							InjectResponse: func() any {
+								return []any{
+									[]any{
 										"name", "127.0.0.1:2000",
 										"ip", "127.0.0.1",
 										"port", "2000",
 										"flags", "slave",
 									},
-									[]interface{}{
+									[]any{
 										"name", "127.0.0.1:3000",
 										"ip", "127.0.0.1",
 										"port", "3000",
@@ -591,29 +599,29 @@ func TestCluster_SentinelDiscover(t *testing.T) {
 						},
 						client.FakeResponse{
 							// cmd: SentinelMaster (shard1)
-							InjectResponse: func() interface{} {
+							InjectResponse: func() any {
 								return &client.SentinelMasterCmdResult{Name: "shard1", IP: "127.0.0.1", Port: 5000, Flags: "master"}
 							},
 							InjectError: func() error { return nil },
 						},
 						client.FakeResponse{
 							// cmd: SentinelGetMasterAddrByName (shard1)
-							InjectResponse: func() interface{} {
+							InjectResponse: func() any {
 								return []string{"127.0.0.1", "5000"}
 							},
 							InjectError: func() error { return nil },
 						},
 						client.FakeResponse{
 							// cmd: SentinelSlaves (shard1)
-							InjectResponse: func() interface{} {
-								return []interface{}{
-									[]interface{}{
+							InjectResponse: func() any {
+								return []any{
+									[]any{
 										"name", "127.0.0.1:4000",
 										"ip", "127.0.0.1",
 										"port", "4000",
 										"flags", "slave",
 									},
-									[]interface{}{
+									[]any{
 										"name", "127.0.0.1:6000",
 										"ip", "127.0.0.1",
 										"port", "6000",
@@ -627,7 +635,7 @@ func TestCluster_SentinelDiscover(t *testing.T) {
 					NewSentinelServerFromParams(redis.NewFakeServerWithFakeClient("sentinel-1", "2000",
 						client.FakeResponse{
 							// cmd: Ping
-							InjectResponse: func() interface{} { return nil },
+							InjectResponse: func() any { return nil },
 							InjectError:    func() error { return errors.New("ping failed") },
 						},
 					)),
@@ -683,43 +691,43 @@ func TestCluster_SentinelDiscover(t *testing.T) {
 					NewSentinelServerFromParams(redis.NewFakeServerWithFakeClient("sentinel-0", "1000",
 						client.FakeResponse{
 							// cmd: Ping
-							InjectResponse: func() interface{} { return nil },
+							InjectResponse: func() any { return nil },
 							InjectError:    func() error { return nil },
 						},
 						client.FakeResponse{
 							// cmd: SentinelMasters()
-							InjectResponse: func() interface{} {
-								return []interface{}{
-									[]interface{}{"name", "shard0", "ip", "127.0.0.1", "port", "1000"},
+							InjectResponse: func() any {
+								return []any{
+									[]any{"name", "shard0", "ip", "127.0.0.1", "port", "1000"},
 								}
 							},
 							InjectError: func() error { return nil },
 						},
 						client.FakeResponse{
 							// cmd: SentinelMaster (shard0)
-							InjectResponse: func() interface{} {
+							InjectResponse: func() any {
 								return &client.SentinelMasterCmdResult{Name: "shard0", IP: "127.0.0.1", Port: 1000, Flags: "master"}
 							},
 							InjectError: func() error { return nil },
 						},
 						client.FakeResponse{
 							// cmd: SentinelGetMasterAddrByName (shard0)
-							InjectResponse: func() interface{} {
+							InjectResponse: func() any {
 								return []string{"127.0.0.1", "1000"}
 							},
 							InjectError: func() error { return nil },
 						},
 						client.FakeResponse{
 							// cmd: SentinelSlaves (shard0)
-							InjectResponse: func() interface{} {
-								return []interface{}{
-									[]interface{}{
+							InjectResponse: func() any {
+								return []any{
+									[]any{
 										"name", "127.0.0.1:2000",
 										"ip", "127.0.0.1",
 										"port", "2000",
 										"flags", "slave",
 									},
-									[]interface{}{
+									[]any{
 										"name", "127.0.0.1:3000",
 										"ip", "127.0.0.1",
 										"port", "3000",
@@ -733,7 +741,7 @@ func TestCluster_SentinelDiscover(t *testing.T) {
 					NewSentinelServerFromParams(redis.NewFakeServerWithFakeClient("sentinel-1", "2000",
 						client.FakeResponse{
 							// cmd: Ping
-							InjectResponse: func() interface{} { return nil },
+							InjectResponse: func() any { return nil },
 							InjectError:    func() error { return errors.New("ping failed") },
 						},
 					)),
@@ -767,9 +775,11 @@ func TestCluster_GetSentinel(t *testing.T) {
 		Sentinels []*SentinelServer
 		pool      *redis.ServerPool
 	}
+
 	type args struct {
 		pctx context.Context
 	}
+
 	tests := []struct {
 		name   string
 		fields fields
@@ -784,21 +794,21 @@ func TestCluster_GetSentinel(t *testing.T) {
 					NewSentinelServerFromParams(redis.NewFakeServerWithFakeClient("127.0.0.1", "1000",
 						// cmd: ping
 						client.FakeResponse{
-							InjectResponse: func() interface{} { return nil },
+							InjectResponse: func() any { return nil },
 							InjectError:    func() error { return nil },
 						},
 					)),
 					NewSentinelServerFromParams(redis.NewFakeServerWithFakeClient("127.0.0.1", "2000",
 						// cmd: ping
 						client.FakeResponse{
-							InjectResponse: func() interface{} { return nil },
+							InjectResponse: func() any { return nil },
 							InjectError:    func() error { return errors.New("error") },
 						},
 					)),
 					NewSentinelServerFromParams(redis.NewFakeServerWithFakeClient("127.0.0.1", "3000",
 						// cmd: ping
 						client.FakeResponse{
-							InjectResponse: func() interface{} { return nil },
+							InjectResponse: func() any { return nil },
 							InjectError:    func() error { return errors.New("error") },
 						},
 					)),
@@ -818,21 +828,21 @@ func TestCluster_GetSentinel(t *testing.T) {
 					NewSentinelServerFromParams(redis.NewFakeServerWithFakeClient("127.0.0.1", "1000",
 						// cmd: ping
 						client.FakeResponse{
-							InjectResponse: func() interface{} { return nil },
+							InjectResponse: func() any { return nil },
 							InjectError:    func() error { return errors.New("error") },
 						},
 					)),
 					NewSentinelServerFromParams(redis.NewFakeServerWithFakeClient("127.0.0.1", "2000",
 						// cmd: ping
 						client.FakeResponse{
-							InjectResponse: func() interface{} { return nil },
+							InjectResponse: func() any { return nil },
 							InjectError:    func() error { return errors.New("error") },
 						},
 					)),
 					NewSentinelServerFromParams(redis.NewFakeServerWithFakeClient("127.0.0.1", "3000",
 						// cmd: ping
 						client.FakeResponse{
-							InjectResponse: func() interface{} { return nil },
+							InjectResponse: func() any { return nil },
 							InjectError:    func() error { return nil },
 						},
 					)),
@@ -852,6 +862,7 @@ func TestCluster_GetSentinel(t *testing.T) {
 				Sentinels: tt.fields.Sentinels,
 				pool:      tt.fields.pool,
 			}
+
 			got := cluster.GetSentinel(tt.args.pctx)
 			if diff := deep.Equal(got, tt.want); len(diff) > 0 {
 				t.Errorf("Cluster.GetSentinel() = got diff %v", diff)

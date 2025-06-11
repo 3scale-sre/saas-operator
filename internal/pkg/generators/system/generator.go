@@ -29,7 +29,7 @@ const (
 	sidekiqDefault string = "sidekiq-default"
 	sidekiqBilling string = "sidekiq-billing"
 	sidekiqLow     string = "sidekiq-low"
-	searchd        string = "searchd"
+	searched       string = "searched"
 )
 
 // Generator configures the generators for System
@@ -43,7 +43,7 @@ type Generator struct {
 	CanarySidekiqBilling *SidekiqGenerator
 	SidekiqLow           SidekiqGenerator
 	CanarySidekiqLow     *SidekiqGenerator
-	Searchd              SearchdGenerator
+	Searched             SearchdGenerator
 	Console              ConsoleGenerator
 	Config               saasv1alpha1.SystemConfig
 	GrafanaDashboardSpec saasv1alpha1.GrafanaDashboardSpec
@@ -54,7 +54,6 @@ type Generator struct {
 
 // NewGenerator returns a new Options struct
 func NewGenerator(instance, namespace string, spec saasv1alpha1.SystemSpec) (Generator, error) {
-
 	generator := Generator{
 		BaseOptionsV2: generators.BaseOptionsV2{
 			Component:    component,
@@ -134,24 +133,24 @@ func NewGenerator(instance, namespace string, spec saasv1alpha1.SystemSpec) (Gen
 			ConfigFilesSecret: *spec.Config.ConfigFilesSecret,
 			TwemproxySpec:     spec.Twemproxy,
 		},
-		Searchd: SearchdGenerator{
+		Searched: SearchdGenerator{
 			BaseOptionsV2: generators.BaseOptionsV2{
-				Component:    strings.Join([]string{component, searchd}, "-"),
+				Component:    strings.Join([]string{component, searched}, "-"),
 				InstanceName: instance,
 				Namespace:    namespace,
 				Labels: map[string]string{
 					"app":                          "3scale-api-management",
 					"threescale_component":         component,
-					"threescale_component_element": searchd,
+					"threescale_component_element": searched,
 				},
 			},
-			Enabled:              *spec.Searchd.Enabled,
-			Spec:                 *spec.Searchd,
-			Image:                *spec.Searchd.Image,
-			DatabasePort:         *spec.Searchd.Config.Port,
-			DatabasePath:         *spec.Searchd.Config.DatabasePath,
-			DatabaseStorageSize:  *spec.Searchd.Config.DatabaseStorageSize,
-			DatabaseStorageClass: spec.Searchd.Config.DatabaseStorageClass,
+			Enabled:              *spec.Searched.Enabled,
+			Spec:                 *spec.Searched,
+			Image:                *spec.Searched.Image,
+			DatabasePort:         *spec.Searched.Config.Port,
+			DatabasePath:         *spec.Searched.Config.DatabasePath,
+			DatabaseStorageSize:  *spec.Searched.Config.DatabaseStorageSize,
+			DatabaseStorageClass: spec.Searched.Config.DatabaseStorageClass,
 		},
 		Console: ConsoleGenerator{
 			BaseOptionsV2: generators.BaseOptionsV2{
@@ -182,6 +181,7 @@ func NewGenerator(instance, namespace string, spec saasv1alpha1.SystemSpec) (Gen
 		if err != nil {
 			return Generator{}, err
 		}
+
 		generator.CanaryApp = &AppGenerator{
 			BaseOptionsV2: generators.BaseOptionsV2{
 				Component:    strings.Join([]string{component, app, "canary"}, "-"),
@@ -210,6 +210,7 @@ func NewGenerator(instance, namespace string, spec saasv1alpha1.SystemSpec) (Gen
 		if err != nil {
 			return Generator{}, err
 		}
+
 		generator.CanarySidekiqDefault = &SidekiqGenerator{
 			BaseOptionsV2: generators.BaseOptionsV2{
 				Component:    strings.Join([]string{component, sidekiqDefault, "canary"}, "-"),
@@ -237,6 +238,7 @@ func NewGenerator(instance, namespace string, spec saasv1alpha1.SystemSpec) (Gen
 		if err != nil {
 			return Generator{}, err
 		}
+
 		generator.CanarySidekiqLow = &SidekiqGenerator{
 			BaseOptionsV2: generators.BaseOptionsV2{
 				Component:    strings.Join([]string{component, sidekiqLow, "canary"}, "-"),
@@ -264,6 +266,7 @@ func NewGenerator(instance, namespace string, spec saasv1alpha1.SystemSpec) (Gen
 		if err != nil {
 			return Generator{}, err
 		}
+
 		generator.CanarySidekiqBilling = &SidekiqGenerator{
 			BaseOptionsV2: generators.BaseOptionsV2{
 				Component:    strings.Join([]string{component, sidekiqBilling, "canary"}, "-"),
@@ -296,7 +299,7 @@ func NewGenerator(instance, namespace string, spec saasv1alpha1.SystemSpec) (Gen
 					Labels: map[string]string{
 						"app":                          "3scale-api-management",
 						"threescale_component":         component,
-						"threescale_component_element": fmt.Sprintf("task-%s", *task.Name),
+						"threescale_component_element": "task-" + *task.Name,
 					},
 				},
 				Spec:              task,
@@ -317,14 +320,17 @@ func (gen *Generator) Resources() ([]resource.TemplateInterface, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	sidekiq_default_resources, err := deployment_workload.New(&gen.SidekiqDefault, gen.CanarySidekiqDefault)
 	if err != nil {
 		return nil, err
 	}
+
 	sidekiq_billing_resources, err := deployment_workload.New(&gen.SidekiqBilling, gen.CanarySidekiqBilling)
 	if err != nil {
 		return nil, err
 	}
+
 	sidekiq_low_resources, err := deployment_workload.New(&gen.SidekiqLow, gen.CanarySidekiqLow)
 	if err != nil {
 		return nil, err
@@ -341,12 +347,12 @@ func (gen *Generator) Resources() ([]resource.TemplateInterface, error) {
 
 	for _, tr := range gen.Tekton {
 		// NewTemplateFromObjectFunction receives a function with a pointer receiver so we must
-		// copy the value into a new variable to avoid referencing directly the loop variable, which
+		// c the value into a new variable to avoid referencing directly the loop variable, which
 		// leads to unexpected behavior. See https://www.evanjones.ca/go-gotcha-loop-variables.html
-		copy := tr
+		c := tr
 		misc = append(misc,
-			resource.NewTemplateFromObjectFunction(copy.task).WithEnabled(copy.Enabled),
-			resource.NewTemplateFromObjectFunction(copy.pipeline).WithEnabled(copy.Enabled),
+			resource.NewTemplateFromObjectFunction(c.task).WithEnabled(c.Enabled),
+			resource.NewTemplateFromObjectFunction(c.pipeline).WithEnabled(c.Enabled),
 		)
 	}
 
@@ -355,7 +361,7 @@ func (gen *Generator) Resources() ([]resource.TemplateInterface, error) {
 			sidekiq_default_resources,
 			sidekiq_billing_resources,
 			sidekiq_low_resources,
-			gen.Searchd.StatefulSetWithTraffic(),
+			gen.Searched.StatefulSetWithTraffic(),
 			gen.Console.StatefulSet(),
 			externalsecrets,
 			misc,
@@ -401,13 +407,14 @@ func (gen *AppGenerator) MonitoredEndpoints() []monitoringv1.PodMetricsEndpoint 
 	if gen.TwemproxySpec != nil {
 		pmes = append(pmes, podmonitor.PodMetricsEndpoint("/metrics", "twem-metrics", 30))
 	}
+
 	return pmes
 }
 
 func (gen *AppGenerator) SendTraffic() bool { return gen.Traffic }
 func (gen *AppGenerator) TrafficSelector() map[string]string {
 	return map[string]string{
-		fmt.Sprintf("%s/traffic", saasv1alpha1.GroupVersion.Group): fmt.Sprintf("%s-%s", component, app),
+		saasv1alpha1.GroupVersion.Group + "/traffic": fmt.Sprintf("%s-%s", component, app),
 	}
 }
 func (gen *AppGenerator) PublishingStrategies() ([]service.ServiceDescriptor, error) {
@@ -452,10 +459,11 @@ func (gen *SidekiqGenerator) MonitoredEndpoints() []monitoringv1.PodMetricsEndpo
 	if gen.TwemproxySpec != nil {
 		pmes = append(pmes, podmonitor.PodMetricsEndpoint("/metrics", "twem-metrics", 30))
 	}
+
 	return pmes
 }
 
-// SearchdGenerator has methods to generate resources for system-Searchd
+// SearchdGenerator has methods to generate resources for system-Searched
 type SearchdGenerator struct {
 	generators.BaseOptionsV2
 	Spec                 saasv1alpha1.SystemSearchdSpec

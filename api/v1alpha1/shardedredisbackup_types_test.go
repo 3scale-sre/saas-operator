@@ -29,6 +29,7 @@ func TestBackupStatusList_Less(t *testing.T) {
 		i int
 		j int
 	}
+
 	tests := []struct {
 		name string
 		bsl  BackupStatusList
@@ -79,10 +80,12 @@ func TestShardedRedisBackupStatus_FindBackup(t *testing.T) {
 	type fields struct {
 		Backups BackupStatusList
 	}
+
 	type args struct {
 		shard string
 		state BackupState
 	}
+
 	tests := []struct {
 		name    string
 		fields  fields
@@ -179,10 +182,12 @@ func TestShardedRedisBackupStatus_FindBackup(t *testing.T) {
 			status := &ShardedRedisBackupStatus{
 				Backups: tt.fields.Backups,
 			}
+
 			gotBackup, gotPos := status.FindLastBackup(tt.args.shard, tt.args.state)
 			if !reflect.DeepEqual(gotBackup, tt.want) {
 				t.Errorf("ShardedRedisBackupStatus.FindBackup() = %v, want %v", gotBackup, tt.want)
 			}
+
 			if gotPos != tt.wantPos {
 				t.Errorf("ShardedRedisBackupStatus.FindBackup() = %v, want %v", gotPos, tt.wantPos)
 			}
@@ -194,9 +199,11 @@ func TestShardedRedisBackupStatus_DeleteBackup(t *testing.T) {
 	type fields struct {
 		Backups BackupStatusList
 	}
+
 	type args struct {
 		pos int
 	}
+
 	tests := []struct {
 		name   string
 		fields fields
@@ -257,6 +264,7 @@ func TestShardedRedisBackupStatus_DeleteBackup(t *testing.T) {
 				Backups: tt.fields.Backups,
 			}
 			status.DeleteBackup(tt.args.pos)
+
 			if !reflect.DeepEqual(status.Backups, tt.want) {
 				t.Errorf("ShardedRedisBackupStatus.FindBackup() = %v, want %v", status.Backups, tt.want)
 			}

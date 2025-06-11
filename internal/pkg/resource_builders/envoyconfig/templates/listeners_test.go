@@ -4,11 +4,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/3scale-sre/basereconciler/util"
 	envoy_serializer_v3 "github.com/3scale-sre/marin3r/api/envoy/serializer/v3"
 	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	"github.com/MakeNowJust/heredoc"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/yaml"
 )
 
@@ -17,6 +17,7 @@ func TestListenerHTTP_v1(t *testing.T) {
 		name string
 		opts *saasv1alpha1.ListenerHttp
 	}
+
 	tests := []struct {
 		name string
 		args args
@@ -29,18 +30,18 @@ func TestListenerHTTP_v1(t *testing.T) {
 				opts: &saasv1alpha1.ListenerHttp{
 					Port:                  8080,
 					RouteConfigName:       "my_route",
-					CertificateSecretName: util.Pointer("my_certificate"),
+					CertificateSecretName: ptr.To("my_certificate"),
 					RateLimitOptions: &saasv1alpha1.RateLimitOptions{
 						Domain:           "test_domain",
-						FailureModeDeny:  util.Pointer(true),
+						FailureModeDeny:  ptr.To(true),
 						Timeout:          metav1.Duration{Duration: 10 * time.Millisecond},
 						RateLimitCluster: "ratelimit",
 					},
-					DefaultHostForHttp10:        util.Pointer("example.com"),
-					EnableHttp2:                 util.Pointer(false),
-					AllowHeadersWithUnderscores: util.Pointer(true),
-					MaxConnectionDuration:       util.Pointer(metav1.Duration{Duration: 900 * time.Second}),
-					ProxyProtocol:               util.Pointer(true),
+					DefaultHostForHttp10:        ptr.To("example.com"),
+					EnableHttp2:                 ptr.To(false),
+					AllowHeadersWithUnderscores: ptr.To(true),
+					MaxConnectionDuration:       ptr.To(metav1.Duration{Duration: 900 * time.Second}),
+					ProxyProtocol:               ptr.To(true),
 				},
 			},
 			want: heredoc.Doc(`
@@ -146,15 +147,15 @@ func TestListenerHTTP_v1(t *testing.T) {
 					RouteConfigName: "my_route",
 					RateLimitOptions: &saasv1alpha1.RateLimitOptions{
 						Domain:           "test_domain",
-						FailureModeDeny:  util.Pointer(false),
+						FailureModeDeny:  ptr.To(false),
 						Timeout:          metav1.Duration{Duration: 10 * time.Millisecond},
 						RateLimitCluster: "ratelimit",
 					},
-					DefaultHostForHttp10:        util.Pointer("example.com"),
-					EnableHttp2:                 util.Pointer(false),
-					AllowHeadersWithUnderscores: util.Pointer(true),
-					MaxConnectionDuration:       util.Pointer(metav1.Duration{Duration: 900 * time.Second}),
-					ProxyProtocol:               util.Pointer(true),
+					DefaultHostForHttp10:        ptr.To("example.com"),
+					EnableHttp2:                 ptr.To(false),
+					AllowHeadersWithUnderscores: ptr.To(true),
+					MaxConnectionDuration:       ptr.To(metav1.Duration{Duration: 900 * time.Second}),
+					ProxyProtocol:               ptr.To(true),
 				},
 			},
 			want: heredoc.Doc(`
@@ -234,14 +235,17 @@ func TestListenerHTTP_v1(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, _ := ListenerHTTP_v1(tt.args.name, tt.args.opts)
+
 			j, err := envoy_serializer_v3.JSON{}.Marshal(got)
 			if err != nil {
 				t.Error(err)
 			}
+
 			y, err := yaml.JSONToYAML([]byte(j))
 			if err != nil {
 				t.Error(err)
 			}
+
 			if string(y) != tt.want {
 				t.Errorf("ListenerHTTP_v1():\n# got:\n%v\n# want:\n%v", string(y), tt.want)
 			}

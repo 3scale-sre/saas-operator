@@ -1,0 +1,76 @@
+run:
+  timeout: 5m
+  allow-parallel-runners: true
+
+issues:
+  # don't skip warning about doc comments
+  # don't exclude the default set of lint
+  exclude-use-default: false
+  # restore some of the defaults
+  # (fill in the rest as needed)
+  exclude-rules:
+    - path: ".*_test.go"
+      linters:
+        - dupl
+        - errcheck
+        - containedctx
+        - gosec
+        - goconst
+        - nlreturn
+linters:
+  disable-all: true
+  enable:
+    - dupl
+    - errcheck
+    - copyloopvar
+    - ginkgolinter
+    - goconst
+    - gocyclo
+    - gofmt
+    - goimports
+    - gosimple
+    - govet
+    - ineffassign
+    - misspell
+    - nakedret
+    - prealloc
+    - revive
+    - staticcheck
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - bodyclose
+    - asasalint
+    - containedctx
+    - contextcheck
+    - decorder
+    - dogsled
+    - dupword
+    - durationcheck
+    - errchkjson
+    - fatcontext
+    - godox
+    - importas
+    - intrange
+    - loggercheck
+    - nilerr
+    - nlreturn
+    - nosprintfhostport
+    - prealloc
+    - reassign
+    - tagalign
+    - wastedassign
+    - whitespace
+    - wsl
+    - usestdlibvars
+    - recvcheck
+    - protogetter
+    - predeclared
+    - perfsprint
+    - noctx
+
+linters-settings:
+  revive:
+    rules:
+      - name: comment-spacings

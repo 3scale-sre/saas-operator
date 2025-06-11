@@ -20,6 +20,7 @@ func TestNewGoRedisClientFromConnectionString(t *testing.T) {
 	type args struct {
 		connectionString string
 	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -34,6 +35,7 @@ func TestNewGoRedisClientFromConnectionString(t *testing.T) {
 			want: &Server{
 				client: func() client.TestableInterface {
 					c, _ := client.NewFromConnectionString("redis://127.0.0.1:1234")
+
 					return c
 				}(),
 				host: "127.0.0.1",
@@ -55,8 +57,10 @@ func TestNewGoRedisClientFromConnectionString(t *testing.T) {
 			got, err := NewServer(tt.args.connectionString, nil)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewRedisCRUD() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
+
 			if diff := deep.Equal(got, tt.want); len(diff) > 0 {
 				t.Errorf("NewRedisCRUD() got diff: %v", diff)
 			}
@@ -70,6 +74,7 @@ func TestClient_GetHost(t *testing.T) {
 		host   string
 		port   string
 	}
+
 	tests := []struct {
 		name   string
 		fields fields
@@ -106,6 +111,7 @@ func TestClient_GetPort(t *testing.T) {
 		ip     string
 		port   string
 	}
+
 	tests := []struct {
 		name   string
 		fields fields
@@ -142,10 +148,12 @@ func TestClient_SentinelMaster(t *testing.T) {
 		ip     string
 		port   string
 	}
+
 	type args struct {
 		ctx   context.Context
 		shard string
 	}
+
 	tests := []struct {
 		name    string
 		fields  fields
@@ -158,7 +166,7 @@ func TestClient_SentinelMaster(t *testing.T) {
 			fields: fields{
 				client: &client.FakeClient{
 					Responses: []client.FakeResponse{{
-						InjectResponse: func() interface{} {
+						InjectResponse: func() any {
 							return &client.SentinelMasterCmdResult{
 								Name:                  "test",
 								IP:                    "127.0.0.1",
@@ -218,7 +226,7 @@ func TestClient_SentinelMaster(t *testing.T) {
 			fields: fields{
 				client: &client.FakeClient{
 					Responses: []client.FakeResponse{{
-						InjectResponse: func() interface{} { return &client.SentinelMasterCmdResult{} },
+						InjectResponse: func() any { return &client.SentinelMasterCmdResult{} },
 						InjectError:    func() error { return errors.New("error") },
 					}},
 				},
@@ -237,11 +245,14 @@ func TestClient_SentinelMaster(t *testing.T) {
 				client: tt.fields.client,
 				port:   tt.fields.port,
 			}
+
 			got, err := sc.SentinelMaster(tt.args.ctx, tt.args.shard)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Client.SentinelMaster() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
+
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Client.SentinelMaster() = %v, want %v", got, tt.want)
 			}
@@ -255,9 +266,11 @@ func TestClient_SentinelMasters(t *testing.T) {
 		ip     string
 		port   string
 	}
+
 	type args struct {
 		ctx context.Context
 	}
+
 	tests := []struct {
 		name    string
 		fields  fields
@@ -270,9 +283,9 @@ func TestClient_SentinelMasters(t *testing.T) {
 			fields: fields{
 				client: &client.FakeClient{
 					Responses: []client.FakeResponse{{
-						InjectResponse: func() interface{} {
-							return []interface{}{
-								[]interface{}{
+						InjectResponse: func() any {
+							return []any{
+								[]any{
 									"name", "shard01",
 									"ip", "10.244.0.8",
 									"port", "6379",
@@ -294,7 +307,7 @@ func TestClient_SentinelMasters(t *testing.T) {
 									"failover-timeout", "180000",
 									"parallel-syncs", "1",
 								},
-								[]interface{}{
+								[]any{
 									"name", "shard02",
 									"ip", "10.244.0.10",
 									"port", "6379",
@@ -378,7 +391,7 @@ func TestClient_SentinelMasters(t *testing.T) {
 			fields: fields{
 				client: &client.FakeClient{
 					Responses: []client.FakeResponse{{
-						InjectResponse: func() interface{} { return []interface{}{} },
+						InjectResponse: func() any { return []any{} },
 						InjectError:    func() error { return errors.New("error") },
 					}},
 				},
@@ -396,11 +409,14 @@ func TestClient_SentinelMasters(t *testing.T) {
 				client: tt.fields.client,
 				port:   tt.fields.port,
 			}
+
 			got, err := sc.SentinelMasters(tt.args.ctx)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Client.SentinelMasters() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
+
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Client.SentinelMasters() = %+v, want %+v", got, tt.want)
 			}
@@ -414,10 +430,12 @@ func TestClient_SentinelSlaves(t *testing.T) {
 		ip     string
 		port   string
 	}
+
 	type args struct {
 		ctx   context.Context
 		shard string
 	}
+
 	tests := []struct {
 		name    string
 		fields  fields
@@ -430,9 +448,9 @@ func TestClient_SentinelSlaves(t *testing.T) {
 			fields: fields{
 				client: &client.FakeClient{
 					Responses: []client.FakeResponse{{
-						InjectResponse: func() interface{} {
-							return []interface{}{
-								[]interface{}{
+						InjectResponse: func() any {
+							return []any{
+								[]any{
 									"name", "10.244.0.6:6379",
 									"ip", "10.244.0.6",
 									"port", "6379",
@@ -454,7 +472,7 @@ func TestClient_SentinelSlaves(t *testing.T) {
 									"slave-priority", "100",
 									"slave-repl-offset", "11218922",
 								},
-								[]interface{}{
+								[]any{
 									"name", "10.244.0.7:6379",
 									"ip", "10.244.0.7",
 									"port", "6379",
@@ -537,7 +555,7 @@ func TestClient_SentinelSlaves(t *testing.T) {
 			fields: fields{
 				client: &client.FakeClient{
 					Responses: []client.FakeResponse{{
-						InjectResponse: func() interface{} { return []interface{}{} },
+						InjectResponse: func() any { return []any{} },
 						InjectError:    func() error { return errors.New("error") },
 					}},
 				},
@@ -555,11 +573,14 @@ func TestClient_SentinelSlaves(t *testing.T) {
 				client: tt.fields.client,
 				port:   tt.fields.port,
 			}
+
 			got, err := sc.SentinelSlaves(tt.args.ctx, tt.args.shard)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Client.SentinelSlaves() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
+
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Client.SentinelSlaves() = %v, want %v", got, tt.want)
 			}
@@ -574,6 +595,7 @@ func TestClient_SentinelMonitor(t *testing.T) {
 		ip     string
 		port   string
 	}
+
 	type args struct {
 		ctx    context.Context
 		name   string
@@ -581,6 +603,7 @@ func TestClient_SentinelMonitor(t *testing.T) {
 		port   string
 		quorum int
 	}
+
 	tests := []struct {
 		name    string
 		fields  fields
@@ -592,7 +615,7 @@ func TestClient_SentinelMonitor(t *testing.T) {
 			fields: fields{
 				client: &client.FakeClient{
 					Responses: []client.FakeResponse{{
-						InjectResponse: func() interface{} { return nil },
+						InjectResponse: func() any { return nil },
 						InjectError:    func() error { return nil },
 					}},
 				},
@@ -609,7 +632,7 @@ func TestClient_SentinelMonitor(t *testing.T) {
 			fields: fields{
 				client: &client.FakeClient{
 					Responses: []client.FakeResponse{{
-						InjectResponse: func() interface{} { return nil },
+						InjectResponse: func() any { return nil },
 						InjectError:    func() error { return errors.New("error") },
 					}},
 				},
@@ -643,12 +666,14 @@ func TestClient_SentinelSet(t *testing.T) {
 		ip     string
 		port   string
 	}
+
 	type args struct {
 		ctx       context.Context
 		shard     string
 		parameter string
 		value     string
 	}
+
 	tests := []struct {
 		name    string
 		fields  fields
@@ -660,7 +685,7 @@ func TestClient_SentinelSet(t *testing.T) {
 			fields: fields{
 				client: &client.FakeClient{
 					Responses: []client.FakeResponse{{
-						InjectResponse: func() interface{} { return nil },
+						InjectResponse: func() any { return nil },
 						InjectError:    func() error { return nil },
 					}},
 				},
@@ -675,7 +700,7 @@ func TestClient_SentinelSet(t *testing.T) {
 			fields: fields{
 				client: &client.FakeClient{
 					Responses: []client.FakeResponse{{
-						InjectResponse: func() interface{} { return nil },
+						InjectResponse: func() any { return nil },
 						InjectError:    func() error { return errors.New("error") },
 					}},
 				},
@@ -712,10 +737,12 @@ func TestCRUD_SentinelPSubscribe(t *testing.T) {
 		ip     string
 		port   string
 	}
+
 	type args struct {
 		ctx    context.Context
 		events []string
 	}
+
 	tests := []struct {
 		name   string
 		fields fields
@@ -727,7 +754,7 @@ func TestCRUD_SentinelPSubscribe(t *testing.T) {
 			fields: fields{
 				client: &client.FakeClient{
 					Responses: []client.FakeResponse{{
-						InjectResponse: func() interface{} {
+						InjectResponse: func() any {
 							ch := make(chan *redis.Message)
 							go func() {
 								ch <- &redis.Message{
@@ -736,6 +763,7 @@ func TestCRUD_SentinelPSubscribe(t *testing.T) {
 								}
 							}()
 							var roCh <-chan *redis.Message = ch
+
 							return roCh
 						},
 						InjectError: func() error { return nil },
@@ -760,8 +788,10 @@ func TestCRUD_SentinelPSubscribe(t *testing.T) {
 			}
 			timeout := time.After(100 * time.Millisecond)
 			done := make(chan bool)
+
 			go func() {
 				ch, _ := crud.SentinelPSubscribe(tt.args.ctx, tt.args.events...)
+
 				got := <-ch
 				if got.String() != tt.want {
 					t.Errorf("CRUD.SentinelPSubscribe() got = %v, want %v", got.String(), tt.want)
@@ -784,9 +814,11 @@ func TestCRUD_SentinelInfoCache(t *testing.T) {
 		IP     string
 		Port   string
 	}
+
 	type args struct {
 		ctx context.Context
 	}
+
 	tests := []struct {
 		name    string
 		fields  fields
@@ -799,26 +831,26 @@ func TestCRUD_SentinelInfoCache(t *testing.T) {
 			fields: fields{
 				Client: &client.FakeClient{
 					Responses: []client.FakeResponse{{
-						InjectResponse: func() interface{} {
-							return []interface{}{
+						InjectResponse: func() any {
+							return []any{
 								"shard01",
-								[]interface{}{
-									[]interface{}{
+								[]any{
+									[]any{
 										int64(1000),
 										"# Server\r\nredis_version:4.0.11\r\nredis_git_sha1:00000000\r\nredis_git_dirty:0\r\nredis_build_id:f7b13aa754d83881\r\nredis_mode:standalone\r\nos:Linux 5.15.10-200.fc35.x86_64 x86_64\r\narch_bits:64\r\nmultiplexing_api:epoll\r\natomicvar_api:atomic-builtin\r\ngcc_version:6.4.0\r\nprocess_id:1\r\nrun_id:bce68a863acb3bb1e02c2caae48ce36373c524fc\r\n",
 									},
-									[]interface{}{
+									[]any{
 										int64(2000),
 										"# Server\r\nredis_version:4.0.11\r\nredis_git_sha1:00000000\r\nredis_git_dirty:0\r\nredis_build_id:f7b13aa754d83881\r\nredis_mode:standalone\r\nos:Linux 5.15.10-200.fc35.x86_64 x86_64\r\narch_bits:64\r\nmultiplexing_api:epoll\r\natomicvar_api:atomic-builtin\r\ngcc_version:6.4.0\r\nprocess_id:1\r\nrun_id:1f67e9246d3017be5d5cb9a1fdc6020c8338da76\r\n",
 									},
 								},
 								"shard02",
-								[]interface{}{
-									[]interface{}{
+								[]any{
+									[]any{
 										int64(3000),
 										"# Server\r\nredis_version:4.0.11\r\nredis_git_sha1:00000000\r\nredis_git_dirty:0\r\nredis_build_id:f7b13aa754d83881\r\nredis_mode:standalone\r\nos:Linux 5.15.10-200.fc35.x86_64 x86_64\r\narch_bits:64\r\nmultiplexing_api:epoll\r\natomicvar_api:atomic-builtin\r\ngcc_version:6.4.0\r\nprocess_id:1\r\nrun_id:70f3bdb57e626160f0f1367e2c854053ab03002f\r\n",
 									},
-									[]interface{}{
+									[]any{
 										int64(4000),
 										"# Server\r\nredis_version:4.0.11\r\nredis_git_sha1:00000000\r\nredis_git_dirty:0\r\nredis_build_id:f7b13aa754d83881\r\nredis_mode:standalone\r\nos:Linux 5.15.10-200.fc35.x86_64 x86_64\r\narch_bits:64\r\nmultiplexing_api:epoll\r\natomicvar_api:atomic-builtin\r\ngcc_version:6.4.0\r\nprocess_id:1\r\nrun_id:751aa448e290591354f20780e38d86a85145eeb2\r\n",
 									},
@@ -881,26 +913,26 @@ func TestCRUD_SentinelInfoCache(t *testing.T) {
 			fields: fields{
 				Client: &client.FakeClient{
 					Responses: []client.FakeResponse{{
-						InjectResponse: func() interface{} {
-							return []interface{}{
+						InjectResponse: func() any {
+							return []any{
 								"shard01",
-								[]interface{}{
-									[]interface{}{
+								[]any{
+									[]any{
 										int64(1000),
 										nil,
 									},
-									[]interface{}{
+									[]any{
 										int64(2000),
 										"# Server\r\nredis_version:4.0.11\r\nredis_git_sha1:00000000\r\nredis_git_dirty:0\r\nredis_build_id:f7b13aa754d83881\r\nredis_mode:standalone\r\nos:Linux 5.15.10-200.fc35.x86_64 x86_64\r\narch_bits:64\r\nmultiplexing_api:epoll\r\natomicvar_api:atomic-builtin\r\ngcc_version:6.4.0\r\nprocess_id:1\r\nrun_id:1f67e9246d3017be5d5cb9a1fdc6020c8338da76\r\n",
 									},
 								},
 								"shard02",
-								[]interface{}{
-									[]interface{}{
+								[]any{
+									[]any{
 										int64(3000),
 										"# Server\r\nredis_version:4.0.11\r\nredis_git_sha1:00000000\r\nredis_git_dirty:0\r\nredis_build_id:f7b13aa754d83881\r\nredis_mode:standalone\r\nos:Linux 5.15.10-200.fc35.x86_64 x86_64\r\narch_bits:64\r\nmultiplexing_api:epoll\r\natomicvar_api:atomic-builtin\r\ngcc_version:6.4.0\r\nprocess_id:1\r\nrun_id:70f3bdb57e626160f0f1367e2c854053ab03002f\r\n",
 									},
-									[]interface{}{
+									[]any{
 										int64(4000),
 										"# Server\r\nredis_version:4.0.11\r\nredis_git_sha1:00000000\r\nredis_git_dirty:0\r\nredis_build_id:f7b13aa754d83881\r\nredis_mode:standalone\r\nos:Linux 5.15.10-200.fc35.x86_64 x86_64\r\narch_bits:64\r\nmultiplexing_api:epoll\r\natomicvar_api:atomic-builtin\r\ngcc_version:6.4.0\r\nprocess_id:1\r\nrun_id:751aa448e290591354f20780e38d86a85145eeb2\r\n",
 									},
@@ -956,11 +988,14 @@ func TestCRUD_SentinelInfoCache(t *testing.T) {
 				client: tt.fields.Client,
 				port:   tt.fields.Port,
 			}
+
 			got, err := crud.SentinelInfoCache(tt.args.ctx)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CRUD.SentinelInfoCache() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
+
 			if diff := deep.Equal(got, tt.want); len(diff) > 0 {
 				t.Errorf("CRUD.SentinelInfoCache() = diff %v", diff)
 			}
@@ -974,9 +1009,11 @@ func TestClient_RedisRole(t *testing.T) {
 		ip     string
 		port   string
 	}
+
 	type args struct {
 		ctx context.Context
 	}
+
 	tests := []struct {
 		name    string
 		fields  fields
@@ -990,8 +1027,8 @@ func TestClient_RedisRole(t *testing.T) {
 			fields: fields{
 				client: &client.FakeClient{
 					Responses: []client.FakeResponse{{
-						InjectResponse: func() interface{} {
-							return []interface{}{
+						InjectResponse: func() any {
+							return []any{
 								"slave", "10.244.0.8", 6379, "connected", 12046989,
 							}
 						},
@@ -1011,17 +1048,17 @@ func TestClient_RedisRole(t *testing.T) {
 			fields: fields{
 				client: &client.FakeClient{
 					Responses: []client.FakeResponse{{
-						InjectResponse: func() interface{} {
-							return []interface{}{
+						InjectResponse: func() any {
+							return []any{
 								"master",
 								12204347,
-								[]interface{}{
-									[]interface{}{
+								[]any{
+									[]any{
 										"10.244.0.9",
 										"6379",
 										"12204211",
 									},
-									[]interface{}{
+									[]any{
 										"10.244.0.11",
 										"6379",
 										"12204211",
@@ -1045,8 +1082,8 @@ func TestClient_RedisRole(t *testing.T) {
 			fields: fields{
 				client: &client.FakeClient{
 					Responses: []client.FakeResponse{{
-						InjectResponse: func() interface{} {
-							return []interface{}{}
+						InjectResponse: func() any {
+							return []any{}
 						},
 						InjectError: func() error { return errors.New("error") },
 					}},
@@ -1066,14 +1103,18 @@ func TestClient_RedisRole(t *testing.T) {
 				client: tt.fields.client,
 				port:   tt.fields.port,
 			}
+
 			got, got1, err := sc.RedisRole(tt.args.ctx)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Client.RedisRole() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
+
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Client.RedisRole() got = %v, want %v", got, tt.want)
 			}
+
 			if got1 != tt.want1 {
 				t.Errorf("Client.RedisRole() got1 = %v, want %v", got1, tt.want1)
 			}
@@ -1087,10 +1128,12 @@ func TestClient_RedisConfigGet(t *testing.T) {
 		ip     string
 		port   string
 	}
+
 	type args struct {
 		ctx       context.Context
 		parameter string
 	}
+
 	tests := []struct {
 		name    string
 		fields  fields
@@ -1103,8 +1146,8 @@ func TestClient_RedisConfigGet(t *testing.T) {
 			fields: fields{
 				client: &client.FakeClient{
 					Responses: []client.FakeResponse{{
-						InjectResponse: func() interface{} {
-							return []interface{}{
+						InjectResponse: func() any {
+							return []any{
 								"param1", "value1",
 							}
 						},
@@ -1126,7 +1169,7 @@ func TestClient_RedisConfigGet(t *testing.T) {
 			fields: fields{
 				client: &client.FakeClient{
 					Responses: []client.FakeResponse{{
-						InjectResponse: func() interface{} { return []interface{}{} },
+						InjectResponse: func() any { return []any{} },
 						InjectError:    func() error { return errors.New("error") },
 					}},
 				},
@@ -1147,11 +1190,14 @@ func TestClient_RedisConfigGet(t *testing.T) {
 				client: tt.fields.client,
 				port:   tt.fields.port,
 			}
+
 			got, err := sc.RedisConfigGet(tt.args.ctx, tt.args.parameter)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Client.RedisConfigGet() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
+
 			if got != tt.want {
 				t.Errorf("Client.RedisConfigGet() = %v, want %v", got, tt.want)
 			}
@@ -1165,11 +1211,13 @@ func TestClient_RedisSlaveOf(t *testing.T) {
 		ip     string
 		port   string
 	}
+
 	type args struct {
 		ctx  context.Context
 		host string
 		port string
 	}
+
 	tests := []struct {
 		name    string
 		fields  fields
@@ -1181,7 +1229,7 @@ func TestClient_RedisSlaveOf(t *testing.T) {
 			fields: fields{
 				client: &client.FakeClient{
 					Responses: []client.FakeResponse{{
-						InjectResponse: func() interface{} { return nil },
+						InjectResponse: func() any { return nil },
 						InjectError:    func() error { return nil },
 					}},
 				},
@@ -1196,7 +1244,7 @@ func TestClient_RedisSlaveOf(t *testing.T) {
 			fields: fields{
 				client: &client.FakeClient{
 					Responses: []client.FakeResponse{{
-						InjectResponse: func() interface{} { return nil },
+						InjectResponse: func() any { return nil },
 						InjectError:    func() error { return errors.New("error") },
 					}},
 				},
@@ -1222,19 +1270,20 @@ func TestClient_RedisSlaveOf(t *testing.T) {
 
 func Test_sliceCmdToStruct(t *testing.T) {
 	type args struct {
-		in  []interface{}
-		out interface{}
+		in  []any
+		out any
 	}
+
 	tests := []struct {
 		name    string
 		args    args
-		want    interface{}
+		want    any
 		wantErr bool
 	}{
 		{
 			name: "Parses a redis-go administrative command response",
 			args: args{
-				in: []interface{}{
+				in: []any{
 					"name",
 					"10.244.0.7:6379",
 					"ip",
@@ -1308,8 +1357,10 @@ func Test_sliceCmdToStruct(t *testing.T) {
 			err := sliceCmdToStruct(tt.args.in, tt.args.out)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("sliceCmdToStruct() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
+
 			if !reflect.DeepEqual(tt.args.out, tt.want) {
 				t.Errorf("sliceCmdToStruct() = %v, want %v", tt.args.out, tt.want)
 			}
@@ -1319,26 +1370,27 @@ func Test_sliceCmdToStruct(t *testing.T) {
 
 func Test_islice2imap(t *testing.T) {
 	type args struct {
-		in interface{}
+		in any
 	}
+
 	tests := []struct {
 		name string
 		args args
-		want map[string]interface{}
+		want map[string]any
 	}{
 		{
 			name: "",
 			args: args{
-				in: []interface{}{
+				in: []any{
 					"key1",
-					[]interface{}{1, 2, 3},
+					[]any{1, 2, 3},
 					"key2",
-					[]interface{}{4, 5, 6},
+					[]any{4, 5, 6},
 				},
 			},
-			want: map[string]interface{}{
-				"key1": []interface{}{1, 2, 3},
-				"key2": []interface{}{4, 5, 6},
+			want: map[string]any{
+				"key1": []any{1, 2, 3},
+				"key2": []any{4, 5, 6},
 			},
 		},
 	}
@@ -1355,6 +1407,7 @@ func Test_infoStringToMap(t *testing.T) {
 	type args struct {
 		in string
 	}
+
 	tests := []struct {
 		name string
 		args args

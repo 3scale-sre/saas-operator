@@ -14,6 +14,7 @@ func HTTPProbe(path string, port intstr.IntOrString, scheme corev1.URIScheme, cf
 	if cfg.IsDeactivated() {
 		return nil
 	}
+
 	return &corev1.Probe{
 		ProbeHandler: corev1.ProbeHandler{
 			HTTPGet: &corev1.HTTPGetAction{
@@ -35,11 +36,14 @@ func HTTPProbeWithHeaders(path string, port intstr.IntOrString, scheme corev1.UR
 		if probe.HTTPGet.HTTPHeaders == nil {
 			probe.HTTPGet.HTTPHeaders = []corev1.HTTPHeader{}
 		}
+
 		for header, value := range headers {
 			probe.HTTPGet.HTTPHeaders = append(probe.HTTPGet.HTTPHeaders, corev1.HTTPHeader{Name: header, Value: value})
 		}
+
 		return probe
 	}
+
 	return nil
 }
 
@@ -48,6 +52,7 @@ func TCPProbe(port intstr.IntOrString, cfg saasv1alpha1.ProbeSpec) *corev1.Probe
 	if cfg.IsDeactivated() {
 		return nil
 	}
+
 	return &corev1.Probe{
 		ProbeHandler: corev1.ProbeHandler{
 			TCPSocket: &corev1.TCPSocketAction{
@@ -67,6 +72,7 @@ func ExecProbe(command string, cfg saasv1alpha1.ProbeSpec) *corev1.Probe {
 	if cfg.IsDeactivated() {
 		return nil
 	}
+
 	return &corev1.Probe{
 		ProbeHandler: corev1.ProbeHandler{Exec: &corev1.ExecAction{
 			Command: strings.Split(command, " "),
@@ -120,6 +126,7 @@ func ContainerPortTCP(name string, port int32) corev1.ContainerPort {
 // ContainerPorts returns a list of corev1.ContainerPort
 func ContainerPorts(ports ...corev1.ContainerPort) []corev1.ContainerPort {
 	list := []corev1.ContainerPort{}
+
 	return append(list, ports...)
 }
 
@@ -131,5 +138,6 @@ func ImagePullSecrets(ips *string) []corev1.LocalObjectReference {
 	if ips != nil {
 		return []corev1.LocalObjectReference{{Name: *ips}}
 	}
+
 	return nil
 }

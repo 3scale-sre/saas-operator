@@ -23,7 +23,6 @@ import (
 	"time"
 
 	"github.com/3scale-sre/basereconciler/reconciler"
-	"github.com/3scale-sre/basereconciler/util"
 	jsonpatch "github.com/evanphx/json-patch"
 	appsv1 "k8s.io/api/apps/v1"
 	autoscalingv2 "k8s.io/api/autoscaling/v2"
@@ -31,6 +30,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
 )
 
 const (
@@ -46,8 +46,8 @@ const (
 var (
 	defaultExternalSecretRefreshInterval      metav1.Duration                               = metav1.Duration{Duration: 60 * time.Second}
 	defaultExternalSecretSecretStoreReference defaultExternalSecretSecretStoreReferenceSpec = defaultExternalSecretSecretStoreReferenceSpec{
-		Name: util.Pointer("vault-mgmt"),
-		Kind: util.Pointer("ClusterSecretStore"),
+		Name: ptr.To("vault-mgmt"),
+		Kind: ptr.To("ClusterSecretStore"),
 	}
 )
 
@@ -86,6 +86,7 @@ func (spec *ImageSpec) Default(def defaultImageSpec) {
 		if spec.PullPolicy == nil {
 			return def.PullPolicy
 		}
+
 		return spec.PullPolicy
 	}()
 }
@@ -96,13 +97,16 @@ func (spec *ImageSpec) IsDeactivated() bool { return false }
 // InitializeImageSpec initializes a ImageSpec struct
 func InitializeImageSpec(spec *ImageSpec, def defaultImageSpec) *ImageSpec {
 	if spec == nil {
-		new := &ImageSpec{}
-		new.Default(def)
-		return new
+		newImage := &ImageSpec{}
+		newImage.Default(def)
+
+		return newImage
 	}
-	copy := spec.DeepCopy()
-	copy.Default(def)
-	return copy
+
+	dcopy := spec.DeepCopy()
+	dcopy.Default(def)
+
+	return dcopy
 }
 
 // ProbeSpec specifies configuration for a probe
@@ -150,15 +154,19 @@ func (spec *ProbeSpec) IsDeactivated() bool {
 // InitializeProbeSpec initializes a ProbeSpec struct
 func InitializeProbeSpec(spec *ProbeSpec, def defaultProbeSpec) *ProbeSpec {
 	if spec == nil {
-		new := &ProbeSpec{}
-		new.Default(def)
-		return new
+		nreProbe := &ProbeSpec{}
+		nreProbe.Default(def)
+
+		return nreProbe
 	}
+
 	if !spec.IsDeactivated() {
-		copy := spec.DeepCopy()
-		copy.Default(def)
-		return copy
+		dcopy := spec.DeepCopy()
+		dcopy.Default(def)
+
+		return dcopy
 	}
+
 	return spec
 }
 
@@ -199,14 +207,14 @@ type ElasticLoadBalancerSpec struct {
 }
 
 var DefaultElasticLoadBalancerSpec ElasticLoadBalancerSpec = ElasticLoadBalancerSpec{
-	ProxyProtocol:                 util.Pointer(true),
-	CrossZoneLoadBalancingEnabled: util.Pointer(true),
-	ConnectionDrainingEnabled:     util.Pointer(true),
-	ConnectionDrainingTimeout:     util.Pointer[int32](60),
-	HealthcheckHealthyThreshold:   util.Pointer[int32](2),
-	HealthcheckUnhealthyThreshold: util.Pointer[int32](2),
-	HealthcheckInterval:           util.Pointer[int32](5),
-	HealthcheckTimeout:            util.Pointer[int32](3),
+	ProxyProtocol:                 ptr.To(true),
+	CrossZoneLoadBalancingEnabled: ptr.To(true),
+	ConnectionDrainingEnabled:     ptr.To(true),
+	ConnectionDrainingTimeout:     ptr.To[int32](60),
+	HealthcheckHealthyThreshold:   ptr.To[int32](2),
+	HealthcheckUnhealthyThreshold: ptr.To[int32](2),
+	HealthcheckInterval:           ptr.To[int32](5),
+	HealthcheckTimeout:            ptr.To[int32](3),
 }
 
 // Default sets default values for any value not specifically set in the LoadBalancerSpec struct
@@ -224,14 +232,15 @@ func (spec *ElasticLoadBalancerSpec) Default(def ElasticLoadBalancerSpec) {
 // InitializeElasticLoadBalancerSpec initializes a LoadBalancerSpec struct
 func InitializeElasticLoadBalancerSpec(spec *ElasticLoadBalancerSpec, def ElasticLoadBalancerSpec) *ElasticLoadBalancerSpec {
 	if spec == nil {
-		new := &ElasticLoadBalancerSpec{}
-		new.Default(def)
-		return new
+		newELB := &ElasticLoadBalancerSpec{}
+		newELB.Default(def)
 
+		return newELB
 	} else {
-		copy := spec.DeepCopy()
-		copy.Default(def)
-		return copy
+		dcopy := spec.DeepCopy()
+		dcopy.Default(def)
+
+		return dcopy
 	}
 }
 
@@ -260,9 +269,9 @@ type NetworkLoadBalancerSpec struct {
 }
 
 var DefaultNetworkLoadBalancerSpec NetworkLoadBalancerSpec = NetworkLoadBalancerSpec{
-	ProxyProtocol:                 util.Pointer(true),
-	CrossZoneLoadBalancingEnabled: util.Pointer(true),
-	DeletionProtection:            util.Pointer(false),
+	ProxyProtocol:                 ptr.To(true),
+	CrossZoneLoadBalancingEnabled: ptr.To(true),
+	DeletionProtection:            ptr.To(false),
 }
 
 // Default sets default values for any value not specifically set in the NLBLoadBalancerSpec struct
@@ -275,14 +284,15 @@ func (spec *NetworkLoadBalancerSpec) Default(def NetworkLoadBalancerSpec) {
 // InitializeNetworkLoadBalancerSpec initializes a NLBLoadBalancerSpec struct
 func InitializeNetworkLoadBalancerSpec(spec *NetworkLoadBalancerSpec, def NetworkLoadBalancerSpec) *NetworkLoadBalancerSpec {
 	if spec == nil {
-		new := &NetworkLoadBalancerSpec{}
-		new.Default(def)
-		return new
+		newNLB := &NetworkLoadBalancerSpec{}
+		newNLB.Default(def)
 
+		return newNLB
 	} else {
-		copy := spec.DeepCopy()
-		copy.Default(def)
-		return copy
+		dcopy := spec.DeepCopy()
+		dcopy.Default(def)
+
+		return dcopy
 	}
 }
 
@@ -316,15 +326,19 @@ func (spec *GrafanaDashboardSpec) IsDeactivated() bool {
 // InitializeGrafanaDashboardSpec initializes a GrafanaDashboardSpec struct
 func InitializeGrafanaDashboardSpec(spec *GrafanaDashboardSpec, def defaultGrafanaDashboardSpec) *GrafanaDashboardSpec {
 	if spec == nil {
-		new := &GrafanaDashboardSpec{}
-		new.Default(def)
-		return new
+		newDashboard := &GrafanaDashboardSpec{}
+		newDashboard.Default(def)
+
+		return newDashboard
 	}
+
 	if !spec.IsDeactivated() {
-		copy := spec.DeepCopy()
-		copy.Default(def)
-		return copy
+		dcopy := spec.DeepCopy()
+		dcopy.Default(def)
+
+		return dcopy
 	}
+
 	return spec
 }
 
@@ -378,15 +392,19 @@ func (spec *PodDisruptionBudgetSpec) IsDeactivated() bool {
 // InitializePodDisruptionBudgetSpec initializes a PodDisruptionBudgetSpec struct
 func InitializePodDisruptionBudgetSpec(spec *PodDisruptionBudgetSpec, def defaultPodDisruptionBudgetSpec) *PodDisruptionBudgetSpec {
 	if spec == nil {
-		new := &PodDisruptionBudgetSpec{}
-		new.Default(def)
-		return new
+		newPDB := &PodDisruptionBudgetSpec{}
+		newPDB.Default(def)
+
+		return newPDB
 	}
+
 	if !spec.IsDeactivated() {
-		copy := spec.DeepCopy()
-		copy.Default(def)
-		return copy
+		dcopy := spec.DeepCopy()
+		dcopy.Default(def)
+
+		return dcopy
 	}
+
 	return spec
 }
 
@@ -442,15 +460,19 @@ func (spec *HorizontalPodAutoscalerSpec) IsDeactivated() bool {
 // InitializeHorizontalPodAutoscalerSpec initializes a HorizontalPodAutoscalerSpec struct
 func InitializeHorizontalPodAutoscalerSpec(spec *HorizontalPodAutoscalerSpec, def defaultHorizontalPodAutoscalerSpec) *HorizontalPodAutoscalerSpec {
 	if spec == nil {
-		new := &HorizontalPodAutoscalerSpec{}
-		new.Default(def)
-		return new
+		newHPA := &HorizontalPodAutoscalerSpec{}
+		newHPA.Default(def)
+
+		return newHPA
 	}
+
 	if !spec.IsDeactivated() {
-		copy := spec.DeepCopy()
-		copy.Default(def)
-		return copy
+		dcopy := spec.DeepCopy()
+		dcopy.Default(def)
+
+		return dcopy
 	}
+
 	return spec
 }
 
@@ -471,10 +493,12 @@ type defaultDeploymentRollingStrategySpec struct {
 // InitializeDeploymentStrategySpec initializes a DeploymentStrategySpec struct
 func InitializeDeploymentStrategySpec(spec *DeploymentStrategySpec, def defaultDeploymentRollingStrategySpec) *DeploymentStrategySpec {
 	if spec == nil {
-		new := &DeploymentStrategySpec{}
-		new.Default(def)
-		return new
+		newDeploymentStrategy := &DeploymentStrategySpec{}
+		newDeploymentStrategy.Default(def)
+
+		return newDeploymentStrategy
 	}
+
 	return spec
 }
 
@@ -525,6 +549,7 @@ func (spec *ResourceRequirementsSpec) Default(def defaultResourceRequirementsSpe
 	if spec.Requests == nil {
 		spec.Requests = def.Requests
 	}
+
 	if spec.Limits == nil {
 		spec.Limits = def.Limits
 	}
@@ -538,15 +563,19 @@ func (spec *ResourceRequirementsSpec) IsDeactivated() bool {
 // InitializeResourceRequirementsSpec initializes a ResourceRequirementsSpec struct
 func InitializeResourceRequirementsSpec(spec *ResourceRequirementsSpec, def defaultResourceRequirementsSpec) *ResourceRequirementsSpec {
 	if spec == nil {
-		new := &ResourceRequirementsSpec{}
-		new.Default(def)
-		return new
+		newResources := &ResourceRequirementsSpec{}
+		newResources.Default(def)
+
+		return newResources
 	}
+
 	if !spec.IsDeactivated() {
-		copy := spec.DeepCopy()
-		copy.Default(def)
-		return copy
+		dcopy := spec.DeepCopy()
+		dcopy.Default(def)
+
+		return dcopy
 	}
+
 	return spec
 }
 
@@ -627,13 +656,16 @@ func (spec *ExternalSecretSecretStoreReferenceSpec) Default(def defaultExternalS
 // InitializeExternalSecretSecretStoreReferenceSpec initializes a ExternalSecretSecretStoreReferenceSpec struct
 func InitializeExternalSecretSecretStoreReferenceSpec(spec *ExternalSecretSecretStoreReferenceSpec, def defaultExternalSecretSecretStoreReferenceSpec) *ExternalSecretSecretStoreReferenceSpec {
 	if spec == nil {
-		new := &ExternalSecretSecretStoreReferenceSpec{}
-		new.Default(def)
-		return new
+		newSecretStore := &ExternalSecretSecretStoreReferenceSpec{}
+		newSecretStore.Default(def)
+
+		return newSecretStore
 	}
-	copy := spec.DeepCopy()
-	copy.Default(def)
-	return copy
+
+	dcopy := spec.DeepCopy()
+	dcopy.Default(def)
+
+	return dcopy
 }
 
 // BugsnagSpec has configuration for Bugsnag integration
@@ -690,7 +722,7 @@ type Canary struct {
 }
 
 // PatchSpec returns a modified spec given the canary configuration
-func (c *Canary) PatchSpec(spec, canarySpec interface{}) error {
+func (c *Canary) PatchSpec(spec, canarySpec any) error {
 	doc, err := json.Marshal(spec)
 	if err != nil {
 		return fmt.Errorf("unable to marshal spec: '%s'", err.Error())
@@ -702,7 +734,7 @@ func (c *Canary) PatchSpec(spec, canarySpec interface{}) error {
 			return fmt.Errorf("unable to decode canary patch: '%s'", err.Error())
 		}
 
-		doc, err = patch.Apply([]byte(doc))
+		doc, err = patch.Apply(doc)
 		if err != nil {
 			return fmt.Errorf("unable to apply canary patch: '%s'", err.Error())
 		}
@@ -751,6 +783,7 @@ func (status *AggregatedStatus) Init(key types.NamespacedName) {
 	if status.OwnedWorkloads == nil {
 		status.OwnedWorkloads = map[string]*WorkloadStatus{}
 	}
+
 	if _, ok := status.OwnedWorkloads[key.Name]; !ok {
 		status.OwnedWorkloads[key.Name] = &WorkloadStatus{
 			HealthStatus:  "Unknown",
@@ -826,6 +859,7 @@ func stringOrDefault(value *string, defValue *string) *string {
 	if value == nil {
 		return defValue
 	}
+
 	return value
 }
 
@@ -833,6 +867,7 @@ func stringSliceOrDefault(value []string, defValue []string) []string {
 	if len(value) == 0 {
 		return defValue
 	}
+
 	return value
 }
 
@@ -840,6 +875,7 @@ func intOrDefault(value *int32, defValue *int32) *int32 {
 	if value == nil {
 		return defValue
 	}
+
 	return value
 }
 
@@ -847,6 +883,7 @@ func int64OrDefault(value *int64, defValue *int64) *int64 {
 	if value == nil {
 		return defValue
 	}
+
 	return value
 }
 
@@ -854,6 +891,7 @@ func boolOrDefault(value *bool, defValue *bool) *bool {
 	if value == nil {
 		return defValue
 	}
+
 	return value
 }
 
@@ -861,5 +899,6 @@ func durationOrDefault(value *metav1.Duration, defValue *metav1.Duration) *metav
 	if value == nil {
 		return defValue
 	}
+
 	return value
 }

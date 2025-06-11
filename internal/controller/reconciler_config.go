@@ -157,7 +157,7 @@ func init() {
 				"spec.finally",
 			},
 		})
-	// default config for any GVK not explicitely declared in the config
+	// default config for any GVK not explicitly declared in the config
 	config.SetDefaultReconcileConfigForGVK(
 		schema.GroupVersionKind{},
 		config.ReconcileConfigForGVK{

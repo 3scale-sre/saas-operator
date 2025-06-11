@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/3scale-sre/basereconciler/util"
 	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	testutil "github.com/3scale-sre/saas-operator/test/util"
 	externalsecretsv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
@@ -17,6 +16,7 @@ import (
 	policyv1 "k8s.io/api/policy/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -58,7 +58,7 @@ var _ = Describe("Zync controller", func() {
 							},
 						},
 						Bugsnag: &saasv1alpha1.BugsnagSpec{
-							ReleaseStage: util.Pointer("staging"),
+							ReleaseStage: ptr.To("staging"),
 							APIKey: saasv1alpha1.SecretReference{
 								FromVault: &saasv1alpha1.VaultSecretReference{
 									Path: "some-path-bugsnag",
@@ -101,7 +101,7 @@ var _ = Describe("Zync controller", func() {
 					Expect(env.ValueFrom.SecretKeyRef.LocalObjectReference.Name).To(Equal("zync"))
 				}
 			}
-			Expect(dep.Spec.Template.Spec.Volumes).To(HaveLen(0))
+			Expect(dep.Spec.Template.Spec.Volumes).To(BeEmpty())
 			Expect(dep.Spec.Template.Spec.Containers[0].LivenessProbe).ToNot(BeNil())
 			Expect(dep.Spec.Template.Spec.Containers[0].ReadinessProbe).ToNot(BeNil())
 
@@ -126,7 +126,7 @@ var _ = Describe("Zync controller", func() {
 					Expect(env.ValueFrom.SecretKeyRef.LocalObjectReference.Name).To(Equal("zync"))
 				}
 			}
-			Expect(dep.Spec.Template.Spec.Volumes).To(HaveLen(0))
+			Expect(dep.Spec.Template.Spec.Volumes).To(BeEmpty())
 			Expect(dep.Spec.Template.Spec.Containers[0].LivenessProbe).ToNot(BeNil())
 			Expect(dep.Spec.Template.Spec.Containers[0].ReadinessProbe).ToNot(BeNil())
 
@@ -205,27 +205,27 @@ var _ = Describe("Zync controller", func() {
 					patch := client.MergeFrom(zync.DeepCopy())
 					zync.Spec.API = &saasv1alpha1.APISpec{
 						HPA: &saasv1alpha1.HorizontalPodAutoscalerSpec{
-							MinReplicas: util.Pointer[int32](3),
+							MinReplicas: ptr.To[int32](3),
 						},
 						LivenessProbe:  &saasv1alpha1.ProbeSpec{},
 						ReadinessProbe: &saasv1alpha1.ProbeSpec{},
 					}
 					zync.Spec.Que = &saasv1alpha1.QueSpec{
 						HPA: &saasv1alpha1.HorizontalPodAutoscalerSpec{
-							MinReplicas: util.Pointer[int32](3),
+							MinReplicas: ptr.To[int32](3),
 						},
 						LivenessProbe:  &saasv1alpha1.ProbeSpec{},
 						ReadinessProbe: &saasv1alpha1.ProbeSpec{},
 					}
 					zync.Spec.Config.Rails = &saasv1alpha1.ZyncRailsSpec{
-						Environment: util.Pointer("production"),
-						MaxThreads:  util.Pointer[int32](12),
-						LogLevel:    util.Pointer("debug"),
+						Environment: ptr.To("production"),
+						MaxThreads:  ptr.To[int32](12),
+						LogLevel:    ptr.To("debug"),
 					}
 					zync.Spec.Config.ExternalSecret.RefreshInterval = &metav1.Duration{Duration: 1 * time.Second}
 					zync.Spec.Config.ExternalSecret.SecretStoreRef = &saasv1alpha1.ExternalSecretSecretStoreReferenceSpec{
-						Name: util.Pointer("other-store"),
-						Kind: util.Pointer("SecretStore"),
+						Name: ptr.To("other-store"),
+						Kind: ptr.To("SecretStore"),
 					}
 					zync.Spec.Config.SecretKeyBase.FromVault.Path = "secret/data/updated-path"
 
@@ -336,12 +336,13 @@ var _ = Describe("Zync controller", func() {
 					Expect(err).ToNot(HaveOccurred())
 					patch := client.MergeFrom(zync.DeepCopy())
 					zync.Spec.Console = &saasv1alpha1.ZyncRailsConsoleSpec{
-						Enabled: util.Pointer(true),
+						Enabled: ptr.To(true),
 						Image: &saasv1alpha1.ImageSpec{
-							Name: util.Pointer("newImage"),
-							Tag:  util.Pointer("newTag"),
+							Name: ptr.To("newImage"),
+							Tag:  ptr.To("newTag"),
 						},
 					}
+
 					return k8sClient.Patch(context.Background(), zync, patch)
 				}, timeout, poll).ShouldNot(HaveOccurred())
 			})
@@ -394,13 +395,13 @@ var _ = Describe("Zync controller", func() {
 					patch := client.MergeFrom(zync.DeepCopy())
 
 					zync.Spec.API = &saasv1alpha1.APISpec{
-						Replicas: util.Pointer[int32](0),
+						Replicas: ptr.To[int32](0),
 						HPA:      &saasv1alpha1.HorizontalPodAutoscalerSpec{},
 						PDB:      &saasv1alpha1.PodDisruptionBudgetSpec{},
 					}
 
 					zync.Spec.Que = &saasv1alpha1.QueSpec{
-						Replicas: util.Pointer[int32](0),
+						Replicas: ptr.To[int32](0),
 						HPA:      &saasv1alpha1.HorizontalPodAutoscalerSpec{},
 						PDB:      &saasv1alpha1.PodDisruptionBudgetSpec{},
 					}

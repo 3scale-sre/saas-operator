@@ -21,13 +21,14 @@ func SafeStringAsset(name string) string {
 
 // TemplateAsset Executes one tamplate by applying it to a daata structure.
 // panic if not found or any err is detected
-func TemplateAsset(name string, data interface{}) string {
+func TemplateAsset(name string, data any) string {
 	tObj, err := template.New(name).Parse(SafeStringAsset(name))
 	if err != nil {
 		panic(err)
 	}
 
 	var tpl bytes.Buffer
+
 	err = tObj.Execute(&tpl, data)
 	if err != nil {
 		panic(err)

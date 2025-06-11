@@ -10,6 +10,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/ptr"
 )
 
 var (
@@ -34,12 +35,13 @@ func (gen *Generator) statefulSet() *appsv1.StatefulSet {
 				},
 				Spec: corev1.PodSpec{
 					Affinity:                     pod.Affinity(gen.GetSelector(), gen.Spec.NodeAffinity),
-					AutomountServiceAccountToken: util.Pointer(false),
+					AutomountServiceAccountToken: ptr.To(false),
 					DNSPolicy:                    corev1.DNSClusterFirst,
 					ImagePullSecrets: func() []corev1.LocalObjectReference {
 						if gen.Spec.Image.PullSecretName != nil {
 							return []corev1.LocalObjectReference{{Name: *gen.Spec.Image.PullSecretName}}
 						}
+
 						return nil
 					}(),
 					Containers: []corev1.Container{
@@ -97,13 +99,13 @@ func (gen *Generator) statefulSet() *appsv1.StatefulSet {
 						},
 					},
 					Tolerations:                   gen.Spec.Tolerations,
-					TerminationGracePeriodSeconds: util.Pointer[int64](30),
+					TerminationGracePeriodSeconds: ptr.To[int64](30),
 					Volumes: []corev1.Volume{
 						{
 							Name: gen.GetComponent() + "-gen-config",
 							VolumeSource: corev1.VolumeSource{
 								ConfigMap: &corev1.ConfigMapVolumeSource{
-									DefaultMode:          util.Pointer[int32](484),
+									DefaultMode:          ptr.To[int32](484),
 									LocalObjectReference: corev1.LocalObjectReference{Name: gen.GetComponent() + "-gen-config"}},
 							}},
 					}},
@@ -111,7 +113,7 @@ func (gen *Generator) statefulSet() *appsv1.StatefulSet {
 			UpdateStrategy: appsv1.StatefulSetUpdateStrategy{
 				Type: appsv1.RollingUpdateStatefulSetStrategyType,
 				RollingUpdate: &appsv1.RollingUpdateStatefulSetStrategy{
-					Partition: util.Pointer[int32](0),
+					Partition: ptr.To[int32](0),
 				},
 			},
 			VolumeClaimTemplates: []corev1.PersistentVolumeClaim{{
@@ -122,7 +124,7 @@ func (gen *Generator) statefulSet() *appsv1.StatefulSet {
 					AccessModes:      []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
 					Resources:        corev1.VolumeResourceRequirements{Requests: corev1.ResourceList{corev1.ResourceStorage: *gen.Spec.Config.StorageSize}},
 					StorageClassName: gen.Spec.Config.StorageClass,
-					VolumeMode:       (*corev1.PersistentVolumeMode)(util.Pointer(string(corev1.PersistentVolumeFilesystem))),
+					VolumeMode:       (*corev1.PersistentVolumeMode)(ptr.To(string(corev1.PersistentVolumeFilesystem))),
 					DataSource:       &corev1.TypedLocalObjectReference{},
 				},
 				Status: corev1.PersistentVolumeClaimStatus{

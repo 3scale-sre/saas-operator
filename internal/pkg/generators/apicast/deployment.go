@@ -3,23 +3,22 @@ package apicast
 import (
 	"fmt"
 
-	"github.com/3scale-sre/basereconciler/util"
 	"github.com/3scale-sre/saas-operator/internal/pkg/resource_builders/pod"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
 )
 
 func (gen *EnvGenerator) deployment() *appsv1.Deployment {
-
 	return &appsv1.Deployment{
 		Spec: appsv1.DeploymentSpec{
 			Replicas: gen.Spec.Replicas,
 			Strategy: appsv1.DeploymentStrategy{
 				Type: appsv1.RollingUpdateDeploymentStrategyType,
 				RollingUpdate: &appsv1.RollingUpdateDeployment{
-					MaxUnavailable: util.Pointer(intstr.FromInt(0)),
-					MaxSurge:       util.Pointer(intstr.FromInt(1)),
+					MaxUnavailable: ptr.To(intstr.FromInt(0)),
+					MaxSurge:       ptr.To(intstr.FromInt(1)),
 				},
 			},
 			Template: corev1.PodTemplateSpec{
@@ -28,6 +27,7 @@ func (gen *EnvGenerator) deployment() *appsv1.Deployment {
 						if gen.Spec.Image.PullSecretName != nil {
 							return []corev1.LocalObjectReference{{Name: *gen.Spec.Image.PullSecretName}}
 						}
+
 						return nil
 					}(),
 					Containers: []corev1.Container{
@@ -48,7 +48,7 @@ func (gen *EnvGenerator) deployment() *appsv1.Deployment {
 					},
 					Affinity:                      pod.Affinity(gen.GetSelector(), gen.Spec.NodeAffinity),
 					Tolerations:                   gen.Spec.Tolerations,
-					TerminationGracePeriodSeconds: util.Pointer[int64](30),
+					TerminationGracePeriodSeconds: ptr.To[int64](30),
 				},
 			},
 		},

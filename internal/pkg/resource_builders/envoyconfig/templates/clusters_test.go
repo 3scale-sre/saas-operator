@@ -3,18 +3,19 @@ package templates
 import (
 	"testing"
 
-	"github.com/3scale-sre/basereconciler/util"
 	envoy_serializer_v3 "github.com/3scale-sre/marin3r/api/envoy/serializer/v3"
 	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	"github.com/MakeNowJust/heredoc"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/yaml"
 )
 
 func TestCluster_v1(t *testing.T) {
 	type args struct {
 		name string
-		opts interface{}
+		opts any
 	}
+
 	tests := []struct {
 		name string
 		args args
@@ -27,7 +28,7 @@ func TestCluster_v1(t *testing.T) {
 				opts: &saasv1alpha1.Cluster{
 					Host:    "localhost",
 					Port:    8080,
-					IsHttp2: util.Pointer(false),
+					IsHttp2: ptr.To(false),
 				},
 			},
 			want: heredoc.Doc(`
@@ -53,7 +54,7 @@ func TestCluster_v1(t *testing.T) {
 				opts: &saasv1alpha1.Cluster{
 					Host:    "localhost",
 					Port:    8080,
-					IsHttp2: util.Pointer(true),
+					IsHttp2: ptr.To(true),
 				},
 			},
 			want: heredoc.Doc(`
@@ -83,18 +84,20 @@ func TestCluster_v1(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, _ := Cluster_v1(tt.args.name, tt.args.opts)
+
 			j, err := envoy_serializer_v3.JSON{}.Marshal(got)
 			if err != nil {
 				t.Error(err)
 			}
+
 			y, err := yaml.JSONToYAML([]byte(j))
 			if err != nil {
 				t.Error(err)
 			}
+
 			if string(y) != tt.want {
 				t.Errorf("Cluster_v1():\n# got:\n%v\n# want:\n%v", string(y), tt.want)
 			}
-
 		})
 	}
 }

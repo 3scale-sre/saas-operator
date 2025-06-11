@@ -18,19 +18,19 @@ package v1alpha1
 
 import (
 	"github.com/3scale-sre/basereconciler/reconciler"
-	"github.com/3scale-sre/basereconciler/util"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
 )
 
 var (
 	corsproxyDefaultReplicas int32            = 2
 	corsproxyDefaultImage    defaultImageSpec = defaultImageSpec{
-		Name:       util.Pointer("quay.io/3scale/cors-proxy"),
-		Tag:        util.Pointer("latest"),
-		PullPolicy: (*corev1.PullPolicy)(util.Pointer(string(corev1.PullIfNotPresent))),
+		Name:       ptr.To("quay.io/3scale/cors-proxy"),
+		Tag:        ptr.To("latest"),
+		PullPolicy: (*corev1.PullPolicy)(ptr.To(string(corev1.PullIfNotPresent))),
 	}
 	corsproxyDefaultResources defaultResourceRequirementsSpec = defaultResourceRequirementsSpec{
 		Requests: corev1.ResourceList{
@@ -43,25 +43,25 @@ var (
 		},
 	}
 	corsproxyDefaultHPA defaultHorizontalPodAutoscalerSpec = defaultHorizontalPodAutoscalerSpec{
-		MinReplicas:         util.Pointer[int32](2),
-		MaxReplicas:         util.Pointer[int32](4),
-		ResourceUtilization: util.Pointer[int32](90),
-		ResourceName:        util.Pointer("cpu"),
+		MinReplicas:         ptr.To[int32](2),
+		MaxReplicas:         ptr.To[int32](4),
+		ResourceUtilization: ptr.To[int32](90),
+		ResourceName:        ptr.To("cpu"),
 	}
 	corsproxyDefaultProbe defaultProbeSpec = defaultProbeSpec{
-		InitialDelaySeconds: util.Pointer[int32](3),
-		TimeoutSeconds:      util.Pointer[int32](1),
-		PeriodSeconds:       util.Pointer[int32](10),
-		SuccessThreshold:    util.Pointer[int32](1),
-		FailureThreshold:    util.Pointer[int32](3),
+		InitialDelaySeconds: ptr.To[int32](3),
+		TimeoutSeconds:      ptr.To[int32](1),
+		PeriodSeconds:       ptr.To[int32](10),
+		SuccessThreshold:    ptr.To[int32](1),
+		FailureThreshold:    ptr.To[int32](3),
 	}
 	corsproxyDefaultPDB defaultPodDisruptionBudgetSpec = defaultPodDisruptionBudgetSpec{
-		MaxUnavailable: util.Pointer(intstr.FromInt(1)),
+		MaxUnavailable: ptr.To(intstr.FromInt(1)),
 	}
 
 	corsproxyDefaultGrafanaDashboard defaultGrafanaDashboardSpec = defaultGrafanaDashboardSpec{
-		SelectorKey:   util.Pointer("monitoring-key"),
-		SelectorValue: util.Pointer("middleware"),
+		SelectorKey:   ptr.To("monitoring-key"),
+		SelectorValue: ptr.To("middleware"),
 	}
 )
 
@@ -116,7 +116,6 @@ type CORSProxySpec struct {
 
 // Default implements defaulting for CORSProxySpec
 func (spec *CORSProxySpec) Default() {
-
 	spec.Image = InitializeImageSpec(spec.Image, corsproxyDefaultImage)
 	spec.HPA = InitializeHorizontalPodAutoscalerSpec(spec.HPA, corsproxyDefaultHPA)
 	spec.Replicas = intOrDefault(spec.Replicas, &corsproxyDefaultReplicas)

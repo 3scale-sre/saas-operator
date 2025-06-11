@@ -6,12 +6,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/3scale-sre/basereconciler/util"
 	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	externalsecretsv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
 	"github.com/google/go-cmp/cmp"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
@@ -28,6 +28,7 @@ func TestOptions_BuildEnvironment(t *testing.T) {
 	type args struct {
 		extra []corev1.EnvVar
 	}
+
 	tests := []struct {
 		name string
 		opts *Options
@@ -39,6 +40,7 @@ func TestOptions_BuildEnvironment(t *testing.T) {
 			opts: func() *Options {
 				o := NewOptions()
 				o.AddEnvvar("envvar").Unpack("value")
+
 				return o
 			}(),
 			args: args{extra: []corev1.EnvVar{}},
@@ -52,6 +54,7 @@ func TestOptions_BuildEnvironment(t *testing.T) {
 			opts: func() *Options {
 				o := NewOptions()
 				o.AddEnvvar("envvar").Unpack(8080, ":%d")
+
 				return o
 			}(),
 			args: args{extra: []corev1.EnvVar{}},
@@ -64,7 +67,8 @@ func TestOptions_BuildEnvironment(t *testing.T) {
 			name: "Pointer to text value",
 			opts: func() *Options {
 				o := NewOptions()
-				o.AddEnvvar("envvar").Unpack(util.Pointer("value"))
+				o.AddEnvvar("envvar").Unpack(ptr.To("value"))
+
 				return o
 			}(),
 			args: args{extra: []corev1.EnvVar{}},
@@ -79,6 +83,7 @@ func TestOptions_BuildEnvironment(t *testing.T) {
 				o := NewOptions()
 				var v *string
 				o.AddEnvvar("envvar").Unpack(v)
+
 				return o
 			}(),
 			args: args{extra: []corev1.EnvVar{}},
@@ -93,6 +98,7 @@ func TestOptions_BuildEnvironment(t *testing.T) {
 						Path: "path",
 						Key:  "key",
 					}})
+
 				return o
 			}(),
 			args: args{extra: []corev1.EnvVar{}},
@@ -117,6 +123,7 @@ func TestOptions_BuildEnvironment(t *testing.T) {
 						Path: "path",
 						Key:  "key",
 					}})
+
 				return o
 			}(),
 			args: args{extra: []corev1.EnvVar{}},
@@ -138,6 +145,7 @@ func TestOptions_BuildEnvironment(t *testing.T) {
 				o := &Options{}
 				var v *saasv1alpha1.SecretReference
 				o.AddEnvvar("envvar").AsSecretRef(TSecret("secret")).Unpack(v)
+
 				return o
 			}(),
 			args: args{extra: []corev1.EnvVar{}},
@@ -148,7 +156,8 @@ func TestOptions_BuildEnvironment(t *testing.T) {
 			opts: func() *Options {
 				o := &Options{}
 				o.AddEnvvar("envvar").
-					Unpack(saasv1alpha1.SecretReference{Override: util.Pointer("value")})
+					Unpack(saasv1alpha1.SecretReference{Override: ptr.To("value")})
+
 				return o
 			}(),
 			args: args{extra: []corev1.EnvVar{}},
@@ -166,6 +175,7 @@ func TestOptions_BuildEnvironment(t *testing.T) {
 						Path: "path",
 						Key:  "key",
 					}})
+
 				return o
 			}(),
 			args: args{extra: []corev1.EnvVar{}},
@@ -184,6 +194,7 @@ func TestOptions_BuildEnvironment(t *testing.T) {
 						Key:  "key",
 					}})
 				o.AddEnvvar("envvar2").Unpack("value2")
+
 				return o
 			}(),
 			args: args{extra: []corev1.EnvVar{
@@ -228,6 +239,7 @@ func TestOptions_BuildEnvironment(t *testing.T) {
 			opts: func() *Options {
 				o := NewOptions()
 				o.AddEnvvar("envvar").Unpack(true)
+
 				return o
 			}(),
 			args: args{extra: []corev1.EnvVar{}},
@@ -240,7 +252,8 @@ func TestOptions_BuildEnvironment(t *testing.T) {
 			name: "Pointer to int value",
 			opts: func() *Options {
 				o := NewOptions()
-				o.AddEnvvar("envvar").Unpack(util.Pointer(100))
+				o.AddEnvvar("envvar").Unpack(ptr.To(100))
+
 				return o
 			}(),
 			args: args{extra: []corev1.EnvVar{}},
@@ -253,9 +266,10 @@ func TestOptions_BuildEnvironment(t *testing.T) {
 			name: "SecretReference from seed",
 			opts: func() *Options {
 				o := &Options{}
-				o.AddEnvvar("envvar1").Unpack(saasv1alpha1.SecretReference{Override: util.Pointer("value1")})
+				o.AddEnvvar("envvar1").Unpack(saasv1alpha1.SecretReference{Override: ptr.To("value1")})
 				o.AddEnvvar("envvar2").AsSecretRef(TSecret("some-secret")).WithSeedKey(TSeedKey("seed-key")).
 					Unpack(saasv1alpha1.SecretReference{FromSeed: &saasv1alpha1.SeedSecretReference{}})
+
 				return o
 			}(),
 			args: args{extra: []corev1.EnvVar{}},
@@ -281,12 +295,13 @@ func TestOptions_BuildEnvironment(t *testing.T) {
 			name: "SecretReference from vault, but with seed configured",
 			opts: func() *Options {
 				o := &Options{}
-				o.AddEnvvar("envvar1").Unpack(saasv1alpha1.SecretReference{Override: util.Pointer("value1")})
+				o.AddEnvvar("envvar1").Unpack(saasv1alpha1.SecretReference{Override: ptr.To("value1")})
 				o.AddEnvvar("envvar2").AsSecretRef(TSecret("some-secret")).WithSeedKey(TSeedKey("seed-key")).
 					Unpack(saasv1alpha1.SecretReference{FromVault: &saasv1alpha1.VaultSecretReference{
 						Path: "path",
 						Key:  "key",
 					}})
+
 				return o
 			}(),
 			args: args{extra: []corev1.EnvVar{}},
@@ -327,6 +342,7 @@ func TestOptions_GenerateExternalSecrets(t *testing.T) {
 		secretStoreKind string
 		refreshInterval metav1.Duration
 	}
+
 	tests := []struct {
 		name string
 		opts *Options
@@ -339,6 +355,7 @@ func TestOptions_GenerateExternalSecrets(t *testing.T) {
 				o := NewOptions()
 				o.AddEnvvar("envvar1").Unpack("value1")
 				o.AddEnvvar("envvar2").Unpack("value2")
+
 				return o
 			}(),
 			args: args{},
@@ -363,6 +380,7 @@ func TestOptions_GenerateExternalSecrets(t *testing.T) {
 						Path: "path3",
 						Key:  "key3",
 					}})
+
 				return o
 			}(),
 			args: args{
@@ -389,7 +407,7 @@ func TestOptions_GenerateExternalSecrets(t *testing.T) {
 							CreationPolicy: "Owner",
 							DeletionPolicy: "Retain",
 						},
-						RefreshInterval: util.Pointer(metav1.Duration{Duration: 60 * time.Second}),
+						RefreshInterval: ptr.To(metav1.Duration{Duration: 60 * time.Second}),
 						Data: []externalsecretsv1beta1.ExternalSecretData{
 							{
 								SecretKey: "envvar1",
@@ -428,7 +446,7 @@ func TestOptions_GenerateExternalSecrets(t *testing.T) {
 							CreationPolicy: "Owner",
 							DeletionPolicy: "Retain",
 						},
-						RefreshInterval: util.Pointer(metav1.Duration{Duration: 60 * time.Second}),
+						RefreshInterval: ptr.To(metav1.Duration{Duration: 60 * time.Second}),
 						Data: []externalsecretsv1beta1.ExternalSecretData{
 							{
 								SecretKey: "envvar3",
@@ -449,7 +467,8 @@ func TestOptions_GenerateExternalSecrets(t *testing.T) {
 			opts: func() *Options {
 				o := NewOptions()
 				o.AddEnvvar("envvar1").AsSecretRef(TSecret("secret")).
-					Unpack(&saasv1alpha1.SecretReference{Override: util.Pointer("override")})
+					Unpack(&saasv1alpha1.SecretReference{Override: ptr.To("override")})
+
 				return o
 			}(),
 			args: args{},
@@ -461,6 +480,7 @@ func TestOptions_GenerateExternalSecrets(t *testing.T) {
 				o := NewOptions()
 				var v *saasv1alpha1.SecretReference
 				o.AddEnvvar("envvar1").AsSecretRef(TSecret("secret")).Unpack(v)
+
 				return o
 			}(),
 			args: args{},
@@ -472,6 +492,7 @@ func TestOptions_GenerateExternalSecrets(t *testing.T) {
 				o := NewOptions()
 				o.AddEnvvar("envvar1").AsSecretRef(TSecret("secret")).WithSeedKey(TSeedKey("key")).
 					Unpack(&saasv1alpha1.SecretReference{FromSeed: &saasv1alpha1.SeedSecretReference{}})
+
 				return o
 			}(),
 			args: args{},
@@ -482,10 +503,12 @@ func TestOptions_GenerateExternalSecrets(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			templates := tt.opts.GenerateExternalSecrets(tt.args.namespace, tt.args.labels, tt.args.secretStoreName, tt.args.secretStoreKind, tt.args.refreshInterval)
 			got := []client.Object{}
+
 			for _, tplt := range templates {
 				es, _ := tplt.Build(context.TODO(), fake.NewClientBuilder().Build(), nil)
 				got = append(got, es)
 			}
+
 			if diff := cmp.Diff(got, tt.want); len(diff) > 0 {
 				t.Errorf("Options.GenerateExternalSecrets() got diff %v", diff)
 			}
@@ -497,6 +520,7 @@ func TestOptions_WithExtraEnv(t *testing.T) {
 	type args struct {
 		extra []corev1.EnvVar
 	}
+
 	tests := []struct {
 		name    string
 		options *Options
@@ -508,12 +532,12 @@ func TestOptions_WithExtraEnv(t *testing.T) {
 			name: "",
 			options: &Options{
 				{
-					value:       util.Pointer("value1"),
+					value:       ptr.To("value1"),
 					envVariable: "envvar1",
 					isSet:       true,
 				},
 				{
-					value:       util.Pointer("value2"),
+					value:       ptr.To("value2"),
 					envVariable: "envvar2",
 					isSet:       true,
 				},
@@ -530,17 +554,17 @@ func TestOptions_WithExtraEnv(t *testing.T) {
 			},
 			want: &Options{
 				{
-					value:       util.Pointer("aaaa"),
+					value:       ptr.To("aaaa"),
 					envVariable: "envvar1",
 					isSet:       true,
 				},
 				{
-					value:       util.Pointer("value2"),
+					value:       ptr.To("value2"),
 					envVariable: "envvar2",
 					isSet:       true,
 				},
 				{
-					value:       util.Pointer("bbbb"),
+					value:       ptr.To("bbbb"),
 					envVariable: "envvar3",
 					isSet:       true,
 				},
@@ -552,12 +576,12 @@ func TestOptions_WithExtraEnv(t *testing.T) {
 			},
 			wantOld: &Options{
 				{
-					value:       util.Pointer("value1"),
+					value:       ptr.To("value1"),
 					envVariable: "envvar1",
 					isSet:       true,
 				},
 				{
-					value:       util.Pointer("value2"),
+					value:       ptr.To("value2"),
 					envVariable: "envvar2",
 					isSet:       true,
 				},
@@ -570,6 +594,7 @@ func TestOptions_WithExtraEnv(t *testing.T) {
 			if diff := cmp.Diff(got, tt.want, cmp.AllowUnexported(Option{})); len(diff) > 0 {
 				t.Errorf("Options.WithExtraEnv() got diff %v", diff)
 			}
+
 			if diff := cmp.Diff(tt.options, tt.wantOld, cmp.AllowUnexported(Option{})); len(diff) > 0 {
 				t.Errorf("Options.WithExtraEnv() gotOld diff %v", diff)
 			}
@@ -594,7 +619,7 @@ func TestOptions_ListSecretResourceNames(t *testing.T) {
 				o.AddEnvvar("envvar2").Unpack("value")
 				// not ok: secret value with override
 				o.AddEnvvar("envvar3").AsSecretRef(TSecret("secret2")).
-					Unpack(&saasv1alpha1.SecretReference{Override: util.Pointer("value")})
+					Unpack(&saasv1alpha1.SecretReference{Override: ptr.To("value")})
 				// not ok: secret value is nil
 				var v *saasv1alpha1.SecretReference
 				o.AddEnvvar("envvar1").AsSecretRef(TSecret("secret3")).Unpack(v)
@@ -607,6 +632,7 @@ func TestOptions_ListSecretResourceNames(t *testing.T) {
 				// ok: secret from seed
 				o.AddEnvvar("envvar4").AsSecretRef(TSecret("secret3")).WithSeedKey(TSeedKey("seed-key")).
 					Unpack(&saasv1alpha1.SecretReference{FromSeed: &saasv1alpha1.SeedSecretReference{}})
+
 				return o
 			}(),
 			want: []string{"secret1", "secret2", "saas-seed"},
@@ -625,6 +651,7 @@ func TestUnion(t *testing.T) {
 	type args struct {
 		lists [][]*Option
 	}
+
 	tests := []struct {
 		name string
 		args args
@@ -636,29 +663,29 @@ func TestUnion(t *testing.T) {
 				lists: [][]*Option{
 					{
 						{
-							value:       util.Pointer("value1"),
+							value:       ptr.To("value1"),
 							envVariable: "ENVVAR1",
 							isSet:       false,
 						},
 						{
-							value:       util.Pointer("value2"),
+							value:       ptr.To("value2"),
 							envVariable: "ENVVAR2",
 							isSet:       false,
 						},
 					},
 					{
 						{
-							value:       util.Pointer("value1"),
+							value:       ptr.To("value1"),
 							envVariable: "ENVVAR1",
 							isSet:       false,
 						},
 						{
-							value:       util.Pointer("value3"),
+							value:       ptr.To("value3"),
 							envVariable: "ENVVAR3",
 							isSet:       false,
 						},
 						{
-							value:       util.Pointer("value4"),
+							value:       ptr.To("value4"),
 							envVariable: "ENVVAR4",
 							isSet:       false,
 						},
@@ -667,22 +694,22 @@ func TestUnion(t *testing.T) {
 			},
 			want: []*Option{
 				{
-					value:       util.Pointer("value1"),
+					value:       ptr.To("value1"),
 					envVariable: "ENVVAR1",
 					isSet:       false,
 				},
 				{
-					value:       util.Pointer("value2"),
+					value:       ptr.To("value2"),
 					envVariable: "ENVVAR2",
 					isSet:       false,
 				},
 				{
-					value:       util.Pointer("value3"),
+					value:       ptr.To("value3"),
 					envVariable: "ENVVAR3",
 					isSet:       false,
 				},
 				{
-					value:       util.Pointer("value4"),
+					value:       ptr.To("value4"),
 					envVariable: "ENVVAR4",
 					isSet:       false,
 				},

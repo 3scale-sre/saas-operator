@@ -2,10 +2,9 @@ package controllers
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"time"
 
-	"github.com/3scale-sre/basereconciler/util"
 	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	testutil "github.com/3scale-sre/saas-operator/test/util"
 	externalsecretsv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
@@ -21,6 +20,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -48,32 +48,32 @@ var _ = Describe("System controller", func() {
 								Key:  "some-key-db",
 							},
 						},
-						EventsSharedSecret: saasv1alpha1.SecretReference{Override: util.Pointer("override")},
+						EventsSharedSecret: saasv1alpha1.SecretReference{Override: ptr.To("override")},
 						Recaptcha: saasv1alpha1.SystemRecaptchaSpec{
-							PublicKey:  saasv1alpha1.SecretReference{Override: util.Pointer("override")},
-							PrivateKey: saasv1alpha1.SecretReference{Override: util.Pointer("override")},
+							PublicKey:  saasv1alpha1.SecretReference{Override: ptr.To("override")},
+							PrivateKey: saasv1alpha1.SecretReference{Override: ptr.To("override")},
 						},
-						SecretKeyBase: saasv1alpha1.SecretReference{Override: util.Pointer("override")},
-						AccessCode:    &saasv1alpha1.SecretReference{Override: util.Pointer("override")},
+						SecretKeyBase: saasv1alpha1.SecretReference{Override: ptr.To("override")},
+						AccessCode:    &saasv1alpha1.SecretReference{Override: ptr.To("override")},
 						Segment: saasv1alpha1.SegmentSpec{
 							DeletionWorkspace: "value",
-							DeletionToken:     saasv1alpha1.SecretReference{Override: util.Pointer("override")},
-							WriteKey:          saasv1alpha1.SecretReference{Override: util.Pointer("override")},
+							DeletionToken:     saasv1alpha1.SecretReference{Override: ptr.To("override")},
+							WriteKey:          saasv1alpha1.SecretReference{Override: ptr.To("override")},
 						},
 						Github: saasv1alpha1.GithubSpec{
-							ClientID:     saasv1alpha1.SecretReference{Override: util.Pointer("override")},
-							ClientSecret: saasv1alpha1.SecretReference{Override: util.Pointer("override")},
+							ClientID:     saasv1alpha1.SecretReference{Override: ptr.To("override")},
+							ClientSecret: saasv1alpha1.SecretReference{Override: ptr.To("override")},
 						},
 						RedHatCustomerPortal: saasv1alpha1.RedHatCustomerPortalSpec{
-							ClientID:     saasv1alpha1.SecretReference{Override: util.Pointer("override")},
-							ClientSecret: saasv1alpha1.SecretReference{Override: util.Pointer("override")},
-							Realm:        util.Pointer("sso.example.net"),
+							ClientID:     saasv1alpha1.SecretReference{Override: ptr.To("override")},
+							ClientSecret: saasv1alpha1.SecretReference{Override: ptr.To("override")},
+							Realm:        ptr.To("sso.example.net"),
 						},
 						Bugsnag: &saasv1alpha1.BugsnagSpec{
-							ReleaseStage: util.Pointer("staging"),
-							APIKey:       saasv1alpha1.SecretReference{Override: util.Pointer("override")},
+							ReleaseStage: ptr.To("staging"),
+							APIKey:       saasv1alpha1.SecretReference{Override: ptr.To("override")},
 						},
-						// DatabaseSecret:   saasv1alpha1.SecretReference{Override: util.Pointer("override")},
+						// DatabaseSecret:   saasv1alpha1.SecretReference{Override: ptr.To("override")},
 						DatabaseSecret: saasv1alpha1.SecretReference{FromVault: &saasv1alpha1.VaultSecretReference{
 							Path: "path",
 							Key:  "key",
@@ -84,47 +84,47 @@ var _ = Describe("System controller", func() {
 						},
 						SMTP: saasv1alpha1.SMTPSpec{
 							Address:           "value",
-							User:              saasv1alpha1.SecretReference{Override: util.Pointer("override")},
-							Password:          saasv1alpha1.SecretReference{Override: util.Pointer("override")},
+							User:              saasv1alpha1.SecretReference{Override: ptr.To("override")},
+							Password:          saasv1alpha1.SecretReference{Override: ptr.To("override")},
 							Port:              1000,
 							AuthProtocol:      "value",
 							OpenSSLVerifyMode: "value",
-							STARTTLS:          util.Pointer(false),
+							STARTTLS:          ptr.To(false),
 						},
-						MappingServiceAccessToken: saasv1alpha1.SecretReference{Override: util.Pointer("override")},
+						MappingServiceAccessToken: saasv1alpha1.SecretReference{Override: ptr.To("override")},
 						Zync: saasv1alpha1.SystemZyncSpec{
-							AuthToken: saasv1alpha1.SecretReference{Override: util.Pointer("override")},
+							AuthToken: saasv1alpha1.SecretReference{Override: ptr.To("override")},
 							Endpoint:  "value",
 						},
 						Backend: saasv1alpha1.SystemBackendSpec{
 							ExternalEndpoint:    "value",
 							InternalEndpoint:    "value",
-							InternalAPIUser:     saasv1alpha1.SecretReference{Override: util.Pointer("override")},
-							InternalAPIPassword: saasv1alpha1.SecretReference{Override: util.Pointer("override")},
+							InternalAPIUser:     saasv1alpha1.SecretReference{Override: ptr.To("override")},
+							InternalAPIPassword: saasv1alpha1.SecretReference{Override: ptr.To("override")},
 							RedisDSN:            "value",
 						},
 						Assets: saasv1alpha1.AssetsSpec{
-							Host:      util.Pointer("test.cloudfront.net"),
+							Host:      ptr.To("test.cloudfront.net"),
 							Bucket:    "bucket",
 							Region:    "us-east-1",
-							AccessKey: saasv1alpha1.SecretReference{Override: util.Pointer("override")},
-							SecretKey: saasv1alpha1.SecretReference{Override: util.Pointer("override")},
+							AccessKey: saasv1alpha1.SecretReference{Override: ptr.To("override")},
+							SecretKey: saasv1alpha1.SecretReference{Override: ptr.To("override")},
 						},
 					},
 					App: &saasv1alpha1.SystemAppSpec{
 						DeploymentStrategy: &saasv1alpha1.DeploymentStrategySpec{
 							Type: appsv1.RollingUpdateDeploymentStrategyType,
 							RollingUpdate: &appsv1.RollingUpdateDeployment{
-								MaxSurge:       util.Pointer(intstr.FromString("20%")),
-								MaxUnavailable: util.Pointer(intstr.FromInt(0)),
+								MaxSurge:       ptr.To(intstr.FromString("20%")),
+								MaxUnavailable: ptr.To(intstr.FromInt(0)),
 							},
 						}},
 					SidekiqDefault: &saasv1alpha1.SystemSidekiqSpec{
 						DeploymentStrategy: &saasv1alpha1.DeploymentStrategySpec{
 							Type: appsv1.RollingUpdateDeploymentStrategyType,
 							RollingUpdate: &appsv1.RollingUpdateDeployment{
-								MaxSurge:       util.Pointer(intstr.FromString("15%")),
-								MaxUnavailable: util.Pointer(intstr.FromString("5%")),
+								MaxSurge:       ptr.To(intstr.FromString("15%")),
+								MaxUnavailable: ptr.To(intstr.FromString("5%")),
 							},
 						},
 						HPA: &saasv1alpha1.HorizontalPodAutoscalerSpec{
@@ -178,7 +178,7 @@ var _ = Describe("System controller", func() {
 			for _, env := range dep.Spec.Template.Spec.Containers[0].Env {
 				switch env.Name {
 				case "THINKING_SPHINX_ADDRESS":
-					Expect(env.Value).To(Equal("system-searchd"))
+					Expect(env.Value).To(Equal("system-searched"))
 				case "THINKING_SPHINX_PORT":
 					Expect(env.Value).To(Equal("9306"))
 				}
@@ -186,8 +186,8 @@ var _ = Describe("System controller", func() {
 
 			Expect(dep.Spec.Template.Spec.Volumes[0].Secret.SecretName).To(Equal("system-config"))
 			Expect(dep.Spec.Strategy.Type).To(Equal(appsv1.RollingUpdateDeploymentStrategyType))
-			Expect(dep.Spec.Strategy.RollingUpdate.MaxSurge).To(Equal(util.Pointer(intstr.FromString("20%"))))
-			Expect(dep.Spec.Strategy.RollingUpdate.MaxUnavailable).To(Equal(util.Pointer(intstr.FromInt(0))))
+			Expect(dep.Spec.Strategy.RollingUpdate.MaxSurge).To(Equal(ptr.To(intstr.FromString("20%"))))
+			Expect(dep.Spec.Strategy.RollingUpdate.MaxUnavailable).To(Equal(ptr.To(intstr.FromInt(0))))
 
 			svc := &corev1.Service{}
 			By("deploying the system-app service",
@@ -195,7 +195,7 @@ var _ = Describe("System controller", func() {
 					Assert(k8sClient, svc, timeout, poll))
 
 			Expect(svc.Spec.Selector["deployment"]).To(Equal("system-app"))
-			Expect(dep.Spec.Template.Spec.TerminationGracePeriodSeconds).To(Equal(util.Pointer[int64](60)))
+			Expect(dep.Spec.Template.Spec.TerminationGracePeriodSeconds).To(Equal(ptr.To[int64](60)))
 
 		})
 
@@ -221,10 +221,10 @@ var _ = Describe("System controller", func() {
 
 			Expect(dep.Spec.Template.Spec.Volumes[0].Name).To(Equal("system-tmp"))
 			Expect(dep.Spec.Template.Spec.Volumes[1].Secret.SecretName).To(Equal("system-config"))
-			Expect(dep.Spec.Template.Spec.TerminationGracePeriodSeconds).To(Equal(util.Pointer[int64](60)))
+			Expect(dep.Spec.Template.Spec.TerminationGracePeriodSeconds).To(Equal(ptr.To[int64](60)))
 			Expect(dep.Spec.Strategy.Type).To(Equal(appsv1.RollingUpdateDeploymentStrategyType))
-			Expect(dep.Spec.Strategy.RollingUpdate.MaxSurge).To(Equal(util.Pointer(intstr.FromString("15%"))))
-			Expect(dep.Spec.Strategy.RollingUpdate.MaxUnavailable).To(Equal(util.Pointer(intstr.FromString("5%"))))
+			Expect(dep.Spec.Strategy.RollingUpdate.MaxSurge).To(Equal(ptr.To(intstr.FromString("15%"))))
+			Expect(dep.Spec.Strategy.RollingUpdate.MaxUnavailable).To(Equal(ptr.To(intstr.FromString("5%"))))
 
 			hpa := &autoscalingv2.HorizontalPodAutoscaler{}
 			By("updates system-sidekiq-default hpa behaviour",
@@ -248,10 +248,10 @@ var _ = Describe("System controller", func() {
 
 			Expect(dep.Spec.Template.Spec.Volumes[0].Name).To(Equal("system-tmp"))
 			Expect(dep.Spec.Template.Spec.Volumes[1].Secret.SecretName).To(Equal("system-config"))
-			Expect(dep.Spec.Template.Spec.TerminationGracePeriodSeconds).To(Equal(util.Pointer[int64](60)))
+			Expect(dep.Spec.Template.Spec.TerminationGracePeriodSeconds).To(Equal(ptr.To[int64](60)))
 			Expect(dep.Spec.Strategy.Type).To(Equal(appsv1.RollingUpdateDeploymentStrategyType))
-			Expect(dep.Spec.Strategy.RollingUpdate.MaxSurge).To(Equal(util.Pointer(intstr.FromInt(1))))
-			Expect(dep.Spec.Strategy.RollingUpdate.MaxUnavailable).To(Equal(util.Pointer(intstr.FromInt(0))))
+			Expect(dep.Spec.Strategy.RollingUpdate.MaxSurge).To(Equal(ptr.To(intstr.FromInt(1))))
+			Expect(dep.Spec.Strategy.RollingUpdate.MaxUnavailable).To(Equal(ptr.To(intstr.FromInt(0))))
 
 			By("deploying a system-sidekiq-low workload",
 				(&testutil.ExpectedWorkload{
@@ -267,26 +267,26 @@ var _ = Describe("System controller", func() {
 
 			Expect(dep.Spec.Template.Spec.Volumes[0].Name).To(Equal("system-tmp"))
 			Expect(dep.Spec.Template.Spec.Volumes[1].Secret.SecretName).To(Equal("system-config"))
-			Expect(dep.Spec.Template.Spec.TerminationGracePeriodSeconds).To(Equal(util.Pointer[int64](60)))
+			Expect(dep.Spec.Template.Spec.TerminationGracePeriodSeconds).To(Equal(ptr.To[int64](60)))
 
 		})
 
-		It("creates the system-searchd resources", func() {
+		It("creates the system-searched resources", func() {
 
 			sts := &appsv1.StatefulSet{}
-			By("deploying the system-searchd statefulset",
-				(&testutil.ExpectedResource{Name: "system-searchd", Namespace: namespace}).
+			By("deploying the system-searched statefulset",
+				(&testutil.ExpectedResource{Name: "system-searched", Namespace: namespace}).
 					Assert(k8sClient, sts, timeout, poll))
 
 			Expect(sts.Spec.Template.Spec.Containers[0].Args).To(BeEmpty())
-			Expect(sts.Spec.Template.Spec.TerminationGracePeriodSeconds).To(Equal(util.Pointer[int64](60)))
+			Expect(sts.Spec.Template.Spec.TerminationGracePeriodSeconds).To(Equal(ptr.To[int64](60)))
 			Expect(sts.Spec.Template.Spec.Containers[0].Env).To(BeEmpty())
 
 			svc := &corev1.Service{}
-			By("deploying the system-searchd service",
-				(&testutil.ExpectedResource{Name: "system-searchd", Namespace: namespace}).
+			By("deploying the system-searched service",
+				(&testutil.ExpectedResource{Name: "system-searched", Namespace: namespace}).
 					Assert(k8sClient, svc, timeout, poll))
-			Expect(svc.Spec.Selector["deployment"]).To(Equal("system-searchd"))
+			Expect(svc.Spec.Selector["deployment"]).To(Equal("system-searched"))
 
 		})
 
@@ -337,7 +337,7 @@ var _ = Describe("System controller", func() {
 
 			for _, tr := range []string{
 				"system-db-migrate",
-				"system-searchd-reindex",
+				"system-searched-reindex",
 				"system-backend-sync",
 			} {
 				task := &pipelinev1.Task{}
@@ -380,7 +380,7 @@ var _ = Describe("System controller", func() {
 
 		})
 
-		When("updating a System resource without searchd", func() {
+		When("updating a System resource without searched", func() {
 
 			BeforeEach(func() {
 				Eventually(func() error {
@@ -392,18 +392,19 @@ var _ = Describe("System controller", func() {
 					Expect(err).ToNot(HaveOccurred())
 
 					patch := client.MergeFrom(system.DeepCopy())
-					system.Spec.Searchd = &saasv1alpha1.SystemSearchdSpec{
-						Enabled: util.Pointer(false),
+					system.Spec.Searched = &saasv1alpha1.SystemSearchdSpec{
+						Enabled: ptr.To(false),
 					}
+
 					return k8sClient.Patch(context.Background(), system, patch)
 				}, timeout, poll).ShouldNot(HaveOccurred())
 			})
 
-			It("removes the system-searchd resources", func() {
+			It("removes the system-searched resources", func() {
 
 				sts := &appsv1.StatefulSet{}
-				By("removing the system-searchd statefulset",
-					(&testutil.ExpectedResource{Name: "system-searchd", Namespace: namespace, Missing: true}).
+				By("removing the system-searched statefulset",
+					(&testutil.ExpectedResource{Name: "system-searched", Namespace: namespace, Missing: true}).
 						Assert(k8sClient, sts, timeout, poll))
 
 			})
@@ -421,14 +422,15 @@ var _ = Describe("System controller", func() {
 					Expect(err).ToNot(HaveOccurred())
 					patch := client.MergeFrom(system.DeepCopy())
 					system.Spec.Config.Rails = &saasv1alpha1.SystemRailsSpec{
-						Console: util.Pointer(true),
+						Console: ptr.To(true),
 					}
 					system.Spec.Console = &saasv1alpha1.SystemRailsConsoleSpec{
 						Image: &saasv1alpha1.ImageSpec{
-							Name: util.Pointer("newImage"),
-							Tag:  util.Pointer("newTag"),
+							Name: ptr.To("newImage"),
+							Tag:  ptr.To("newTag"),
 						},
 					}
+
 					return k8sClient.Patch(context.Background(), system, patch)
 				}, timeout, poll).ShouldNot(HaveOccurred())
 			})
@@ -481,27 +483,27 @@ var _ = Describe("System controller", func() {
 					patch := client.MergeFrom(system.DeepCopy())
 					system.Spec.App = &saasv1alpha1.SystemAppSpec{
 						Canary: &saasv1alpha1.Canary{
-							ImageName: util.Pointer("newImage"),
-							ImageTag:  util.Pointer("newTag"),
-							Replicas:  util.Pointer[int32](2)},
+							ImageName: ptr.To("newImage"),
+							ImageTag:  ptr.To("newTag"),
+							Replicas:  ptr.To[int32](2)},
 					}
 					system.Spec.SidekiqDefault = &saasv1alpha1.SystemSidekiqSpec{
 						Canary: &saasv1alpha1.Canary{
-							ImageName: util.Pointer("newImage"),
-							ImageTag:  util.Pointer("newTag"),
-							Replicas:  util.Pointer[int32](2)},
+							ImageName: ptr.To("newImage"),
+							ImageTag:  ptr.To("newTag"),
+							Replicas:  ptr.To[int32](2)},
 					}
 					system.Spec.SidekiqBilling = &saasv1alpha1.SystemSidekiqSpec{
 						Canary: &saasv1alpha1.Canary{
-							ImageName: util.Pointer("newImage"),
-							ImageTag:  util.Pointer("newTag"),
-							Replicas:  util.Pointer[int32](2)},
+							ImageName: ptr.To("newImage"),
+							ImageTag:  ptr.To("newTag"),
+							Replicas:  ptr.To[int32](2)},
 					}
 					system.Spec.SidekiqLow = &saasv1alpha1.SystemSidekiqSpec{
 						Canary: &saasv1alpha1.Canary{
-							ImageName: util.Pointer("newImage"),
-							ImageTag:  util.Pointer("newTag"),
-							Replicas:  util.Pointer[int32](2)},
+							ImageName: ptr.To("newImage"),
+							ImageTag:  ptr.To("newTag"),
+							Replicas:  ptr.To[int32](2)},
 					}
 					// return k8sClient.Patch(context.Background(), system, patch)
 
@@ -511,7 +513,7 @@ var _ = Describe("System controller", func() {
 
 					// waiting for on of the Deployments is enough ...
 					if testutil.GetResourceVersion(k8sClient, &appsv1.Deployment{}, "system-app-canary", namespace, timeout, poll) == "" {
-						return fmt.Errorf("not ready")
+						return errors.New("not ready")
 					}
 
 					return nil
@@ -535,7 +537,7 @@ var _ = Describe("System controller", func() {
 					}).Assert(k8sClient, system, dep, timeout, poll))
 
 				Expect(dep.Spec.Template.Spec.Volumes[0].Secret.SecretName).To(Equal("system-config"))
-				Expect(dep.Spec.Template.Spec.TerminationGracePeriodSeconds).To(Equal(util.Pointer[int64](60)))
+				Expect(dep.Spec.Template.Spec.TerminationGracePeriodSeconds).To(Equal(ptr.To[int64](60)))
 
 				svc := &corev1.Service{}
 				By("keeps the system-app service deployment label selector",
@@ -562,7 +564,7 @@ var _ = Describe("System controller", func() {
 
 				Expect(dep.Spec.Template.Spec.Volumes[0].Name).To(Equal("system-tmp"))
 				Expect(dep.Spec.Template.Spec.Volumes[1].Secret.SecretName).To(Equal("system-config"))
-				Expect(dep.Spec.Template.Spec.TerminationGracePeriodSeconds).To(Equal(util.Pointer[int64](60)))
+				Expect(dep.Spec.Template.Spec.TerminationGracePeriodSeconds).To(Equal(ptr.To[int64](60)))
 
 				By("deploying a system-sidekiq-billing-canary workload",
 					(&testutil.ExpectedWorkload{
@@ -576,7 +578,7 @@ var _ = Describe("System controller", func() {
 
 				Expect(dep.Spec.Template.Spec.Volumes[0].Name).To(Equal("system-tmp"))
 				Expect(dep.Spec.Template.Spec.Volumes[1].Secret.SecretName).To(Equal("system-config"))
-				Expect(dep.Spec.Template.Spec.TerminationGracePeriodSeconds).To(Equal(util.Pointer[int64](60)))
+				Expect(dep.Spec.Template.Spec.TerminationGracePeriodSeconds).To(Equal(ptr.To[int64](60)))
 
 				By("deploying a system-sidekiq-low-canary workload",
 					(&testutil.ExpectedWorkload{
@@ -590,7 +592,7 @@ var _ = Describe("System controller", func() {
 
 				Expect(dep.Spec.Template.Spec.Volumes[0].Name).To(Equal("system-tmp"))
 				Expect(dep.Spec.Template.Spec.Volumes[1].Secret.SecretName).To(Equal("system-config"))
-				Expect(dep.Spec.Template.Spec.TerminationGracePeriodSeconds).To(Equal(util.Pointer[int64](60)))
+				Expect(dep.Spec.Template.Spec.TerminationGracePeriodSeconds).To(Equal(ptr.To[int64](60)))
 
 			})
 
@@ -612,9 +614,10 @@ var _ = Describe("System controller", func() {
 						patch := client.MergeFrom(system.DeepCopy())
 						system.Spec.App = &saasv1alpha1.SystemAppSpec{
 							Canary: &saasv1alpha1.Canary{
-								SendTraffic: *util.Pointer(true),
+								SendTraffic: *ptr.To(true),
 							},
 						}
+
 						return k8sClient.Patch(context.Background(), system, patch)
 					}, timeout, poll).ShouldNot(HaveOccurred())
 				})
@@ -654,6 +657,7 @@ var _ = Describe("System controller", func() {
 						system.Spec.SidekiqDefault.Canary = nil
 						system.Spec.SidekiqBilling.Canary = nil
 						system.Spec.SidekiqLow.Canary = nil
+
 						return k8sClient.Patch(context.Background(), system, patch)
 					}, timeout, poll).ShouldNot(HaveOccurred())
 				})
@@ -720,19 +724,19 @@ var _ = Describe("System controller", func() {
 					patch := client.MergeFrom(system.DeepCopy())
 
 					system.Spec.Config.Rails = &saasv1alpha1.SystemRailsSpec{
-						Console: util.Pointer(true),
+						Console: ptr.To(true),
 					}
 
 					system.Spec.Twemproxy = &saasv1alpha1.TwemproxySpec{
 						TwemproxyConfigRef: "system-twemproxyconfig",
 						Options: &saasv1alpha1.TwemproxyOptions{
-							LogLevel: util.Pointer[int32](2),
+							LogLevel: ptr.To[int32](2),
 						},
 					}
 
 					system.Spec.App = &saasv1alpha1.SystemAppSpec{
 						Canary: &saasv1alpha1.Canary{
-							Replicas: util.Pointer[int32](2),
+							Replicas: ptr.To[int32](2),
 							Patches: []string{
 								`[{"op":"add","path":"/twemproxy","value":{"twemproxyConfigRef":"system-canary-twemproxyconfig","options":{"logLevel":2}}}]`,
 							},
@@ -741,7 +745,7 @@ var _ = Describe("System controller", func() {
 
 					system.Spec.SidekiqBilling = &saasv1alpha1.SystemSidekiqSpec{
 						Canary: &saasv1alpha1.Canary{
-							Replicas: util.Pointer[int32](3),
+							Replicas: ptr.To[int32](3),
 							Patches: []string{
 								`[{"op":"add","path":"/twemproxy","value":{"twemproxyConfigRef":"system-canary-twemproxyconfig","options":{"logLevel":3}}}]`,
 							},
@@ -749,9 +753,9 @@ var _ = Describe("System controller", func() {
 					}
 
 					system.Spec.SidekiqDefault = &saasv1alpha1.SystemSidekiqSpec{
-						Replicas: util.Pointer[int32](2),
+						Replicas: ptr.To[int32](2),
 						Canary: &saasv1alpha1.Canary{
-							Replicas: util.Pointer[int32](4),
+							Replicas: ptr.To[int32](4),
 							Patches: []string{
 								`[{"op":"add","path":"/twemproxy/options","value":{"logLevel":4}}]`,
 							},
@@ -759,9 +763,9 @@ var _ = Describe("System controller", func() {
 					}
 
 					system.Spec.SidekiqLow = &saasv1alpha1.SystemSidekiqSpec{
-						Replicas: util.Pointer[int32](2),
+						Replicas: ptr.To[int32](2),
 						Canary: &saasv1alpha1.Canary{
-							Replicas: util.Pointer[int32](5),
+							Replicas: ptr.To[int32](5),
 							Patches: []string{
 								`[{"op":"add","path":"/twemproxy/options","value":{"logLevel":5}}]`,
 							},
@@ -948,8 +952,8 @@ var _ = Describe("System controller", func() {
 
 					system.Spec.Config.ExternalSecret.RefreshInterval = &metav1.Duration{Duration: 1 * time.Second}
 					system.Spec.Config.ExternalSecret.SecretStoreRef = &saasv1alpha1.ExternalSecretSecretStoreReferenceSpec{
-						Name: util.Pointer("other-store"),
-						Kind: util.Pointer("SecretStore"),
+						Name: ptr.To("other-store"),
+						Kind: ptr.To("SecretStore"),
 					}
 					system.Spec.Config.DatabaseDSN.FromVault.Path = "secret/data/updated-path"
 
@@ -997,32 +1001,32 @@ var _ = Describe("System controller", func() {
 
 					for _, tr := range []string{
 						"system-db-migrate",
-						"system-searchd-reindex",
+						"system-searched-reindex",
 						"system-backend-sync",
 					} {
-						rvs[fmt.Sprintf("task/%s", tr)] = testutil.GetResourceVersion(
+						rvs["task/"+tr] = testutil.GetResourceVersion(
 							k8sClient, &pipelinev1.Task{}, tr, namespace, timeout, poll)
-						rvs[fmt.Sprintf("pipeline/%s", tr)] = testutil.GetResourceVersion(
+						rvs["pipeline/"+tr] = testutil.GetResourceVersion(
 							k8sClient, &pipelinev1.Pipeline{}, tr, namespace, timeout, poll)
 					}
 
 					patch := client.MergeFrom(system.DeepCopy())
 
 					system.Spec.Config.Rails = &saasv1alpha1.SystemRailsSpec{
-						LogLevel: util.Pointer("debug"),
+						LogLevel: ptr.To("debug"),
 					}
 
 					system.Spec.Tasks = []saasv1alpha1.SystemTektonTaskSpec{
 						{
-							Name:    util.Pointer("system-db-migrate"),
-							Enabled: util.Pointer(false),
+							Name:    ptr.To("system-db-migrate"),
+							Enabled: ptr.To(false),
 						},
 						{
-							Name: util.Pointer("system-searchd-reindex"),
+							Name: ptr.To("system-searched-reindex"),
 							Config: &saasv1alpha1.SystemTektonTaskConfig{
 								Image: &saasv1alpha1.ImageSpec{
-									Name: util.Pointer("newImage"),
-									Tag:  util.Pointer("newTag"),
+									Name: ptr.To("newImage"),
+									Tag:  ptr.To("newTag"),
 								},
 								Command: []string{"cmd"},
 								Args:    []string{"arg1", "arg1"},
@@ -1034,8 +1038,8 @@ var _ = Describe("System controller", func() {
 							},
 						},
 						{
-							Name:        util.Pointer("test-task"),
-							Description: util.Pointer("Test task"),
+							Name:        ptr.To("test-task"),
+							Description: ptr.To("Test task"),
 							Config: &saasv1alpha1.SystemTektonTaskConfig{
 								Command: []string{"cmd"},
 								Args:    []string{"arg1", "arg1"},
@@ -1046,6 +1050,7 @@ var _ = Describe("System controller", func() {
 							},
 						},
 					}
+
 					return k8sClient.Patch(context.Background(), system, patch)
 				}, timeout, poll).ShouldNot(HaveOccurred())
 			})
@@ -1065,10 +1070,10 @@ var _ = Describe("System controller", func() {
 				Expect(task.Spec.Steps[0].Timeout).
 					To(Equal(&metav1.Duration{Duration: 3 * time.Hour}))
 
-				By("updating the system-searchd-reindex task",
+				By("updating the system-searched-reindex task",
 					(&testutil.ExpectedResource{
-						Name: "system-searchd-reindex", Namespace: namespace,
-						LastVersion: rvs["task/system-searchd-reindex"],
+						Name: "system-searched-reindex", Namespace: namespace,
+						LastVersion: rvs["task/system-searched-reindex"],
 					}).Assert(k8sClient, task, timeout, poll))
 
 				Expect(task.Spec.Params[0].Default.StringVal).To(Equal("newImage"))
@@ -1092,10 +1097,10 @@ var _ = Describe("System controller", func() {
 					}
 				}
 
-				By("updating the system-searchd-reindex pipeline",
+				By("updating the system-searched-reindex pipeline",
 					(&testutil.ExpectedResource{
-						Name: "system-searchd-reindex", Namespace: namespace,
-						LastVersion: rvs["pipeline/system-searchd-reindex"],
+						Name: "system-searched-reindex", Namespace: namespace,
+						LastVersion: rvs["pipeline/system-searched-reindex"],
 					}).Assert(k8sClient, pipeline, timeout, poll))
 
 				Expect(pipeline.Spec.Params[0].Default.StringVal).To(Equal("newImage"))

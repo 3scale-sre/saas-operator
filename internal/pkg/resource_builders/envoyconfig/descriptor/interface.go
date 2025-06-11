@@ -5,5 +5,5 @@ package envoyconfig
 type EnvoyDynamicConfigDescriptor interface {
 	GetGeneratorVersion() string
 	GetName() string
-	GetOptions() interface{}
+	GetOptions() any
 }

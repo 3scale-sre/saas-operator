@@ -48,12 +48,15 @@ func (mgr *Manager) runThread(ctx context.Context, key string, thread RunnableTh
 
 	mgr.mu.Lock()
 	defer mgr.mu.Unlock()
+
 	if !ok {
 		mgr.threads[key] = thread
 	}
+
 	if err := mgr.threads[key].Start(ctx, log); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -63,6 +66,7 @@ func (mgr *Manager) stopThread(key string) {
 	if _, ok := mgr.threads[key]; !ok {
 		return
 	}
+
 	mgr.threads[key].Stop()
 	delete(mgr.threads, key)
 	mgr.mu.Unlock()
@@ -77,12 +81,12 @@ func (mgr *Manager) GetChannel() <-chan event.GenericEvent {
 // ReconcileThreads ensures that the threads identified by the provided keys are running. prefix() is used to identify
 // which threads belong to each resource.
 func (mgr *Manager) ReconcileThreads(ctx context.Context, owner client.Object, threads []RunnableThread, log logr.Logger) error {
-
 	shouldRun := map[string]int{}
 
 	for _, thread := range threads {
 		key := prefix(owner) + thread.GetID()
 		shouldRun[key] = 1
+
 		if err := mgr.runThread(ctx, key, thread, log); err != nil {
 			return err
 		}
@@ -110,6 +114,7 @@ func (mgr *Manager) CleanupThreads(owner client.Object) func(context.Context, cl
 				mgr.stopThread(key)
 			}
 		}
+
 		return nil
 	}
 }
@@ -126,9 +131,10 @@ func (mgr *Manager) GetThread(id string, owner client.Object, log logr.Logger) R
 
 func (mgr *Manager) GetKeys() []string {
 	keys := make([]string, 0, len(mgr.threads))
-	for k, _ := range mgr.threads {
+	for k := range mgr.threads {
 		keys = append(keys, k)
 	}
+
 	return keys
 }
 

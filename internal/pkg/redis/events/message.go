@@ -1,6 +1,7 @@
 package events
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -35,7 +36,7 @@ func NewRedisEventMessage(msg *goredis.Message) (RedisEventMessage, error) {
 	}
 
 	if rem.event == "" {
-		return RedisEventMessage{}, fmt.Errorf("emtpy event name")
+		return RedisEventMessage{}, errors.New("empty event name")
 	}
 
 	if err := rem.parsePayload(strings.Split(msg.Payload, " ")); err != nil {
@@ -43,7 +44,6 @@ func NewRedisEventMessage(msg *goredis.Message) (RedisEventMessage, error) {
 	}
 
 	return rem, nil
-
 }
 
 func (rem *RedisEventMessage) parsePayload(payload []string) error {
@@ -61,22 +61,22 @@ func (rem *RedisEventMessage) parsePayload(payload []string) error {
 
 func (rem *RedisEventMessage) parseEmptyPayload(payload []string) error {
 	if len(payload) > 0 && payload[0] != "" {
-		return fmt.Errorf("payload should be empty")
+		return errors.New("payload should be empty")
 	}
+
 	return nil
 }
 
 func (rem *RedisEventMessage) parseConfigurationPayload(payload []string) error {
-
 	// <master name> <oldip> <oldport> <newip> <newport>
 	// https://redis.io/docs/manual/sentinel/
-
 	switch len(payload) {
 	case 6:
 		rem.config = RedisConfig{
 			name:  payload[4],
 			value: payload[5],
 		}
+
 		return rem.parseInstanceDetailsPayload(payload)
 	case 1:
 		rem.config = RedisConfig{
@@ -92,14 +92,11 @@ func (rem *RedisEventMessage) parseConfigurationPayload(payload []string) error 
 	}
 
 	return nil
-
 }
 
 func (rem *RedisEventMessage) parseSwitchPayload(payload []string) error {
-
 	// <master name> <oldip> <oldport> <newip> <newport>
 	// https://redis.io/docs/manual/sentinel/
-
 	if len(payload) != 5 {
 		return fmt.Errorf("invalid payload for switch event: %s", payload)
 	}
@@ -119,16 +116,13 @@ func (rem *RedisEventMessage) parseSwitchPayload(payload []string) error {
 	}
 
 	return nil
-
 }
 
 func (rem *RedisEventMessage) parseInstanceDetailsPayload(payload []string) error {
-
 	// <instance-type> <name> <ip> <port> @ <master-name> <master-ip> <master-port>
 	// The part identifying the master (from the @ argument to the end) is optional
 	// and is only specified if the instance is not a master itself.
 	// https://redis.io/docs/manual/sentinel/
-
 	if len(payload) < 4 {
 		return fmt.Errorf("invalid payload for instance details event: %s", payload)
 	}
@@ -161,5 +155,4 @@ func (rem *RedisEventMessage) parseInstanceDetailsPayload(payload []string) erro
 	}
 
 	return nil
-
 }

@@ -18,19 +18,19 @@ package v1alpha1
 
 import (
 	"github.com/3scale-sre/basereconciler/reconciler"
-	"github.com/3scale-sre/basereconciler/util"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
 )
 
 var (
 	autosslDefaultReplicas int32            = 2
 	autosslDefaultImage    defaultImageSpec = defaultImageSpec{
-		Name:       util.Pointer("quay.io/3scale/autossl"),
-		Tag:        util.Pointer("latest"),
-		PullPolicy: (*corev1.PullPolicy)(util.Pointer(string(corev1.PullIfNotPresent))),
+		Name:       ptr.To("quay.io/3scale/autossl"),
+		Tag:        ptr.To("latest"),
+		PullPolicy: (*corev1.PullPolicy)(ptr.To(string(corev1.PullIfNotPresent))),
 	}
 	autosslDefaultResources defaultResourceRequirementsSpec = defaultResourceRequirementsSpec{
 		Requests: corev1.ResourceList{
@@ -43,25 +43,25 @@ var (
 		},
 	}
 	autosslDefaultHPA defaultHorizontalPodAutoscalerSpec = defaultHorizontalPodAutoscalerSpec{
-		MinReplicas:         util.Pointer[int32](2),
-		MaxReplicas:         util.Pointer[int32](4),
-		ResourceUtilization: util.Pointer[int32](90),
-		ResourceName:        util.Pointer("cpu"),
+		MinReplicas:         ptr.To[int32](2),
+		MaxReplicas:         ptr.To[int32](4),
+		ResourceUtilization: ptr.To[int32](90),
+		ResourceName:        ptr.To("cpu"),
 	}
 	autosslDefaultProbe defaultProbeSpec = defaultProbeSpec{
-		InitialDelaySeconds: util.Pointer[int32](25),
-		TimeoutSeconds:      util.Pointer[int32](1),
-		PeriodSeconds:       util.Pointer[int32](10),
-		SuccessThreshold:    util.Pointer[int32](1),
-		FailureThreshold:    util.Pointer[int32](3),
+		InitialDelaySeconds: ptr.To[int32](25),
+		TimeoutSeconds:      ptr.To[int32](1),
+		PeriodSeconds:       ptr.To[int32](10),
+		SuccessThreshold:    ptr.To[int32](1),
+		FailureThreshold:    ptr.To[int32](3),
 	}
 	autosslDefaultPDB defaultPodDisruptionBudgetSpec = defaultPodDisruptionBudgetSpec{
-		MaxUnavailable: util.Pointer(intstr.FromInt(1)),
+		MaxUnavailable: ptr.To(intstr.FromInt(1)),
 	}
 
 	autosslDefaultGrafanaDashboard defaultGrafanaDashboardSpec = defaultGrafanaDashboardSpec{
-		SelectorKey:   util.Pointer("monitoring-key"),
-		SelectorValue: util.Pointer("middleware"),
+		SelectorKey:   ptr.To("monitoring-key"),
+		SelectorValue: ptr.To("middleware"),
 	}
 	autosslDefaultACMEStaging bool   = false
 	autosslDefaultRedisPort   int32  = 6379
@@ -134,7 +134,6 @@ type AutoSSLSpec struct {
 
 // Default implements defaulting for AutoSSLSpec
 func (spec *AutoSSLSpec) Default() {
-
 	spec.Image = InitializeImageSpec(spec.Image, autosslDefaultImage)
 	spec.HPA = InitializeHorizontalPodAutoscalerSpec(spec.HPA, autosslDefaultHPA)
 	spec.Replicas = intOrDefault(spec.Replicas, &autosslDefaultReplicas)
@@ -151,13 +150,18 @@ func (spec *AutoSSLSpec) Default() {
 // ResolveCanarySpec modifies the AutoSSLSpec given the provided canary configuration
 func (spec *AutoSSLSpec) ResolveCanarySpec(canary *Canary) (*AutoSSLSpec, error) {
 	canarySpec := &AutoSSLSpec{}
-	canary.PatchSpec(spec, canarySpec)
+	if err := canary.PatchSpec(spec, canarySpec); err != nil {
+		return nil, err
+	}
+
 	if canary.ImageName != nil {
 		canarySpec.Image.Name = canary.ImageName
 	}
+
 	if canary.ImageTag != nil {
 		canarySpec.Image.Tag = canary.ImageTag
 	}
+
 	canarySpec.Replicas = canary.Replicas
 
 	// Call Default() on the resolved canary spec to apply
@@ -206,12 +210,14 @@ type AutoSSLConfig struct {
 
 // Default sets default values for any value not specifically set in the AutoSSLConfig struct
 func (cfg *AutoSSLConfig) Default() {
-	cfg.ACMEStaging = boolOrDefault(cfg.ACMEStaging, util.Pointer(autosslDefaultACMEStaging))
-	cfg.RedisPort = intOrDefault(cfg.RedisPort, util.Pointer[int32](autosslDefaultRedisPort))
-	cfg.LogLevel = stringOrDefault(cfg.LogLevel, util.Pointer(autosslDefaultLogLevel))
+	cfg.ACMEStaging = boolOrDefault(cfg.ACMEStaging, ptr.To(autosslDefaultACMEStaging))
+	cfg.RedisPort = intOrDefault(cfg.RedisPort, ptr.To[int32](autosslDefaultRedisPort))
+	cfg.LogLevel = stringOrDefault(cfg.LogLevel, ptr.To(autosslDefaultLogLevel))
+
 	if cfg.DomainWhitelist == nil {
 		cfg.DomainWhitelist = []string{}
 	}
+
 	if cfg.DomainBlacklist == nil {
 		cfg.DomainBlacklist = []string{}
 	}

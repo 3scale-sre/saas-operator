@@ -3,10 +3,10 @@ package sharded
 import (
 	"testing"
 
-	"github.com/3scale-sre/basereconciler/util"
 	"github.com/3scale-sre/saas-operator/internal/pkg/redis/client"
 	redis "github.com/3scale-sre/saas-operator/internal/pkg/redis/server"
 	"github.com/go-test/deep"
+	"k8s.io/utils/ptr"
 )
 
 func init() {
@@ -19,6 +19,7 @@ func TestNewRedisServerFromParams(t *testing.T) {
 		alias            *string
 		pool             *redis.ServerPool
 	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -26,10 +27,10 @@ func TestNewRedisServerFromParams(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Retuns a RedisServer",
+			name: "Returns a RedisServer",
 			args: args{
 				connectionString: "redis://127.0.0.1:1000",
-				alias:            util.Pointer("host1"),
+				alias:            ptr.To("host1"),
 				pool:             redis.NewServerPool(redis.NewServerFromParams("host1", "127.0.0.1", "1000", client.MustNewFromConnectionString("redis://127.0.0.1:1000"))),
 			},
 			want: &RedisServer{
@@ -45,8 +46,10 @@ func TestNewRedisServerFromParams(t *testing.T) {
 			got, err := NewRedisServerFromPool(tt.args.connectionString, tt.args.alias, tt.args.pool)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewServerFromParams() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
+
 			if diff := deep.Equal(got, tt.want); len(diff) > 0 {
 				t.Errorf("NewServerFromParams() = got diff %v", diff)
 			}

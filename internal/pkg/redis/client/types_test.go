@@ -12,6 +12,7 @@ func TestSentinelInfoCache_GetValue(t *testing.T) {
 		key         string
 		maxCacheAge time.Duration
 	}
+
 	tests := []struct {
 		name    string
 		sic     SentinelInfoCache
@@ -114,8 +115,10 @@ func TestSentinelInfoCache_GetValue(t *testing.T) {
 			got, err := tt.sic.GetValue(tt.args.shard, tt.args.runID, tt.args.key, tt.args.maxCacheAge)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("SentinelInfoCache.GetValue() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
+
 			if got != tt.want {
 				t.Errorf("SentinelInfoCache.GetValue() = %v, want %v", got, tt.want)
 			}

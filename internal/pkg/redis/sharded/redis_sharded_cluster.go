@@ -2,6 +2,7 @@ package sharded
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 	"time"
@@ -27,6 +28,7 @@ func NewShardedCluster(ctx context.Context, pool *redis.ServerPool, sentinels ma
 	if err != nil {
 		return nil, err
 	}
+
 	cluster.Sentinels = has
 
 	// populate shards
@@ -42,24 +44,24 @@ func NewShardedClusterFromTopology(ctx context.Context, serverList map[string]ma
 	cluster.Shards = make([]*Shard, 0, len(serverList))
 
 	for shardName, shardServers := range serverList {
-
 		switch shardName {
-
 		case "sentinel":
 			sentinels, err := NewHighAvailableSentinel(serverList["sentinel"], pool)
 			if err != nil {
 				return nil, err
 			}
+
 			cluster.Sentinels = sentinels
 
 		default:
 			shard, err := NewShardFromTopology(shardName, shardServers, pool)
 			if err != nil {
 				logger.Error(err, "unable to create sharded cluster")
+
 				return nil, err
 			}
-			cluster.Shards = append(cluster.Shards, shard)
 
+			cluster.Shards = append(cluster.Shards, shard)
 		}
 	}
 
@@ -79,20 +81,23 @@ func (cluster *Cluster) GetShardNames() []string {
 	for i, shard := range cluster.Shards {
 		shards[i] = shard.Name
 	}
+
 	sort.Strings(shards)
+
 	return shards
 }
 
-func (cluster Cluster) LookupShardByName(name string) *Shard {
+func (cluster *Cluster) LookupShardByName(name string) *Shard {
 	for _, shard := range cluster.Shards {
 		if shard.Name == name {
 			return shard
 		}
 	}
+
 	return nil
 }
 
-func (cluster Cluster) LookupServerByID(hostport string) *RedisServer {
+func (cluster *Cluster) LookupServerByID(hostport string) *RedisServer {
 	for _, shard := range cluster.Shards {
 		for _, srv := range shard.Servers {
 			if hostport == srv.ID() {
@@ -100,10 +105,11 @@ func (cluster Cluster) LookupServerByID(hostport string) *RedisServer {
 			}
 		}
 	}
+
 	return nil
 }
 
-func (cluster Cluster) GetPool() *redis.ServerPool {
+func (cluster *Cluster) GetPool() *redis.ServerPool {
 	return cluster.pool
 }
 
@@ -113,9 +119,11 @@ func (cluster *Cluster) Discover(ctx context.Context, options ...DiscoveryOption
 	for _, shard := range cluster.Shards {
 		if err := shard.Discover(ctx, nil, options...); err != nil {
 			merr = append(merr, err)
+
 			continue
 		}
 	}
+
 	return merr.ErrorOrNil()
 }
 
@@ -126,7 +134,7 @@ func (cluster *Cluster) SentinelDiscover(ctx context.Context, opts ...DiscoveryO
 	// Get a healthy sentinel server
 	sentinel := cluster.GetSentinel(ctx)
 	if sentinel == nil {
-		return append(merr, fmt.Errorf("unable to find a healthy sentinel server"))
+		return append(merr, errors.New("unable to find a healthy sentinel server"))
 	}
 
 	masters, err := sentinel.SentinelMasters(ctx)
@@ -135,7 +143,6 @@ func (cluster *Cluster) SentinelDiscover(ctx context.Context, opts ...DiscoveryO
 	}
 
 	for _, master := range masters {
-
 		// Get the corresponding shard
 		shard := cluster.LookupShardByName(master.Name)
 
@@ -155,6 +162,7 @@ func (cluster *Cluster) SentinelDiscover(ctx context.Context, opts ...DiscoveryO
 			continue
 		}
 	}
+
 	return merr.ErrorOrNil()
 }
 
@@ -165,6 +173,7 @@ func (cluster *Cluster) GetSentinel(pctx context.Context) *SentinelServer {
 	defer cancel()
 
 	ch := make(chan int)
+
 	for idx := range cluster.Sentinels {
 		go func(i int) {
 			defer func() {
@@ -172,6 +181,7 @@ func (cluster *Cluster) GetSentinel(pctx context.Context) *SentinelServer {
 					return
 				}
 			}()
+
 			if err := cluster.Sentinels[i].SentinelPing(ctx); err == nil {
 				ch <- i
 			}
@@ -182,6 +192,7 @@ func (cluster *Cluster) GetSentinel(pctx context.Context) *SentinelServer {
 	case <-ctx.Done():
 	case idx := <-ch:
 		close(ch)
+
 		return cluster.Sentinels[idx]
 	}
 

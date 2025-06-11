@@ -3,7 +3,6 @@ package controllers
 import (
 	"context"
 
-	"github.com/3scale-sre/basereconciler/util"
 	marin3rv1alpha1 "github.com/3scale-sre/marin3r/api/marin3r/v1alpha1"
 	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	testutil "github.com/3scale-sre/saas-operator/test/util"
@@ -14,6 +13,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -70,7 +70,7 @@ var _ = Describe("EchoAPI controller", func() {
 					PodMonitor:    true,
 				}).Assert(k8sClient, echoapi, dep, timeout, poll))
 
-			Expect(dep.Spec.Template.Spec.Volumes).To(HaveLen(0))
+			Expect(dep.Spec.Template.Spec.Volumes).To(BeEmpty())
 
 			svc := &corev1.Service{}
 			By("deploying an echo-api service",
@@ -121,7 +121,7 @@ var _ = Describe("EchoAPI controller", func() {
 
 					patch := client.MergeFrom(echoapi.DeepCopy())
 					echoapi.Spec.HPA = &saasv1alpha1.HorizontalPodAutoscalerSpec{
-						MinReplicas: util.Pointer[int32](3),
+						MinReplicas: ptr.To[int32](3),
 					}
 					echoapi.Spec.LivenessProbe = &saasv1alpha1.ProbeSpec{}
 					echoapi.Spec.ReadinessProbe = &saasv1alpha1.ProbeSpec{}
@@ -132,12 +132,12 @@ var _ = Describe("EchoAPI controller", func() {
 							EndpointName: "HTTP",
 							Marin3rSidecar: &saasv1alpha1.Marin3rSidecarSpec{
 								Simple: &saasv1alpha1.Simple{
-									ServiceType:          util.Pointer(saasv1alpha1.ServiceTypeNLB),
+									ServiceType:          ptr.To(saasv1alpha1.ServiceTypeNLB),
 									ExternalDnsHostnames: []string{"echo-api.example.com"},
 								},
 								EnvoyDynamicConfig: saasv1alpha1.MapOfEnvoyDynamicConfig{
 									"http": {
-										GeneratorVersion: util.Pointer("v1"),
+										GeneratorVersion: ptr.To("v1"),
 										ListenerHttp: &saasv1alpha1.ListenerHttp{
 											Port:            8080,
 											RouteConfigName: "route",
@@ -205,7 +205,7 @@ var _ = Describe("EchoAPI controller", func() {
 						k8sClient, &appsv1.Deployment{}, "echo-api", namespace, timeout, poll)
 
 					patch := client.MergeFrom(echoapi.DeepCopy())
-					echoapi.Spec.Replicas = util.Pointer[int32](0)
+					echoapi.Spec.Replicas = ptr.To[int32](0)
 					echoapi.Spec.HPA = &saasv1alpha1.HorizontalPodAutoscalerSpec{}
 					echoapi.Spec.PDB = &saasv1alpha1.PodDisruptionBudgetSpec{}
 

@@ -3,10 +3,10 @@ package podmonitor
 import (
 	"fmt"
 
-	"github.com/3scale-sre/basereconciler/util"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -14,9 +14,7 @@ import (
 // resource when called
 func New(key types.NamespacedName, labels map[string]string, selector map[string]string,
 	endpoints ...monitoringv1.PodMetricsEndpoint) func(client.Object) (*monitoringv1.PodMonitor, error) {
-
 	return func(client.Object) (*monitoringv1.PodMonitor, error) {
-
 		return &monitoringv1.PodMonitor{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      key.Name,
@@ -38,7 +36,7 @@ func PodMetricsEndpoint(path, port string, interval int32) monitoringv1.PodMetri
 	return monitoringv1.PodMetricsEndpoint{
 		Interval: monitoringv1.Duration(fmt.Sprintf("%ds", interval)),
 		Path:     path,
-		Port:     util.Pointer(port),
+		Port:     ptr.To(port),
 		Scheme:   "http",
 	}
 }

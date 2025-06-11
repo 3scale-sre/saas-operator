@@ -3,13 +3,13 @@ package service
 import (
 	"testing"
 
-	"github.com/3scale-sre/basereconciler/util"
 	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	"github.com/google/go-cmp/cmp"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/ptr"
 )
 
 func TestAddMarin3rSidecar(t *testing.T) {
@@ -17,6 +17,7 @@ func TestAddMarin3rSidecar(t *testing.T) {
 		dep  *appsv1.Deployment
 		spec saasv1alpha1.Marin3rSidecarSpec
 	}
+
 	tests := []struct {
 		name string
 		args args
@@ -33,10 +34,13 @@ func TestAddMarin3rSidecar(t *testing.T) {
 					},
 				},
 				spec: saasv1alpha1.Marin3rSidecarSpec{
-					EnvoyAPIVersion:                    util.Pointer("xx"),
-					EnvoyImage:                         util.Pointer("image"),
-					NodeID:                             util.Pointer("node-id"),
-					ShutdownManagerPort:                func() *uint32 { var v uint32 = 5000; return &v }(),
+					EnvoyAPIVersion: ptr.To("xx"),
+					EnvoyImage:      ptr.To("image"),
+					NodeID:          ptr.To("node-id"),
+					ShutdownManagerPort: func() *uint32 {
+						var v uint32 = 5000
+						return &v
+					}(),
 					ShutdownManagerExtraLifecycleHooks: []string{"container1", "container2"},
 					Ports: []saasv1alpha1.SidecarPort{
 						{
@@ -127,7 +131,7 @@ func TestAddMarin3rSidecar(t *testing.T) {
 					},
 				},
 				spec: saasv1alpha1.Marin3rSidecarSpec{
-					EnvoyImage: util.Pointer("image"),
+					EnvoyImage: ptr.To("image"),
 					ExtraPodAnnotations: map[string]string{
 						"marin3r.3scale.net/envoy-image": "override",
 					},
@@ -155,6 +159,7 @@ func TestAddMarin3rSidecar(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			AddMarin3rSidecar(tt.args.dep, tt.args.spec)
+
 			if diff := cmp.Diff(tt.args.dep, tt.want); len(diff) > 0 {
 				t.Errorf("AddMarin3rSidecar() = got diff %v", diff)
 			}

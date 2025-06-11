@@ -126,6 +126,7 @@ func (smg *SentinelMetricsGatherer) Start(parentCtx context.Context, l logr.Logg
 	log := l.WithValues("sentinel", smg.sentinelURI)
 	if smg.started {
 		log.Info("the metrics gatherer is already running")
+
 		return nil
 	}
 
@@ -139,7 +140,6 @@ func (smg *SentinelMetricsGatherer) Start(parentCtx context.Context, l logr.Logg
 
 		for {
 			select {
-
 			case <-ticker.C:
 				if err := smg.gatherMetrics(ctx); err != nil {
 					log.Error(err, "error gathering sentinel metrics")
@@ -147,13 +147,16 @@ func (smg *SentinelMetricsGatherer) Start(parentCtx context.Context, l logr.Logg
 
 			case <-ctx.Done():
 				log.Info("shutting down sentinel metrics gatherer")
+
 				smg.started = false
+
 				return
 			}
 		}
 	}()
 
 	smg.started = true
+
 	return nil
 }
 
@@ -172,7 +175,6 @@ func (smg *SentinelMetricsGatherer) Stop() {
 }
 
 func (smg *SentinelMetricsGatherer) gatherMetrics(ctx context.Context) error {
-
 	mresult, err := smg.sentinel.SentinelMasters(ctx)
 	if err != nil {
 		return err

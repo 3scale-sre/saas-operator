@@ -3,12 +3,12 @@ package backend
 import (
 	"strings"
 
-	"github.com/3scale-sre/basereconciler/util"
 	"github.com/3scale-sre/saas-operator/internal/pkg/resource_builders/pod"
 	"github.com/3scale-sre/saas-operator/internal/pkg/resource_builders/twemproxy"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
 )
 
 func (gen *ListenerGenerator) deployment() *appsv1.Deployment {
@@ -18,8 +18,8 @@ func (gen *ListenerGenerator) deployment() *appsv1.Deployment {
 			Strategy: appsv1.DeploymentStrategy{
 				Type: appsv1.RollingUpdateDeploymentStrategyType,
 				RollingUpdate: &appsv1.RollingUpdateDeployment{
-					MaxUnavailable: util.Pointer(intstr.FromInt(0)),
-					MaxSurge:       util.Pointer(intstr.FromInt(1)),
+					MaxUnavailable: ptr.To(intstr.FromInt(0)),
+					MaxSurge:       ptr.To(intstr.FromInt(1)),
 				},
 			},
 			Template: corev1.PodTemplateSpec{
@@ -36,6 +36,7 @@ func (gen *ListenerGenerator) deployment() *appsv1.Deployment {
 									args = []string{"bin/3scale_backend", "start"}
 								}
 								args = append(args, "-e", "production", "-p", "3000", "-x", "/dev/stdout")
+
 								return
 							}(),
 							Ports: pod.ContainerPorts(
@@ -52,7 +53,7 @@ func (gen *ListenerGenerator) deployment() *appsv1.Deployment {
 					RestartPolicy:                 corev1.RestartPolicyAlways,
 					Affinity:                      pod.Affinity(gen.GetSelector(), gen.ListenerSpec.NodeAffinity),
 					Tolerations:                   gen.ListenerSpec.Tolerations,
-					TerminationGracePeriodSeconds: util.Pointer[int64](30),
+					TerminationGracePeriodSeconds: ptr.To[int64](30),
 				},
 			},
 		},

@@ -1,17 +1,14 @@
 package v1alpha1
 
 import (
-	"context"
 	"reflect"
 	"sort"
 
-	"github.com/3scale-sre/basereconciler/util"
 	envoyconfig "github.com/3scale-sre/saas-operator/internal/pkg/resource_builders/envoyconfig/descriptor"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
+	"k8s.io/utils/ptr"
 )
 
 type PublishingStrategiesReconcileMode string
@@ -23,7 +20,7 @@ const (
 
 type PublishingStrategies struct {
 	// PublishingStrategiesReconcileMode specifies if the list of strategies
-	// should be merged with the defautls or replace them entirely. Allowed values
+	// should be merged with the defaults or replace them entirely. Allowed values
 	// are "Merge" or "Replace". "Replace" strategy should be used to enable 2 strategies
 	// at the same time for a single endpoint.
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
@@ -38,8 +35,9 @@ type PublishingStrategies struct {
 
 func (ps *PublishingStrategies) Default() {
 	if ps.Mode == nil {
-		ps.Mode = util.Pointer(PublishingStrategiesReconcileModeMerge)
+		ps.Mode = ptr.To(PublishingStrategiesReconcileModeMerge)
 	}
+
 	if ps.Endpoints == nil {
 		ps.Endpoints = []PublishingStrategy{}
 	}
@@ -48,11 +46,13 @@ func (ps *PublishingStrategies) Default() {
 // InitializePublishingStrategies initializes a PublishingStrategies struct
 func InitializePublishingStrategies(spec *PublishingStrategies) *PublishingStrategies {
 	if spec == nil {
-		new := &PublishingStrategies{}
-		new.Default()
-		return new
+		newStrategy := &PublishingStrategies{}
+		newStrategy.Default()
+
+		return newStrategy
 	} else {
 		spec.Default()
+
 		return spec
 	}
 }
@@ -80,7 +80,7 @@ type PublishingStrategy struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +optional
 	Marin3rSidecar *Marin3rSidecarSpec `json:"marin3rSidecar,omitempty"`
-	// Create explicitely tells the controller that this is a new endpoint that
+	// Create explicitly tells the controller that this is a new endpoint that
 	// should be added. Default is false, causing the controller to error when seeing
 	// an unknown endpoint.
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
@@ -130,7 +130,7 @@ type Simple struct {
 
 func (s *Simple) Default() {
 	if s.ServiceType == nil {
-		s.ServiceType = util.Pointer(ServiceTypeClusterIP)
+		s.ServiceType = ptr.To(ServiceTypeClusterIP)
 	}
 }
 
@@ -213,15 +213,19 @@ func (spec *Marin3rSidecarSpec) IsDeactivated() bool {
 // InitializeMarin3rSidecarSpec initializes a ResourceRequirementsSpec struct
 func InitializeMarin3rSidecarSpec(spec *Marin3rSidecarSpec, def defaultMarin3rSidecarSpec) *Marin3rSidecarSpec {
 	if spec == nil {
-		new := &Marin3rSidecarSpec{}
-		new.Default(def)
-		return new
+		newMarin3rSidecarSpec := &Marin3rSidecarSpec{}
+		newMarin3rSidecarSpec.Default(def)
+
+		return newMarin3rSidecarSpec
 	}
+
 	if !spec.IsDeactivated() {
-		copy := spec.DeepCopy()
-		copy.Default(def)
-		return copy
+		dcopy := spec.DeepCopy()
+		dcopy.Default(def)
+
+		return dcopy
 	}
+
 	return spec
 }
 
@@ -240,7 +244,6 @@ type MapOfEnvoyDynamicConfig map[string]EnvoyDynamicConfig
 // AsList transforms from the map in the external API to the list of elements
 // that the internal API expects.
 func (mapofconfs MapOfEnvoyDynamicConfig) AsList() []envoyconfig.EnvoyDynamicConfigDescriptor {
-
 	list := make([]envoyconfig.EnvoyDynamicConfigDescriptor, 0, len(mapofconfs))
 
 	for name, conf := range mapofconfs {
@@ -292,6 +295,7 @@ type EnvoyDynamicConfig struct {
 // interface. The name field is populated with the parameter passed to the function.
 func (config *EnvoyDynamicConfig) AsEnvoyDynamicConfigDescriptor(name string) envoyconfig.EnvoyDynamicConfigDescriptor {
 	config.Name = name
+
 	return config
 }
 
@@ -304,7 +308,7 @@ func (config *EnvoyDynamicConfig) GetGeneratorVersion() string {
 	return *config.GeneratorVersion
 }
 
-func (config *EnvoyDynamicConfig) GetOptions() interface{} {
+func (config *EnvoyDynamicConfig) GetOptions() any {
 	if config.ListenerHttp != nil {
 		return config.ListenerHttp
 	} else if config.RouteConfiguration != nil {
@@ -427,105 +431,6 @@ type RawConfig struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// Allows defining configuration using directly envoy's config API.
 	// WARNING: no validation of this field's value is performed before
-	// writting the custom resource to etcd.
+	// writing the custom resource to etcd.
 	Value runtime.RawExtension `json:"value"`
-}
-
-// UPGRADE CODE
-// TODO: delete after upgrade release
-
-func UpgradeCR2PublishingStrategies(ctx context.Context, cl client.Client, bldrs ...WorkloadPublishingStrategyUpgrader) (*PublishingStrategies, error) {
-	endpoints := []PublishingStrategy{}
-	for _, bldr := range bldrs {
-		if endpoint, err := bldr.Build(ctx, cl); endpoint != nil && err == nil {
-			endpoints = append(endpoints, *endpoint)
-		} else if err != nil {
-			return nil, err
-		}
-	}
-
-	return &PublishingStrategies{
-		Mode:      util.Pointer(PublishingStrategiesReconcileModeMerge),
-		Endpoints: endpoints,
-	}, nil
-}
-
-type WorkloadPublishingStrategyUpgrader struct {
-	EndpointName         string
-	ServiceName          string
-	ServiceType          ServiceType
-	Namespace            string
-	Endpoint             *Endpoint
-	Marin3r              *Marin3rSidecarSpec
-	ELBSpec              *ElasticLoadBalancerSpec
-	NLBSpec              *NetworkLoadBalancerSpec
-	ServicePortOverrides []corev1.ServicePort
-	Create               bool
-}
-
-func (gen WorkloadPublishingStrategyUpgrader) Build(ctx context.Context, cl client.Client) (*PublishingStrategy, error) {
-	var out *PublishingStrategy
-	var service *Simple
-
-	// STEP1: check if Service already exists. In case it exists, keeps its original
-	// name and type (defaults for Service names and types have changed).
-	svc := &corev1.Service{ObjectMeta: metav1.ObjectMeta{Name: gen.ServiceName, Namespace: gen.Namespace}}
-	if err := cl.Get(ctx, util.ObjectKey(svc), svc); err != nil {
-		if errors.IsNotFound(err) {
-			service = &Simple{}
-			if gen.Create {
-				// this actually only applies to backend's internal listener
-				return nil, nil
-			}
-		} else {
-			return nil, err
-		}
-	} else {
-		service = &Simple{
-			ServiceNameOverride:  &gen.ServiceName,
-			ServiceType:          &gen.ServiceType,
-			ServicePortsOverride: gen.ServicePortOverrides,
-		}
-	}
-
-	// STEP2: migrate deprecated API fields
-	if gen.Endpoint != nil && len(gen.Endpoint.DNS) > 0 {
-		service.ExternalDnsHostnames = gen.Endpoint.DNS
-	}
-
-	if gen.ELBSpec != nil {
-		service.ElasticLoadBalancerConfig = gen.ELBSpec
-	}
-
-	if gen.NLBSpec != nil {
-		service.NetworkLoadBalancerConfig = gen.NLBSpec
-	}
-
-	// STEP3: create appropriate strategy if required
-	if gen.Marin3r != nil {
-		out = &PublishingStrategy{
-			Strategy:       Marin3rSidecarStrategy,
-			EndpointName:   gen.EndpointName,
-			Marin3rSidecar: gen.Marin3r,
-		}
-
-		out.Marin3rSidecar.Simple = service
-		if out.Marin3rSidecar.Simple.ServiceType == nil {
-			out.Marin3rSidecar.Simple.ServiceType = &gen.ServiceType
-		}
-
-	} else if !reflect.DeepEqual(service, &Simple{}) {
-
-		out = &PublishingStrategy{
-			Strategy:     SimpleStrategy,
-			EndpointName: gen.EndpointName,
-			Simple:       service,
-		}
-	}
-
-	if out != nil && gen.Create {
-		out.Create = &gen.Create
-	}
-
-	return out, nil
 }

@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/3scale-sre/basereconciler/util"
 	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	testutil "github.com/3scale-sre/saas-operator/test/util"
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -19,6 +18,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -59,12 +59,12 @@ var _ = Describe("shardedredisbackup e2e suite", func() {
 			{
 				ObjectMeta: metav1.ObjectMeta{Name: "rs0", Namespace: ns},
 				Spec: saasv1alpha1.RedisShardSpec{
-					MasterIndex: util.Pointer[int32](0),
-					SlaveCount:  util.Pointer[int32](2),
-					Command:     util.Pointer("/entrypoint.sh"),
+					MasterIndex: ptr.To[int32](0),
+					SlaveCount:  ptr.To[int32](2),
+					Command:     ptr.To("/entrypoint.sh"),
 					Image: &saasv1alpha1.ImageSpec{
-						Name: util.Pointer("localhost/redis-with-ssh"),
-						Tag:  util.Pointer("6.2.13-alpine"),
+						Name: ptr.To("localhost/redis-with-ssh"),
+						Tag:  ptr.To("6.2.13-alpine"),
 					},
 				},
 			},
@@ -83,6 +83,7 @@ var _ = Describe("shardedredisbackup e2e suite", func() {
 					// store the resource for later use
 					shards[i] = shard
 					GinkgoWriter.Printf("[debug] Shard %s topology: %+v\n", shard.GetName(), *shard.Status.ShardNodes)
+
 					return nil
 				} else {
 					return fmt.Errorf("RedisShard %s not ready", shard.ObjectMeta.Name)
@@ -95,7 +96,7 @@ var _ = Describe("shardedredisbackup e2e suite", func() {
 		sentinel = saasv1alpha1.Sentinel{
 			ObjectMeta: metav1.ObjectMeta{Name: "sentinel", Namespace: ns},
 			Spec: saasv1alpha1.SentinelSpec{
-				Replicas: util.Pointer(int32(1)),
+				Replicas: ptr.To(int32(1)),
 				Config: &saasv1alpha1.SentinelConfig{
 					MonitoredShards: map[string][]string{
 						shards[0].GetName(): {
@@ -117,8 +118,9 @@ var _ = Describe("shardedredisbackup e2e suite", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			if len(sentinel.Status.MonitoredShards) != len(shards) {
-				return fmt.Errorf("sentinel not ready")
+				return errors.New("sentinel not ready")
 			}
+
 			return nil
 		}, timeout, poll).ShouldNot(HaveOccurred())
 
@@ -159,8 +161,8 @@ var _ = Describe("shardedredisbackup e2e suite", func() {
 					PrivateKeySecretRef: corev1.LocalObjectReference{
 						Name: "redis-backup-ssh-private-key",
 					},
-					Port: util.Pointer(uint32(2222)),
-					Sudo: util.Pointer(true),
+					Port: ptr.To(uint32(2222)),
+					Sudo: ptr.To(true),
 				},
 				S3Options: saasv1alpha1.S3Options{
 					Bucket: bucketName,
@@ -169,7 +171,7 @@ var _ = Describe("shardedredisbackup e2e suite", func() {
 					CredentialsSecretRef: corev1.LocalObjectReference{
 						Name: "aws-credentials",
 					},
-					ServiceEndpoint: util.Pointer(fmt.Sprintf("http://minio.%s.svc.cluster.local:9000", minioNamespace)),
+					ServiceEndpoint: ptr.To(fmt.Sprintf("http://minio.%s.svc.cluster.local:9000", minioNamespace)),
 				},
 				PollInterval: &metav1.Duration{Duration: 1 * time.Second},
 			},
@@ -186,8 +188,10 @@ var _ = Describe("shardedredisbackup e2e suite", func() {
 			if len(backup.Status.Backups) == 0 {
 				msg := "[debug] waiting for backup to be scheduled"
 				GinkgoWriter.Println(msg)
+
 				return errors.New(msg)
 			}
+
 			return nil
 		}, timeout, poll).ShouldNot(HaveOccurred())
 
@@ -227,15 +231,19 @@ var _ = Describe("shardedredisbackup e2e suite", func() {
 			switch backupResult.State {
 			case saasv1alpha1.BackupPendingState:
 				GinkgoWriter.Printf("[debug %s] backup has not yet started\n", time.Now())
-				return fmt.Errorf("")
+
+				return errors.New("")
 			case saasv1alpha1.BackupRunningState:
 				GinkgoWriter.Printf("[debug %s] backup is running\n", time.Now())
-				return fmt.Errorf("")
+
+				return errors.New("")
 			case saasv1alpha1.BackupCompletedState:
 				GinkgoWriter.Printf("[debug %s] backup completed successfully\n", time.Now())
+
 				return nil
 			default:
 				GinkgoWriter.Printf("[debug %s] backup failed: '%s'\n", time.Now(), backupResult.Message)
+
 				return errors.New(backupResult.Message)
 			}
 
@@ -248,7 +256,7 @@ var _ = Describe("shardedredisbackup e2e suite", func() {
 			client.InNamespace(minioNamespace),
 			client.MatchingLabels{"app": "minio"})
 		Expect(err).ToNot(HaveOccurred())
-		Expect(len(list.Items)).To(Equal(1))
+		Expect(list.Items).To(HaveLen(1))
 
 		s3client, stopCh, err := testutil.MinioClient(ctx, cfg, client.ObjectKeyFromObject(&list.Items[0]), "admin", "admin123")
 		Expect(err).ToNot(HaveOccurred())

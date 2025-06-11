@@ -26,7 +26,6 @@ type Server struct {
 // NewServer returns a new client for this redis server from the given connection
 // string. It can optionally be passed an alias to identify the server.
 func NewServer(connectionString string, alias *string) (*Server, error) {
-
 	opt, err := redis.ParseURL(connectionString)
 	if err != nil {
 		return nil, err
@@ -55,6 +54,7 @@ func MustNewServer(connectionString string, alias *string) *Server {
 	if err != nil {
 		panic(err)
 	}
+
 	return srv
 }
 
@@ -87,6 +87,7 @@ func (srv *Server) GetAlias() string {
 	if srv.alias != "" {
 		return srv.alias
 	}
+
 	return srv.ID()
 }
 
@@ -102,41 +103,44 @@ func (srv *Server) ID() string {
 }
 
 func (srv *Server) SentinelMaster(ctx context.Context, shard string) (*client.SentinelMasterCmdResult, error) {
-
 	result, err := srv.client.SentinelMaster(ctx, shard)
 	if err != nil {
 		return nil, err
 	}
+
 	return result, nil
 }
 
 func (srv *Server) SentinelGetMasterAddrByName(ctx context.Context, shard string) (string, int, error) {
-
 	values, err := srv.client.SentinelGetMasterAddrByName(ctx, shard)
 	if err != nil {
 		return "", 0, err
 	}
+
 	port, err := strconv.Atoi(values[1])
 	if err != nil {
 		return "", 0, err
 	}
+
 	return values[0], port, nil
 }
 
 func (srv *Server) SentinelMasters(ctx context.Context) ([]client.SentinelMasterCmdResult, error) {
-
 	values, err := srv.client.SentinelMasters(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	result := make([]client.SentinelMasterCmdResult, len(values))
+
 	for i, val := range values {
 		masterResult := &client.SentinelMasterCmdResult{}
+
 		err := sliceCmdToStruct(val, masterResult)
 		if err != nil {
 			return nil, err
 		}
+
 		result[i] = *masterResult
 	}
 
@@ -144,19 +148,21 @@ func (srv *Server) SentinelMasters(ctx context.Context) ([]client.SentinelMaster
 }
 
 func (srv *Server) SentinelSlaves(ctx context.Context, shard string) ([]client.SentinelSlaveCmdResult, error) {
-
 	values, err := srv.client.SentinelSlaves(ctx, shard)
 	if err != nil {
 		return nil, err
 	}
 
 	result := make([]client.SentinelSlaveCmdResult, len(values))
+
 	for i, val := range values {
 		slaveResult := &client.SentinelSlaveCmdResult{}
+
 		err := sliceCmdToStruct(val, slaveResult)
 		if err != nil {
 			return nil, err
 		}
+
 		result[i] = *slaveResult
 	}
 
@@ -182,15 +188,16 @@ func (srv *Server) SentinelInfoCache(ctx context.Context) (client.SentinelInfoCa
 	mval := islice2imap(raw)
 
 	for shard, servers := range mval {
-		result[shard] = make(map[string]client.RedisServerInfoCache, len(servers.([]interface{})))
+		result[shard] = make(map[string]client.RedisServerInfoCache, len(servers.([]any)))
 
-		for _, server := range servers.([]interface{}) {
+		for _, server := range servers.([]any) {
 			// When sentinel is unable to reach the redis slave the info field can be nil
 			// so we have to check this to avoid panics
-			if server.([]interface{})[1] != nil {
-				info := InfoStringToMap(server.([]interface{})[1].(string))
+			if server.([]any)[1] != nil {
+				info := InfoStringToMap(server.([]any)[1].(string))
 				result[shard][info["run_id"]] = client.RedisServerInfoCache{
-					CacheAge: time.Duration(server.([]interface{})[0].(int64)) * time.Millisecond,
+					// nolint: durationcheck
+					CacheAge: time.Duration((server.([]any)[0]).(int64)) * time.Millisecond,
 					Info:     info,
 				}
 			}
@@ -210,10 +217,10 @@ func (srv *Server) RedisRole(ctx context.Context) (client.Role, string, error) {
 		return client.Unknown, "", err
 	}
 
-	if client.Role(val.([]interface{})[0].(string)) == client.Master {
+	if client.Role(val.([]any)[0].(string)) == client.Master {
 		return client.Master, "", nil
 	} else {
-		return client.Slave, val.([]interface{})[1].(string), nil
+		return client.Slave, val.([]any)[1].(string), nil
 	}
 }
 
@@ -222,6 +229,7 @@ func (srv *Server) RedisConfigGet(ctx context.Context, parameter string) (string
 	if err != nil {
 		return "", err
 	}
+
 	return val[1].(string), nil
 }
 
@@ -245,7 +253,7 @@ func (srv *Server) RedisLastSave(ctx context.Context) (int64, error) {
 	return srv.client.RedisLastSave(ctx)
 }
 
-func (srv *Server) RedisSet(ctx context.Context, key string, value interface{}) error {
+func (srv *Server) RedisSet(ctx context.Context, key string, value any) error {
 	return srv.client.RedisSet(ctx, key, value)
 }
 
@@ -254,41 +262,48 @@ func (srv *Server) RedisInfo(ctx context.Context, section string) (map[string]st
 	if err != nil {
 		return nil, err
 	}
+
 	return InfoStringToMap(val), nil
 }
 
 // This is a horrible function to parse the horrible structs that the go-redis
 // client returns for administrative commands. I swear it's not my fault ...
-func sliceCmdToStruct(in interface{}, out interface{}) error {
+func sliceCmdToStruct(in any, out any) error {
 	m := map[string]string{}
-	for i := range in.([]interface{}) {
+
+	for i := range in.([]any) {
 		if i%2 != 0 {
 			continue
 		}
-		m[in.([]interface{})[i].(string)] = in.([]interface{})[i+1].(string)
+
+		m[in.([]any)[i].(string)] = in.([]any)[i+1].(string)
 	}
 
 	err := redis.NewStringStringMapResult(m, nil).Scan(out)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
-func islice2imap(in interface{}) map[string]interface{} {
-	m := map[string]interface{}{}
-	for i := range in.([]interface{}) {
+func islice2imap(in any) map[string]any {
+	m := map[string]any{}
+
+	for i := range in.([]any) {
 		if i%2 != 0 {
 			continue
 		}
-		m[in.([]interface{})[i].(string)] = in.([]interface{})[i+1].([]interface{})
+
+		m[in.([]any)[i].(string)] = in.([]any)[i+1].([]any)
 	}
+
 	return m
 }
 
 func InfoStringToMap(in string) map[string]string {
-
 	m := map[string]string{}
+
 	scanner := bufio.NewScanner(strings.NewReader(in))
 	for scanner.Scan() {
 		// do not add empty lines or section headings (see the test for more info)

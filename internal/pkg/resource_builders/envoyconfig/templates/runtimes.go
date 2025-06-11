@@ -7,24 +7,25 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
-func Runtime_v1(name string, opts interface{}) (envoy.Resource, error) {
+func Runtime_v1(name string, opts any) (envoy.Resource, error) {
 	o := opts.(*saasv1alpha1.Runtime)
 
-	layer, _ := structpb.NewStruct(map[string]interface{}{
-		"envoy": map[string]interface{}{
-			"resource_limits": map[string]interface{}{
-				"listener": func() map[string]interface{} {
-					m := map[string]interface{}{}
+	layer, _ := structpb.NewStruct(map[string]any{
+		"envoy": map[string]any{
+			"resource_limits": map[string]any{
+				"listener": func() map[string]any {
+					m := map[string]any{}
 					for _, name := range o.ListenerNames {
-						m[name] = map[string]interface{}{
+						m[name] = map[string]any{
 							"connection_limit": 10000,
 						}
 					}
+
 					return m
 				}(),
 			},
 		},
-		"overload": map[string]interface{}{
+		"overload": map[string]any{
 			"global_downstream_max_connections": 50000,
 		},
 	})

@@ -18,9 +18,11 @@ func TestGenerator_configMap(t *testing.T) {
 		masterTargets  map[string]twemproxy.Server
 		slaverwTargets map[string]twemproxy.Server
 	}
+
 	type args struct {
 		toYAML bool
 	}
+
 	tests := []struct {
 		name   string
 		fields fields
@@ -40,8 +42,11 @@ func TestGenerator_configMap(t *testing.T) {
 					SentinelURIs: []string{"sentinel.example.com"},
 					ServerPools: []saasv1alpha1.TwemproxyServerPool{
 						{
-							Name:   "pool1",
-							Target: func() *saasv1alpha1.TargetRedisServers { t := saasv1alpha1.Masters; return &t }(),
+							Name: "pool1",
+							Target: func() *saasv1alpha1.TargetRedisServers {
+								t := saasv1alpha1.Masters
+								return &t
+							}(),
 							Topology: []saasv1alpha1.ShardedRedisTopology{
 								{ShardName: "lshard01", PhysicalShard: "pshard01"},
 								{ShardName: "lshard02", PhysicalShard: "pshard01"},
@@ -54,8 +59,11 @@ func TestGenerator_configMap(t *testing.T) {
 							PreConnect:  false,
 						},
 						{
-							Name:   "pool2",
-							Target: func() *saasv1alpha1.TargetRedisServers { t := saasv1alpha1.Masters; return &t }(),
+							Name: "pool2",
+							Target: func() *saasv1alpha1.TargetRedisServers {
+								t := saasv1alpha1.Masters
+								return &t
+							}(),
 							Topology: []saasv1alpha1.ShardedRedisTopology{
 								{ShardName: "lshard01", PhysicalShard: "pshard01"},
 								{ShardName: "lshard02", PhysicalShard: "pshard02"},
@@ -98,8 +106,11 @@ func TestGenerator_configMap(t *testing.T) {
 					SentinelURIs: []string{"sentinel.example.com"},
 					ServerPools: []saasv1alpha1.TwemproxyServerPool{
 						{
-							Name:   "pool1",
-							Target: func() *saasv1alpha1.TargetRedisServers { t := saasv1alpha1.SlavesRW; return &t }(),
+							Name: "pool1",
+							Target: func() *saasv1alpha1.TargetRedisServers {
+								t := saasv1alpha1.SlavesRW
+								return &t
+							}(),
 							Topology: []saasv1alpha1.ShardedRedisTopology{
 								{ShardName: "lshard01", PhysicalShard: "pshard01"},
 								{ShardName: "lshard02", PhysicalShard: "pshard01"},
@@ -143,6 +154,7 @@ func TestGenerator_configMap(t *testing.T) {
 				masterTargets:  tt.fields.masterTargets,
 				slaverwTargets: tt.fields.slaverwTargets,
 			}
+
 			got := gen.configMap(tt.args.toYAML)
 			if diff := deep.Equal(got, tt.want); len(diff) > 0 {
 				t.Errorf("Generator.configMap() = diff %v", diff)

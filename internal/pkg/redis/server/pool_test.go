@@ -4,17 +4,19 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/3scale-sre/basereconciler/util"
+	"k8s.io/utils/ptr"
 )
 
 func TestServerPool_GetServer(t *testing.T) {
 	type fields struct {
 		servers []*Server
 	}
+
 	type args struct {
 		connectionString string
 		alias            *string
 	}
+
 	tests := []struct {
 		name    string
 		fields  fields
@@ -44,7 +46,7 @@ func TestServerPool_GetServer(t *testing.T) {
 				}},
 			args: args{
 				connectionString: "redis://127.0.0.2:2000",
-				alias:            util.Pointer("host2"),
+				alias:            ptr.To("host2"),
 			},
 			want:    &Server{alias: "host2", client: nil, host: "127.0.0.2", port: "2000"},
 			wantErr: false,
@@ -65,11 +67,14 @@ func TestServerPool_GetServer(t *testing.T) {
 			pool := &ServerPool{
 				servers: tt.fields.servers,
 			}
+
 			got, err := pool.GetServer(tt.args.connectionString, tt.args.alias)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ServerPool.GetServer() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
+
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("ServerPool.GetServer() = %v, want %v", got, tt.want)
 			}
@@ -80,10 +85,11 @@ func TestServerPool_GetServer(t *testing.T) {
 		pool := &ServerPool{
 			servers: []*Server{{alias: "host1", client: nil, port: "1000"}},
 		}
-		new, _ := pool.GetServer("redis://127.0.0.2:2000", util.Pointer("host2"))
-		exists, _ := pool.GetServer("redis://127.0.0.2:2000", util.Pointer("host2"))
-		if new != exists {
-			t.Errorf("ServerPool.GetServer() = %v, want %v", new, exists)
+		newSrv, _ := pool.GetServer("redis://127.0.0.2:2000", ptr.To("host2"))
+		exists, _ := pool.GetServer("redis://127.0.0.2:2000", ptr.To("host2"))
+
+		if newSrv != exists {
+			t.Errorf("ServerPool.GetServer() = %v, want %v", newSrv, exists)
 		}
 	})
 }
@@ -92,6 +98,7 @@ func TestServerPool_indexByHost(t *testing.T) {
 	type fields struct {
 		servers []*Server
 	}
+
 	tests := []struct {
 		name   string
 		fields fields

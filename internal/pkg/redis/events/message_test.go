@@ -251,8 +251,10 @@ func TestNewRedisEventMessage(t *testing.T) {
 			got, err := NewRedisEventMessage(tt.msg)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewRedisEventMessage() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
+
 			if diff := deep.Equal(got, tt.want); len(diff) > 0 {
 				t.Errorf("NewRedisEventMessage() got diff: %v", diff)
 			}

@@ -21,7 +21,6 @@ func (sd *ServiceDescriptor) Service(prefix, suffix string) *corev1.Service {
 
 	// generate Service resource
 	if strategy == saasv1alpha1.SimpleStrategy || strategy == saasv1alpha1.Marin3rSidecarStrategy {
-
 		var spec *saasv1alpha1.Simple
 		if strategy == saasv1alpha1.SimpleStrategy {
 			spec = sd.PublishingStrategy.Simple
@@ -30,7 +29,6 @@ func (sd *ServiceDescriptor) Service(prefix, suffix string) *corev1.Service {
 		}
 
 		switch *spec.ServiceType {
-
 		case saasv1alpha1.ServiceTypeClusterIP:
 			opts.Type = corev1.ServiceTypeClusterIP
 			opts.Name = fmt.Sprintf("%s-%s-%s", prefix, strings.ToLower(sd.EndpointName), suffix)

@@ -36,12 +36,15 @@ func (srv *Server) UnmarshalJSON(data []byte) error {
 	parts := strings.Split(strings.Trim(string(data), "\""), " ")
 	srv.Name = parts[1]
 	parts = strings.Split(parts[0], ":")
+
 	p, err := strconv.Atoi(parts[len(parts)-1])
 	if err != nil {
 		return err
 	}
+
 	srv.Priority = p
 	srv.Address = strings.Join(parts[0:len(parts)-1], ":")
+
 	return nil
 }
 
@@ -49,6 +52,7 @@ func (srv *Server) Alias() string {
 	if srv.alias != "" {
 		return srv.alias
 	}
+
 	return srv.Address
 }
 
@@ -67,8 +71,8 @@ type ServerPoolConfig struct {
 }
 
 func GenerateServerPool(pool saasv1alpha1.TwemproxyServerPool, targets map[string]Server) ServerPoolConfig {
-
 	servers := make([]Server, 0, len(pool.Topology))
+
 	for _, s := range pool.Topology {
 		srv := targets[s.PhysicalShard]
 		srv.Name = s.ShardName

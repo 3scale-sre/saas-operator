@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"net"
 	"time"
 
 	"github.com/3scale-sre/basereconciler/reconciler"
@@ -51,9 +52,9 @@ type RedisShardReconciler struct {
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
 func (r *RedisShardReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-
 	ctx, logger := r.Logger(ctx, "name", req.Name, "namespace", req.Namespace)
 	instance := &saasv1alpha1.RedisShard{}
+
 	result := r.ManageResourceLifecycle(ctx, req, instance,
 		reconciler.WithInMemoryInitializationFunc(util.ResourceDefaulter(instance)))
 	if result.ShouldReturn() {
@@ -96,25 +97,29 @@ func (r *RedisShardReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 func (r *RedisShardReconciler) setRedisRoles(ctx context.Context, key types.NamespacedName,
 	masterIndex, replicas int32, serviceName string, log logr.Logger) (*sharded.Shard, reconciler.Result) {
-
 	var masterHostPort string
+
 	redisURLs := make(map[string]string, replicas)
-	for i := 0; i < int(replicas); i++ {
+
+	for i := range replicas {
 		pod := &corev1.Pod{}
 		key := types.NamespacedName{Name: fmt.Sprintf("%s-%d", serviceName, i), Namespace: key.Namespace}
 		err := r.Client.Get(ctx, key, pod)
+
 		if err != nil {
 			return &sharded.Shard{Name: key.Name}, reconciler.Result{Error: err}
 		}
+
 		if pod.Status.PodIP == "" {
 			log.Info("waiting for pod IP to be allocated")
 			// return &sharded.Shard{Name: key.Name}, &ctrl.Result{RequeueAfter: 5 * time.Second}, nil
 			return &sharded.Shard{Name: key.Name}, reconciler.Result{Action: reconciler.ReturnAndRequeueAction, RequeueAfter: 5 * time.Second}
 		}
 
-		redisURLs[fmt.Sprintf("%s-%d", serviceName, i)] = fmt.Sprintf("redis://%s:%d", pod.Status.PodIP, 6379)
-		if int(masterIndex) == i {
-			masterHostPort = fmt.Sprintf("%s:%d", pod.Status.PodIP, 6379)
+		redisURLs[fmt.Sprintf("%s-%d", serviceName, i)] = "redis://" + net.JoinHostPort(pod.Status.PodIP, "6379")
+
+		if masterIndex == i {
+			masterHostPort = net.JoinHostPort(pod.Status.PodIP, "6379")
 		}
 	}
 
@@ -126,6 +131,7 @@ func (r *RedisShardReconciler) setRedisRoles(ctx context.Context, key types.Name
 	_, err = shard.Init(ctx, masterHostPort)
 	if err != nil {
 		log.Info("waiting for redis shard init")
+
 		return shard, reconciler.Result{Action: reconciler.ReturnAndRequeueAction, RequeueAfter: 10 * time.Second}
 	}
 
@@ -145,6 +151,7 @@ func redisShardStatusReconciler(shard *sharded.Shard, instance *saasv1alpha1.Red
 
 	if !equality.Semantic.DeepEqual(instance.Status.ShardNodes, shardNodes) {
 		instance.Status.ShardNodes = shardNodes
+
 		return true, nil
 	}
 

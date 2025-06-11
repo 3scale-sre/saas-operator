@@ -1,13 +1,13 @@
 package pod
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
 
 	"github.com/3scale-sre/basereconciler/mutators"
 	"github.com/3scale-sre/basereconciler/resource"
-	"github.com/3scale-sre/basereconciler/util"
 	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	"github.com/3scale-sre/saas-operator/internal/pkg/resource_builders/externalsecret"
 	operatorutil "github.com/3scale-sre/saas-operator/internal/pkg/util"
@@ -17,6 +17,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/utils/ptr"
 )
 
 type Option struct {
@@ -31,13 +32,26 @@ type Option struct {
 	isEmpty     bool
 }
 
-func (o *Option) IntoEnvvar(e string) *Option          { o.envVariable = e; return o }
-func (o *Option) AsSecretRef(s fmt.Stringer) *Option   { o.secretName = s.String(); return o }
-func (o *Option) WithSeedKey(key fmt.Stringer) *Option { o.seedKey = key.String(); return o }
+func (o *Option) IntoEnvvar(e string) *Option {
+	o.envVariable = e
+
+	return o
+}
+func (o *Option) AsSecretRef(s fmt.Stringer) *Option {
+	o.secretName = s.String()
+
+	return o
+}
+func (o *Option) WithSeedKey(key fmt.Stringer) *Option {
+	o.seedKey = key.String()
+
+	return o
+}
 func (o *Option) EmptyIf(empty bool) *Option {
 	if empty {
 		o.isEmpty = true
 	}
+
 	return o
 }
 
@@ -49,12 +63,13 @@ func (o *Option) EmptyIf(empty bool) *Option {
 // A parameter indicating the format (as in a call to fmt.Sprintf()) can be optionally passed.
 func (opt *Option) Unpack(o any, params ...string) *Option {
 	if len(params) > 1 {
-		panic(fmt.Errorf("too many params in call to Unpack"))
+		panic(errors.New("too many params in call to Unpack"))
 	}
 
 	if opt.isEmpty {
 		opt.isSet = true
-		opt.value = util.Pointer("")
+		opt.value = ptr.To("")
+
 		return opt
 	}
 
@@ -72,22 +87,22 @@ func (opt *Option) Unpack(o any, params ...string) *Option {
 	}
 
 	switch v := val.(type) {
-
 	case saasv1alpha1.SecretReference:
 		if opt.envVariable == "" {
 			panic("AddEnvvar must be invoked to add a new option")
 		}
+
 		opt.isSet = true
 
-		// is a secret with override
 		if v.Override != nil {
+			// is a secret with override
 			opt.value = v.Override
-
-			// is a secret with value from vault
 		} else if v.FromVault != nil {
+			// is a secret with value from vault
 			if opt.secretName == "" {
 				panic("AsSecretRef must be invoked when using 'SecretReference.FromVault'")
 			}
+
 			opt.vaultKey = v.FromVault.Key
 			opt.vaultPath = v.FromVault.Path
 			opt.valueFrom = &corev1.EnvVarSource{
@@ -97,12 +112,12 @@ func (opt *Option) Unpack(o any, params ...string) *Option {
 						Name: opt.secretName,
 					},
 				}}
-
-			// is a secret retrieved ffom the default seed Secret
 		} else if v.FromSeed != nil {
+			// is a secret retrieved ffom the default seed Secret
 			if opt.seedKey == "" {
 				panic("WithSeedKey must be invoked when using 'SecretReference.FromSeed'")
 			}
+
 			opt.valueFrom = &corev1.EnvVarSource{
 				SecretKeyRef: &corev1.SecretKeySelector{
 					LocalObjectReference: corev1.LocalObjectReference{
@@ -127,7 +142,8 @@ func unpackValue(o any, params ...string) *string {
 	} else {
 		format = "%v"
 	}
-	return util.Pointer(fmt.Sprintf(format, o))
+
+	return ptr.To(fmt.Sprintf(format, o))
 }
 
 type Options []*Option
@@ -166,24 +182,26 @@ func (options *Options) ListSecretResourceNames() []string {
 func (options *Options) GenerateRolloutTriggers(additionalSecrets ...string) []resource.TemplateMutationFunction {
 	secrets := options.ListSecretResourceNames()
 	triggers := make([]resource.TemplateMutationFunction, 0, len(secrets))
+
 	for _, secret := range append(secrets, additionalSecrets...) {
 		triggers = append(
 			triggers,
-			mutators.RolloutTrigger{Name: secret, SecretName: util.Pointer(secret)}.Add(),
+			mutators.RolloutTrigger{Name: secret, SecretName: ptr.To(secret)}.Add(),
 		)
 	}
+
 	return triggers
 }
 
 func (options *Options) AddEnvvar(e string) *Option {
 	opt := &Option{envVariable: e}
 	*options = append(*options, opt)
+
 	return opt
 }
 
 // WithExtraEnv returns a copy of the Options list with the added extra envvars
 func (options *Options) WithExtraEnv(extra []corev1.EnvVar) *Options {
-
 	out := options.DeepCopy()
 	for _, envvar := range extra {
 		o, exists := lo.Find(*out, func(o *Option) bool {
@@ -191,15 +209,16 @@ func (options *Options) WithExtraEnv(extra []corev1.EnvVar) *Options {
 		})
 
 		if exists {
-			o.value = util.Pointer(envvar.Value)
+			o.value = ptr.To(envvar.Value)
 			o.valueFrom = envvar.ValueFrom
 			o.isSet = true
 			o.secretName = ""
 		} else {
 			var v *string
 			if envvar.Value != "" {
-				v = util.Pointer(envvar.Value)
+				v = ptr.To(envvar.Value)
 			}
+
 			*out = append(*out, &Option{
 				value:       v,
 				valueFrom:   envvar.ValueFrom,
@@ -208,16 +227,16 @@ func (options *Options) WithExtraEnv(extra []corev1.EnvVar) *Options {
 			})
 		}
 	}
+
 	return out
 }
 
 // BuildEnvironment generates a list of corev1.Envvar that matches the
 // list of options
 func (opts *Options) BuildEnvironment() []corev1.EnvVar {
-
 	env := []corev1.EnvVar{}
-	for _, opt := range *opts {
 
+	for _, opt := range *opts {
 		if !opt.isSet {
 			continue
 		}
@@ -229,8 +248,8 @@ func (opts *Options) BuildEnvironment() []corev1.EnvVar {
 				Name:  opt.envVariable,
 				Value: *opt.value,
 			})
-			continue
 
+			continue
 		}
 
 		// ValueFrom
@@ -239,6 +258,7 @@ func (opts *Options) BuildEnvironment() []corev1.EnvVar {
 				Name:      opt.envVariable,
 				ValueFrom: opt.valueFrom,
 			})
+
 			continue
 		}
 	}
@@ -253,6 +273,7 @@ func (opts *Options) GenerateExternalSecrets(namespace string, labels map[string
 	for _, group := range lo.PartitionBy(opts.FilterFromVaultOptions(), func(item *Option) string { return item.secretName }) {
 		data := []externalsecretsv1beta1.ExternalSecretData{}
 		name := group[0].secretName
+
 		for _, opt := range group {
 			data = append(data, externalsecretsv1beta1.ExternalSecretData{
 				SecretKey: opt.envVariable,
@@ -264,11 +285,13 @@ func (opts *Options) GenerateExternalSecrets(namespace string, labels map[string
 				},
 			})
 		}
+
 		list = append(list, resource.NewTemplateFromObjectFunction(
 			func() *externalsecretsv1beta1.ExternalSecret {
 				return externalsecret.New(types.NamespacedName{Name: name, Namespace: namespace}, labels, secretStoreName, secretStoreKind, refreshInterval, data)
 			}))
 	}
+
 	return list
 }
 
@@ -277,5 +300,6 @@ func Union(lists ...[]*Option) *Options {
 	all = lo.UniqBy(all, func(item *Option) string {
 		return item.envVariable
 	})
-	return util.Pointer[Options](all)
+
+	return ptr.To[Options](all)
 }
