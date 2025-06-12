@@ -2553,39 +2553,39 @@ spec:
                     description: Image tag
                     type: string
                 type: object
-              searched:
-                description: Searched specific configuration options
+              searchd:
+                description: Searchd specific configuration options
                 properties:
                   config:
-                    description: Configuration options for System's Searched
+                    description: Configuration options for System's Searchd
                     properties:
                       databasePath:
-                        description: Searched database path
+                        description: Searchd database path
                         type: string
                       databaseStorageClass:
-                        description: Searched database storage type
+                        description: Searchd database storage type
                         type: string
                       databaseStorageSize:
                         anyOf:
                         - type: integer
                         - type: string
-                        description: Searched database storage size
+                        description: Searchd database storage size
                         pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                         x-kubernetes-int-or-string: true
                       port:
-                        description: The TCP port Searched will run its daemon on
+                        description: The TCP port Searchd will run its daemon on
                         format: int32
                         type: integer
                       serviceName:
-                        description: Allows setting the service name for Searched
+                        description: Allows setting the service name for Searchd
                         type: string
                     type: object
                   enabled:
-                    description: Deploy searched instance
+                    description: Deploy searchd instance
                     type: boolean
                   image:
                     description: |-
-                      Image specification for the Searched component.
+                      Image specification for the Searchd component.
                       Defaults to system image if not defined.
                     properties:
                       name:
@@ -2604,7 +2604,7 @@ spec:
                         type: string
                     type: object
                   livenessProbe:
-                    description: Liveness probe for the Searched component
+                    description: Liveness probe for the Searchd component
                     properties:
                       failureThreshold:
                         description: Minimum consecutive failures for the probe to
@@ -2633,7 +2633,7 @@ spec:
                     type: object
                   nodeAffinity:
                     description: Describes node affinity scheduling rules for the
-                      Searched pod
+                      Searchd pod
                     properties:
                       preferredDuringSchedulingIgnoredDuringExecution:
                         description: |-
@@ -2831,7 +2831,7 @@ spec:
                         x-kubernetes-map-type: atomic
                     type: object
                   readinessProbe:
-                    description: Readiness probe for the Searched component
+                    description: Readiness probe for the Searchd component
                     properties:
                       failureThreshold:
                         description: Minimum consecutive failures for the probe to
@@ -2859,7 +2859,7 @@ spec:
                         type: integer
                     type: object
                   resources:
-                    description: Resource requirements for the Searched component
+                    description: Resource requirements for the Searchd component
                     properties:
                       claims:
                         description: |-
@@ -2919,11 +2919,11 @@ spec:
                     type: object
                   terminationGracePeriodSeconds:
                     description: Configures the TerminationGracePeriodSeconds for
-                      Searched
+                      Searchd
                     format: int64
                     type: integer
                   tolerations:
-                    description: If specified, the Searched pod's tolerations.
+                    description: If specified, the Searchd pod's tolerations.
                     items:
                       description: |-
                         The pod this Toleration is attached to tolerates any taint that matches

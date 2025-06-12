@@ -849,7 +849,7 @@ metadata:
     capabilities: Basic Install
     categories: Integration & Delivery
     containerImage: quay.io/3scale-sre/saas-operator
-    createdAt: "2025-06-12T07:49:03Z"
+    createdAt: "2025-06-12T10:57:15Z"
     description: |-
       The 3scale SaaS Operator creates and maintains a SaaS-ready deployment
       of the Red Hat 3scale API Management on OpenShift.
@@ -861,7 +861,7 @@ metadata:
     operatorframework.io/arch.amd64: supported
     operatorframework.io/arch.arm64: supported
     operatorframework.io/os.linux: supported
-  name: saas-operator.v0.26.0-alpha.5
+  name: saas-operator.v0.26.0-alpha.7
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -5965,109 +5965,109 @@ spec:
       - description: Image tag
         displayName: Tag
         path: image.tag
-      - description: Searched specific configuration options
-        displayName: Searched
-        path: searched
-      - description: Configuration options for System's Searched
+      - description: Searchd specific configuration options
+        displayName: Searchd
+        path: searchd
+      - description: Configuration options for System's Searchd
         displayName: Config
-        path: searched.config
-      - description: Searched database path
+        path: searchd.config
+      - description: Searchd database path
         displayName: Database Path
-        path: searched.config.databasePath
-      - description: Searched database storage type
+        path: searchd.config.databasePath
+      - description: Searchd database storage type
         displayName: Database Storage Class
-        path: searched.config.databaseStorageClass
-      - description: Searched database storage size
+        path: searchd.config.databaseStorageClass
+      - description: Searchd database storage size
         displayName: Database Storage Size
-        path: searched.config.databaseStorageSize
-      - description: The TCP port Searched will run its daemon on
+        path: searchd.config.databaseStorageSize
+      - description: The TCP port Searchd will run its daemon on
         displayName: Port
-        path: searched.config.port
-      - description: Allows setting the service name for Searched
+        path: searchd.config.port
+      - description: Allows setting the service name for Searchd
         displayName: Service Name
-        path: searched.config.serviceName
-      - description: Deploy searched instance
+        path: searchd.config.serviceName
+      - description: Deploy searchd instance
         displayName: Enabled
-        path: searched.enabled
+        path: searchd.enabled
       - description: |-
-          Image specification for the Searched component.
+          Image specification for the Searchd component.
           Defaults to system image if not defined.
         displayName: Image
-        path: searched.image
+        path: searchd.image
       - description: Docker repository of the image
         displayName: Name
-        path: searched.image.name
+        path: searchd.image.name
       - description: Pull policy for the image
         displayName: Pull Policy
-        path: searched.image.pullPolicy
+        path: searchd.image.pullPolicy
       - description: |-
           Name of the Secret that holds quay.io credentials to access
           the image repository
         displayName: Pull Secret Name
-        path: searched.image.pullSecretName
+        path: searchd.image.pullSecretName
       - description: Image tag
         displayName: Tag
-        path: searched.image.tag
-      - description: Liveness probe for the Searched component
+        path: searchd.image.tag
+      - description: Liveness probe for the Searchd component
         displayName: Liveness Probe
-        path: searched.livenessProbe
+        path: searchd.livenessProbe
       - description: Minimum consecutive failures for the probe to be considered failed
           after having succeeded
         displayName: Failure Threshold
-        path: searched.livenessProbe.failureThreshold
+        path: searchd.livenessProbe.failureThreshold
       - description: Number of seconds after the container has started before liveness
           probes are initiated
         displayName: Initial Delay Seconds
-        path: searched.livenessProbe.initialDelaySeconds
+        path: searchd.livenessProbe.initialDelaySeconds
       - description: How often (in seconds) to perform the probe
         displayName: Period Seconds
-        path: searched.livenessProbe.periodSeconds
+        path: searchd.livenessProbe.periodSeconds
       - description: Minimum consecutive successes for the probe to be considered
           successful after having failed
         displayName: Success Threshold
-        path: searched.livenessProbe.successThreshold
+        path: searchd.livenessProbe.successThreshold
       - description: Number of seconds after which the probe times out
         displayName: Timeout Seconds
-        path: searched.livenessProbe.timeoutSeconds
-      - description: Readiness probe for the Searched component
+        path: searchd.livenessProbe.timeoutSeconds
+      - description: Readiness probe for the Searchd component
         displayName: Readiness Probe
-        path: searched.readinessProbe
+        path: searchd.readinessProbe
       - description: Minimum consecutive failures for the probe to be considered failed
           after having succeeded
         displayName: Failure Threshold
-        path: searched.readinessProbe.failureThreshold
+        path: searchd.readinessProbe.failureThreshold
       - description: Number of seconds after the container has started before liveness
           probes are initiated
         displayName: Initial Delay Seconds
-        path: searched.readinessProbe.initialDelaySeconds
+        path: searchd.readinessProbe.initialDelaySeconds
       - description: How often (in seconds) to perform the probe
         displayName: Period Seconds
-        path: searched.readinessProbe.periodSeconds
+        path: searchd.readinessProbe.periodSeconds
       - description: Minimum consecutive successes for the probe to be considered
           successful after having failed
         displayName: Success Threshold
-        path: searched.readinessProbe.successThreshold
+        path: searchd.readinessProbe.successThreshold
       - description: Number of seconds after which the probe times out
         displayName: Timeout Seconds
-        path: searched.readinessProbe.timeoutSeconds
-      - description: Resource requirements for the Searched component
+        path: searchd.readinessProbe.timeoutSeconds
+      - description: Resource requirements for the Searchd component
         displayName: Resources
-        path: searched.resources
+        path: searchd.resources
       - description: |-
           Limits describes the maximum amount of compute resources allowed.
           More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
         displayName: Limits
-        path: searched.resources.limits
+        path: searchd.resources.limits
       - description: |-
           Requests describes the minimum amount of compute resources required.
           If Requests is omitted for a container, it defaults to Limits if that is explicitly specified,
           otherwise to an implementation-defined value.
           More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
         displayName: Requests
-        path: searched.resources.requests
-      - description: Configures the TerminationGracePeriodSeconds for Searched
+        path: searchd.resources.requests
+      - description: Configures the TerminationGracePeriodSeconds for Searchd
         displayName: Termination Grace Period Seconds
-        path: searched.terminationGracePeriodSeconds
+        path: searchd.terminationGracePeriodSeconds
       - description: Sidekiq Billing specific configuration options
         displayName: Sidekiq Billing
         path: sidekiqBilling
@@ -7639,7 +7639,7 @@ spec:
                   valueFrom:
                     fieldRef:
                       fieldPath: metadata.annotations['olm.targetNamespaces']
-                image: quay.io/3scale-sre/saas-operator:v0.26.0-alpha.5
+                image: quay.io/3scale-sre/saas-operator:v0.26.0-alpha.7
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -7735,4 +7735,4 @@ spec:
   provider:
     name: Red Hat
     url: https://www.3scale.net/
-  version: 0.26.0-alpha.5
+  version: 0.26.0-alpha.7
