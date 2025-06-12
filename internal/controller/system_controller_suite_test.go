@@ -178,7 +178,7 @@ var _ = Describe("System controller", func() {
 			for _, env := range dep.Spec.Template.Spec.Containers[0].Env {
 				switch env.Name {
 				case "THINKING_SPHINX_ADDRESS":
-					Expect(env.Value).To(Equal("system-searched"))
+					Expect(env.Value).To(Equal("system-searchd"))
 				case "THINKING_SPHINX_PORT":
 					Expect(env.Value).To(Equal("9306"))
 				}
@@ -271,11 +271,11 @@ var _ = Describe("System controller", func() {
 
 		})
 
-		It("creates the system-searched resources", func() {
+		It("creates the system-searchd resources", func() {
 
 			sts := &appsv1.StatefulSet{}
-			By("deploying the system-searched statefulset",
-				(&testutil.ExpectedResource{Name: "system-searched", Namespace: namespace}).
+			By("deploying the system-searchd statefulset",
+				(&testutil.ExpectedResource{Name: "system-searchd", Namespace: namespace}).
 					Assert(k8sClient, sts, timeout, poll))
 
 			Expect(sts.Spec.Template.Spec.Containers[0].Args).To(BeEmpty())
@@ -283,10 +283,10 @@ var _ = Describe("System controller", func() {
 			Expect(sts.Spec.Template.Spec.Containers[0].Env).To(BeEmpty())
 
 			svc := &corev1.Service{}
-			By("deploying the system-searched service",
-				(&testutil.ExpectedResource{Name: "system-searched", Namespace: namespace}).
+			By("deploying the system-searchd service",
+				(&testutil.ExpectedResource{Name: "system-searchd", Namespace: namespace}).
 					Assert(k8sClient, svc, timeout, poll))
-			Expect(svc.Spec.Selector["deployment"]).To(Equal("system-searched"))
+			Expect(svc.Spec.Selector["deployment"]).To(Equal("system-searchd"))
 
 		})
 
@@ -337,7 +337,7 @@ var _ = Describe("System controller", func() {
 
 			for _, tr := range []string{
 				"system-db-migrate",
-				"system-searched-reindex",
+				"system-searchd-reindex",
 				"system-backend-sync",
 			} {
 				task := &pipelinev1.Task{}
@@ -380,7 +380,7 @@ var _ = Describe("System controller", func() {
 
 		})
 
-		When("updating a System resource without searched", func() {
+		When("updating a System resource without searchd", func() {
 
 			BeforeEach(func() {
 				Eventually(func() error {
@@ -392,7 +392,7 @@ var _ = Describe("System controller", func() {
 					Expect(err).ToNot(HaveOccurred())
 
 					patch := client.MergeFrom(system.DeepCopy())
-					system.Spec.Searched = &saasv1alpha1.SystemSearchdSpec{
+					system.Spec.Searchd = &saasv1alpha1.SystemSearchdSpec{
 						Enabled: ptr.To(false),
 					}
 
@@ -400,11 +400,11 @@ var _ = Describe("System controller", func() {
 				}, timeout, poll).ShouldNot(HaveOccurred())
 			})
 
-			It("removes the system-searched resources", func() {
+			It("removes the system-searchd resources", func() {
 
 				sts := &appsv1.StatefulSet{}
-				By("removing the system-searched statefulset",
-					(&testutil.ExpectedResource{Name: "system-searched", Namespace: namespace, Missing: true}).
+				By("removing the system-searchd statefulset",
+					(&testutil.ExpectedResource{Name: "system-searchd", Namespace: namespace, Missing: true}).
 						Assert(k8sClient, sts, timeout, poll))
 
 			})
@@ -1001,7 +1001,7 @@ var _ = Describe("System controller", func() {
 
 					for _, tr := range []string{
 						"system-db-migrate",
-						"system-searched-reindex",
+						"system-searchd-reindex",
 						"system-backend-sync",
 					} {
 						rvs["task/"+tr] = testutil.GetResourceVersion(
@@ -1022,7 +1022,7 @@ var _ = Describe("System controller", func() {
 							Enabled: ptr.To(false),
 						},
 						{
-							Name: ptr.To("system-searched-reindex"),
+							Name: ptr.To("system-searchd-reindex"),
 							Config: &saasv1alpha1.SystemTektonTaskConfig{
 								Image: &saasv1alpha1.ImageSpec{
 									Name: ptr.To("newImage"),
@@ -1070,10 +1070,10 @@ var _ = Describe("System controller", func() {
 				Expect(task.Spec.Steps[0].Timeout).
 					To(Equal(&metav1.Duration{Duration: 3 * time.Hour}))
 
-				By("updating the system-searched-reindex task",
+				By("updating the system-searchd-reindex task",
 					(&testutil.ExpectedResource{
-						Name: "system-searched-reindex", Namespace: namespace,
-						LastVersion: rvs["task/system-searched-reindex"],
+						Name: "system-searchd-reindex", Namespace: namespace,
+						LastVersion: rvs["task/system-searchd-reindex"],
 					}).Assert(k8sClient, task, timeout, poll))
 
 				Expect(task.Spec.Params[0].Default.StringVal).To(Equal("newImage"))
@@ -1097,10 +1097,10 @@ var _ = Describe("System controller", func() {
 					}
 				}
 
-				By("updating the system-searched-reindex pipeline",
+				By("updating the system-searchd-reindex pipeline",
 					(&testutil.ExpectedResource{
-						Name: "system-searched-reindex", Namespace: namespace,
-						LastVersion: rvs["pipeline/system-searched-reindex"],
+						Name: "system-searchd-reindex", Namespace: namespace,
+						LastVersion: rvs["pipeline/system-searchd-reindex"],
 					}).Assert(k8sClient, pipeline, timeout, poll))
 
 				Expect(pipeline.Spec.Params[0].Default.StringVal).To(Equal("newImage"))

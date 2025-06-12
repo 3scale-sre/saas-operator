@@ -41,18 +41,18 @@ func (gen *SearchdGenerator) statefulset() *appsv1.StatefulSet {
 					}(),
 					Containers: []corev1.Container{
 						{
-							Name:  strings.Join([]string{component, searched}, "-"),
+							Name:  strings.Join([]string{component, searchd}, "-"),
 							Image: fmt.Sprintf("%s:%s", *gen.Image.Name, *gen.Image.Tag),
 							Args:  []string{},
 							Ports: pod.ContainerPorts(
-								pod.ContainerPortTCP("searched", gen.DatabasePort),
+								pod.ContainerPortTCP("searchd", gen.DatabasePort),
 							),
 							Resources:       corev1.ResourceRequirements(*gen.Spec.Resources),
-							LivenessProbe:   pod.TCPProbe(intstr.FromString("searched"), *gen.Spec.LivenessProbe),
-							ReadinessProbe:  pod.TCPProbe(intstr.FromString("searched"), *gen.Spec.ReadinessProbe),
+							LivenessProbe:   pod.TCPProbe(intstr.FromString("searchd"), *gen.Spec.LivenessProbe),
+							ReadinessProbe:  pod.TCPProbe(intstr.FromString("searchd"), *gen.Spec.ReadinessProbe),
 							ImagePullPolicy: *gen.Image.PullPolicy,
 							VolumeMounts: []corev1.VolumeMount{{
-								Name:      "system-searched-database",
+								Name:      "system-searchd-database",
 								MountPath: gen.DatabasePath,
 							}},
 						},
@@ -64,7 +64,7 @@ func (gen *SearchdGenerator) statefulset() *appsv1.StatefulSet {
 			},
 			VolumeClaimTemplates: []corev1.PersistentVolumeClaim{{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: "system-searched-database",
+					Name: "system-searchd-database",
 				},
 				Status: corev1.PersistentVolumeClaimStatus{
 					Phase: corev1.ClaimPending,

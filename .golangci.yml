@@ -74,3 +74,6 @@ linters-settings:
   revive:
     rules:
       - name: comment-spacings
+  misspell:
+    ignore-words:
+      - searchd
