@@ -61,7 +61,7 @@ var (
 	systemDefaultTerminationGracePeriodSeconds *int64           = ptr.To[int64](60)
 	systemDefaultSearchServer                  SearchServerSpec = SearchServerSpec{
 		AddressSpec: AddressSpec{
-			Host: ptr.To("system-searched"),
+			Host: ptr.To("system-searchd"),
 			Port: ptr.To[int32](9306),
 		},
 		BatchSize: ptr.To[int32](100),
@@ -165,16 +165,16 @@ var (
 		MaxThreads: ptr.To[int32](15),
 	}
 
-	// Searched
+	// Searchd
 	systemDefaultSearchdEnabled bool             = true
 	systemDefaultSearchdImage   defaultImageSpec = defaultImageSpec{
-		Name:       ptr.To("quay.io/3scale/searched"),
+		Name:       ptr.To("quay.io/3scale/searchd"),
 		Tag:        ptr.To("latest"),
 		PullPolicy: (*corev1.PullPolicy)(ptr.To(string(corev1.PullIfNotPresent))),
 	}
-	systemDefaultSearchdServiceName         string                          = "system-searched"
+	systemDefaultSearchdServiceName         string                          = "system-searchd"
 	systemDefaultSearchdPort                int32                           = 9306
-	systemDefaultSearchdDBPath              string                          = "/var/lib/searched"
+	systemDefaultSearchdDBPath              string                          = "/var/lib/searchd"
 	systemDefaultSearchdDatabaseStorageSize string                          = "30Gi"
 	systemDefaultSearchdResources           defaultResourceRequirementsSpec = defaultResourceRequirementsSpec{
 		Requests: corev1.ResourceList{
@@ -238,15 +238,15 @@ var (
 			},
 		},
 		{
-			Name:        ptr.To("system-searched-reindex"),
-			Description: ptr.To("Runs the Searched Rendexation task"),
+			Name:        ptr.To("system-searchd-reindex"),
+			Description: ptr.To("Runs the Searchd Rendexation task"),
 			Config: &SystemTektonTaskConfig{
 				Command: []string{"container-entrypoint"},
 				Args: []string{
 					"bundle",
 					"exec",
 					"rake",
-					"searched:optimal_index",
+					"searchd:optimal_index",
 				},
 				ExtraEnv: []corev1.EnvVar{
 					{
@@ -294,10 +294,10 @@ type SystemSpec struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +optional
 	SidekiqLow *SystemSidekiqSpec `json:"sidekiqLow,omitempty"`
-	// Searched specific configuration options
+	// Searchd specific configuration options
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +optional
-	Searched *SystemSearchdSpec `json:"searched,omitempty"`
+	Searchd *SystemSearchdSpec `json:"searchd,omitempty"`
 	// Console specific configuration options
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +optional
@@ -346,11 +346,11 @@ func (spec *SystemSpec) Default() {
 
 	spec.SidekiqLow.Default(Low)
 
-	if spec.Searched == nil {
-		spec.Searched = &SystemSearchdSpec{}
+	if spec.Searchd == nil {
+		spec.Searchd = &SystemSearchdSpec{}
 	}
 
-	spec.Searched.Default()
+	spec.Searchd.Default()
 
 	if spec.Console == nil {
 		spec.Console = &SystemRailsConsoleSpec{}
@@ -894,44 +894,44 @@ func (spec *SystemSidekiqSpec) Default(sidekiqType systemSidekiqType) {
 
 // SystemSearchdSpec configures the App component of System
 type SystemSearchdSpec struct {
-	// Deploy searched instance
+	// Deploy searchd instance
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +optional
 	Enabled *bool `json:"enabled,omitempty"`
-	// Image specification for the Searched component.
+	// Image specification for the Searchd component.
 	// Defaults to system image if not defined.
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +optional
 	Image *ImageSpec `json:"image,omitempty"`
-	// Configuration options for System's Searched
+	// Configuration options for System's Searchd
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +optional
 	Config *SearchdConfig `json:"config,omitempty"`
-	// Resource requirements for the Searched component
+	// Resource requirements for the Searchd component
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +optional
 	Resources *ResourceRequirementsSpec `json:"resources,omitempty"`
-	// Liveness probe for the Searched component
+	// Liveness probe for the Searchd component
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +optional
 	LivenessProbe *ProbeSpec `json:"livenessProbe,omitempty"`
-	// Readiness probe for the Searched component
+	// Readiness probe for the Searchd component
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +optional
 	ReadinessProbe *ProbeSpec `json:"readinessProbe,omitempty"`
-	// Describes node affinity scheduling rules for the Searched pod
+	// Describes node affinity scheduling rules for the Searchd pod
 	// +optional
 	NodeAffinity *corev1.NodeAffinity `json:"nodeAffinity,omitempty" protobuf:"bytes,1,opt,name=nodeAffinity"`
-	// If specified, the Searched pod's tolerations.
+	// If specified, the Searchd pod's tolerations.
 	// +optional
 	Tolerations []corev1.Toleration `json:"tolerations,omitempty" protobuf:"bytes,22,opt,name=tolerations"`
-	// Configures the TerminationGracePeriodSeconds for Searched
+	// Configures the TerminationGracePeriodSeconds for Searchd
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +optional
 	TerminationGracePeriodSeconds *int64 `json:"terminationGracePeriodSeconds,omitempty"`
 }
 
-// Default implements defaulting for the system searched component
+// Default implements defaulting for the system searchd component
 func (spec *SystemSearchdSpec) Default() {
 	spec.Enabled = boolOrDefault(spec.Enabled, ptr.To(systemDefaultSearchdEnabled))
 	spec.Image = InitializeImageSpec(spec.Image, systemDefaultSearchdImage)
@@ -949,25 +949,25 @@ func (spec *SystemSearchdSpec) Default() {
 	)
 }
 
-// SearchdConfig has configuration options for System's searched
+// SearchdConfig has configuration options for System's searchd
 type SearchdConfig struct {
-	// Allows setting the service name for Searched
+	// Allows setting the service name for Searchd
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +optional
 	ServiceName *string `json:"serviceName,omitempty"`
-	// The TCP port Searched will run its daemon on
+	// The TCP port Searchd will run its daemon on
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +optional
 	Port *int32 `json:"port,omitempty"`
-	// Searched database path
+	// Searchd database path
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +optional
 	DatabasePath *string `json:"databasePath,omitempty"`
-	// Searched database storage size
+	// Searchd database storage size
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +optional
 	DatabaseStorageSize *resource.Quantity `json:"databaseStorageSize,omitempty"`
-	// Searched database storage type
+	// Searchd database storage type
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +optional
 	DatabaseStorageClass *string `json:"databaseStorageClass,omitempty"`

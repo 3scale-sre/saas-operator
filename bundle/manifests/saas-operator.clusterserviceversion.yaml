@@ -849,7 +849,7 @@ metadata:
     capabilities: Basic Install
     categories: Integration & Delivery
     containerImage: quay.io/3scale-sre/saas-operator
-    createdAt: "2025-06-04T13:48:56Z"
+    createdAt: "2025-06-12T10:57:15Z"
     description: |-
       The 3scale SaaS Operator creates and maintains a SaaS-ready deployment
       of the Red Hat 3scale API Management on OpenShift.
@@ -861,7 +861,7 @@ metadata:
     operatorframework.io/arch.amd64: supported
     operatorframework.io/arch.arm64: supported
     operatorframework.io/os.linux: supported
-  name: saas-operator.v0.26.0-alpha.2
+  name: saas-operator.v0.26.0-alpha.7
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -1160,7 +1160,7 @@ spec:
         displayName: Endpoints
         path: production.publishingStrategies.endpoints
       - description: |-
-          Create explicitely tells the controller that this is a new endpoint that
+          Create explicitly tells the controller that this is a new endpoint that
           should be added. Default is false, causing the controller to error when seeing
           an unknown endpoint.
         displayName: Create
@@ -1352,7 +1352,7 @@ spec:
         path: production.publishingStrategies.endpoints[0].strategy
       - description: |-
           PublishingStrategiesReconcileMode specifies if the list of strategies
-          should be merged with the defautls or replace them entirely. Allowed values
+          should be merged with the defaults or replace them entirely. Allowed values
           are "Merge" or "Replace". "Replace" strategy should be used to enable 2 strategies
           at the same time for a single endpoint.
         displayName: Mode
@@ -1675,7 +1675,7 @@ spec:
         displayName: Endpoints
         path: staging.publishingStrategies.endpoints
       - description: |-
-          Create explicitely tells the controller that this is a new endpoint that
+          Create explicitly tells the controller that this is a new endpoint that
           should be added. Default is false, causing the controller to error when seeing
           an unknown endpoint.
         displayName: Create
@@ -1867,7 +1867,7 @@ spec:
         path: staging.publishingStrategies.endpoints[0].strategy
       - description: |-
           PublishingStrategiesReconcileMode specifies if the list of strategies
-          should be merged with the defautls or replace them entirely. Allowed values
+          should be merged with the defaults or replace them entirely. Allowed values
           are "Merge" or "Replace". "Replace" strategy should be used to enable 2 strategies
           at the same time for a single endpoint.
         displayName: Mode
@@ -2124,7 +2124,7 @@ spec:
         displayName: Endpoints
         path: publishingStrategies.endpoints
       - description: |-
-          Create explicitely tells the controller that this is a new endpoint that
+          Create explicitly tells the controller that this is a new endpoint that
           should be added. Default is false, causing the controller to error when seeing
           an unknown endpoint.
         displayName: Create
@@ -2316,7 +2316,7 @@ spec:
         path: publishingStrategies.endpoints[0].strategy
       - description: |-
           PublishingStrategiesReconcileMode specifies if the list of strategies
-          should be merged with the defautls or replace them entirely. Allowed values
+          should be merged with the defaults or replace them entirely. Allowed values
           are "Merge" or "Replace". "Replace" strategy should be used to enable 2 strategies
           at the same time for a single endpoint.
         displayName: Mode
@@ -2857,7 +2857,7 @@ spec:
         displayName: Endpoints
         path: listener.publishingStrategies.endpoints
       - description: |-
-          Create explicitely tells the controller that this is a new endpoint that
+          Create explicitly tells the controller that this is a new endpoint that
           should be added. Default is false, causing the controller to error when seeing
           an unknown endpoint.
         displayName: Create
@@ -3049,7 +3049,7 @@ spec:
         path: listener.publishingStrategies.endpoints[0].strategy
       - description: |-
           PublishingStrategiesReconcileMode specifies if the list of strategies
-          should be merged with the defautls or replace them entirely. Allowed values
+          should be merged with the defaults or replace them entirely. Allowed values
           are "Merge" or "Replace". "Replace" strategy should be used to enable 2 strategies
           at the same time for a single endpoint.
         displayName: Mode
@@ -3494,7 +3494,7 @@ spec:
         displayName: Endpoints
         path: publishingStrategies.endpoints
       - description: |-
-          Create explicitely tells the controller that this is a new endpoint that
+          Create explicitly tells the controller that this is a new endpoint that
           should be added. Default is false, causing the controller to error when seeing
           an unknown endpoint.
         displayName: Create
@@ -3686,7 +3686,7 @@ spec:
         path: publishingStrategies.endpoints[0].strategy
       - description: |-
           PublishingStrategiesReconcileMode specifies if the list of strategies
-          should be merged with the defautls or replace them entirely. Allowed values
+          should be merged with the defaults or replace them entirely. Allowed values
           are "Merge" or "Replace". "Replace" strategy should be used to enable 2 strategies
           at the same time for a single endpoint.
         displayName: Mode
@@ -3986,7 +3986,7 @@ spec:
         displayName: Endpoints
         path: publishingStrategies.endpoints
       - description: |-
-          Create explicitely tells the controller that this is a new endpoint that
+          Create explicitly tells the controller that this is a new endpoint that
           should be added. Default is false, causing the controller to error when seeing
           an unknown endpoint.
         displayName: Create
@@ -4178,7 +4178,7 @@ spec:
         path: publishingStrategies.endpoints[0].strategy
       - description: |-
           PublishingStrategiesReconcileMode specifies if the list of strategies
-          should be merged with the defautls or replace them entirely. Allowed values
+          should be merged with the defaults or replace them entirely. Allowed values
           are "Merge" or "Replace". "Replace" strategy should be used to enable 2 strategies
           at the same time for a single endpoint.
         displayName: Mode
@@ -4394,7 +4394,7 @@ spec:
         displayName: Endpoints
         path: publishingStrategies.endpoints
       - description: |-
-          Create explicitely tells the controller that this is a new endpoint that
+          Create explicitly tells the controller that this is a new endpoint that
           should be added. Default is false, causing the controller to error when seeing
           an unknown endpoint.
         displayName: Create
@@ -4586,7 +4586,7 @@ spec:
         path: publishingStrategies.endpoints[0].strategy
       - description: |-
           PublishingStrategiesReconcileMode specifies if the list of strategies
-          should be merged with the defautls or replace them entirely. Allowed values
+          should be merged with the defaults or replace them entirely. Allowed values
           are "Merge" or "Replace". "Replace" strategy should be used to enable 2 strategies
           at the same time for a single endpoint.
         displayName: Mode
@@ -4932,7 +4932,7 @@ spec:
       - description: Reference to a Secret that contains the SSH private key
         displayName: Private Key Secret Ref
         path: sshOptions.privateKeySecretRef
-      - description: Use sudo to execute commands agains the remote host
+      - description: Use sudo to execute commands against the remote host
         displayName: Sudo
         path: sshOptions.sudo
       - description: SSH user
@@ -5042,7 +5042,7 @@ spec:
         displayName: Endpoints
         path: app.publishingStrategies.endpoints
       - description: |-
-          Create explicitely tells the controller that this is a new endpoint that
+          Create explicitly tells the controller that this is a new endpoint that
           should be added. Default is false, causing the controller to error when seeing
           an unknown endpoint.
         displayName: Create
@@ -5234,7 +5234,7 @@ spec:
         path: app.publishingStrategies.endpoints[0].strategy
       - description: |-
           PublishingStrategiesReconcileMode specifies if the list of strategies
-          should be merged with the defautls or replace them entirely. Allowed values
+          should be merged with the defaults or replace them entirely. Allowed values
           are "Merge" or "Replace". "Replace" strategy should be used to enable 2 strategies
           at the same time for a single endpoint.
         displayName: Mode
@@ -6809,7 +6809,7 @@ spec:
         displayName: Endpoints
         path: api.publishingStrategies.endpoints
       - description: |-
-          Create explicitely tells the controller that this is a new endpoint that
+          Create explicitly tells the controller that this is a new endpoint that
           should be added. Default is false, causing the controller to error when seeing
           an unknown endpoint.
         displayName: Create
@@ -7001,7 +7001,7 @@ spec:
         path: api.publishingStrategies.endpoints[0].strategy
       - description: |-
           PublishingStrategiesReconcileMode specifies if the list of strategies
-          should be merged with the defautls or replace them entirely. Allowed values
+          should be merged with the defaults or replace them entirely. Allowed values
           are "Merge" or "Replace". "Replace" strategy should be used to enable 2 strategies
           at the same time for a single endpoint.
         displayName: Mode
@@ -7639,7 +7639,7 @@ spec:
                   valueFrom:
                     fieldRef:
                       fieldPath: metadata.annotations['olm.targetNamespaces']
-                image: quay.io/3scale-sre/saas-operator:v0.26.0-alpha.2
+                image: quay.io/3scale-sre/saas-operator:v0.26.0-alpha.7
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -7735,4 +7735,4 @@ spec:
   provider:
     name: Red Hat
     url: https://www.3scale.net/
-  version: 0.26.0-alpha.2
+  version: 0.26.0-alpha.7

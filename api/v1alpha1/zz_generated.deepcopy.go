@@ -3710,8 +3710,8 @@ func (in *SystemSpec) DeepCopyInto(out *SystemSpec) {
 		*out = new(SystemSidekiqSpec)
 		(*in).DeepCopyInto(*out)
 	}
-	if in.Searched != nil {
-		in, out := &in.Searched, &out.Searched
+	if in.Searchd != nil {
+		in, out := &in.Searchd, &out.Searchd
 		*out = new(SystemSearchdSpec)
 		(*in).DeepCopyInto(*out)
 	}

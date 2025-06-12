@@ -29,7 +29,7 @@ const (
 	sidekiqDefault string = "sidekiq-default"
 	sidekiqBilling string = "sidekiq-billing"
 	sidekiqLow     string = "sidekiq-low"
-	searched       string = "searched"
+	searchd        string = "searchd"
 )
 
 // Generator configures the generators for System
@@ -43,7 +43,7 @@ type Generator struct {
 	CanarySidekiqBilling *SidekiqGenerator
 	SidekiqLow           SidekiqGenerator
 	CanarySidekiqLow     *SidekiqGenerator
-	Searched             SearchdGenerator
+	Searchd              SearchdGenerator
 	Console              ConsoleGenerator
 	Config               saasv1alpha1.SystemConfig
 	GrafanaDashboardSpec saasv1alpha1.GrafanaDashboardSpec
@@ -133,24 +133,24 @@ func NewGenerator(instance, namespace string, spec saasv1alpha1.SystemSpec) (Gen
 			ConfigFilesSecret: *spec.Config.ConfigFilesSecret,
 			TwemproxySpec:     spec.Twemproxy,
 		},
-		Searched: SearchdGenerator{
+		Searchd: SearchdGenerator{
 			BaseOptionsV2: generators.BaseOptionsV2{
-				Component:    strings.Join([]string{component, searched}, "-"),
+				Component:    strings.Join([]string{component, searchd}, "-"),
 				InstanceName: instance,
 				Namespace:    namespace,
 				Labels: map[string]string{
 					"app":                          "3scale-api-management",
 					"threescale_component":         component,
-					"threescale_component_element": searched,
+					"threescale_component_element": searchd,
 				},
 			},
-			Enabled:              *spec.Searched.Enabled,
-			Spec:                 *spec.Searched,
-			Image:                *spec.Searched.Image,
-			DatabasePort:         *spec.Searched.Config.Port,
-			DatabasePath:         *spec.Searched.Config.DatabasePath,
-			DatabaseStorageSize:  *spec.Searched.Config.DatabaseStorageSize,
-			DatabaseStorageClass: spec.Searched.Config.DatabaseStorageClass,
+			Enabled:              *spec.Searchd.Enabled,
+			Spec:                 *spec.Searchd,
+			Image:                *spec.Searchd.Image,
+			DatabasePort:         *spec.Searchd.Config.Port,
+			DatabasePath:         *spec.Searchd.Config.DatabasePath,
+			DatabaseStorageSize:  *spec.Searchd.Config.DatabaseStorageSize,
+			DatabaseStorageClass: spec.Searchd.Config.DatabaseStorageClass,
 		},
 		Console: ConsoleGenerator{
 			BaseOptionsV2: generators.BaseOptionsV2{
@@ -361,7 +361,7 @@ func (gen *Generator) Resources() ([]resource.TemplateInterface, error) {
 			sidekiq_default_resources,
 			sidekiq_billing_resources,
 			sidekiq_low_resources,
-			gen.Searched.StatefulSetWithTraffic(),
+			gen.Searchd.StatefulSetWithTraffic(),
 			gen.Console.StatefulSet(),
 			externalsecrets,
 			misc,
@@ -463,7 +463,7 @@ func (gen *SidekiqGenerator) MonitoredEndpoints() []monitoringv1.PodMetricsEndpo
 	return pmes
 }
 
-// SearchdGenerator has methods to generate resources for system-Searched
+// SearchdGenerator has methods to generate resources for system-Searchd
 type SearchdGenerator struct {
 	generators.BaseOptionsV2
 	Spec                 saasv1alpha1.SystemSearchdSpec

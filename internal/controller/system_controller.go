@@ -86,10 +86,10 @@ func (r *SystemReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		},
 		func() []types.NamespacedName {
 			if gen.Console.Enabled {
-				return []types.NamespacedName{gen.Console.GetKey(), gen.Searched.GetKey()}
+				return []types.NamespacedName{gen.Console.GetKey(), gen.Searchd.GetKey()}
 			}
 
-			return []types.NamespacedName{gen.Searched.GetKey()}
+			return []types.NamespacedName{gen.Searchd.GetKey()}
 		}(),
 	)
 	if result.ShouldReturn() {

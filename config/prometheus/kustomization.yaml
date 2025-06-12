@@ -1,6 +1,12 @@
 resources:
 - monitor.yaml
 
+# [CUSTOM]
+patches:
+- path: custom/monitor_patch.yaml
+  target:
+    kind: ServiceMonitor
+
 # [PROMETHEUS-WITH-CERTS] The following patch configures the ServiceMonitor in ../prometheus
 # to securely reference certificates created and managed by cert-manager.
 # Additionally, ensure that you uncomment the [METRICS WITH CERTMANAGER] patch under config/default/kustomization.yaml
