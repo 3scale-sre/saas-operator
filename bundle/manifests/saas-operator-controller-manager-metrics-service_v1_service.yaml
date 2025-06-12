@@ -9,10 +9,10 @@ metadata:
   name: saas-operator-controller-manager-metrics-service
 spec:
   ports:
-  - name: metrics
-    port: 8080
+  - name: https
+    port: 8443
     protocol: TCP
-    targetPort: metrics
+    targetPort: 8443
   selector:
     app.kubernetes.io/name: saas-operator
     control-plane: controller-manager
