@@ -849,7 +849,7 @@ metadata:
     capabilities: Basic Install
     categories: Integration & Delivery
     containerImage: quay.io/3scale-sre/saas-operator
-    createdAt: "2025-06-04T13:48:56Z"
+    createdAt: "2025-06-12T07:35:06Z"
     description: |-
       The 3scale SaaS Operator creates and maintains a SaaS-ready deployment
       of the Red Hat 3scale API Management on OpenShift.
@@ -861,7 +861,7 @@ metadata:
     operatorframework.io/arch.amd64: supported
     operatorframework.io/arch.arm64: supported
     operatorframework.io/os.linux: supported
-  name: saas-operator.v0.26.0-alpha.2
+  name: saas-operator.v0.26.0-alpha.5
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -1160,7 +1160,7 @@ spec:
         displayName: Endpoints
         path: production.publishingStrategies.endpoints
       - description: |-
-          Create explicitely tells the controller that this is a new endpoint that
+          Create explicitly tells the controller that this is a new endpoint that
           should be added. Default is false, causing the controller to error when seeing
           an unknown endpoint.
         displayName: Create
@@ -1352,7 +1352,7 @@ spec:
         path: production.publishingStrategies.endpoints[0].strategy
       - description: |-
           PublishingStrategiesReconcileMode specifies if the list of strategies
-          should be merged with the defautls or replace them entirely. Allowed values
+          should be merged with the defaults or replace them entirely. Allowed values
           are "Merge" or "Replace". "Replace" strategy should be used to enable 2 strategies
           at the same time for a single endpoint.
         displayName: Mode
@@ -1675,7 +1675,7 @@ spec:
         displayName: Endpoints
         path: staging.publishingStrategies.endpoints
       - description: |-
-          Create explicitely tells the controller that this is a new endpoint that
+          Create explicitly tells the controller that this is a new endpoint that
           should be added. Default is false, causing the controller to error when seeing
           an unknown endpoint.
         displayName: Create
@@ -1867,7 +1867,7 @@ spec:
         path: staging.publishingStrategies.endpoints[0].strategy
       - description: |-
           PublishingStrategiesReconcileMode specifies if the list of strategies
-          should be merged with the defautls or replace them entirely. Allowed values
+          should be merged with the defaults or replace them entirely. Allowed values
           are "Merge" or "Replace". "Replace" strategy should be used to enable 2 strategies
           at the same time for a single endpoint.
         displayName: Mode
@@ -2124,7 +2124,7 @@ spec:
         displayName: Endpoints
         path: publishingStrategies.endpoints
       - description: |-
-          Create explicitely tells the controller that this is a new endpoint that
+          Create explicitly tells the controller that this is a new endpoint that
           should be added. Default is false, causing the controller to error when seeing
           an unknown endpoint.
         displayName: Create
@@ -2316,7 +2316,7 @@ spec:
         path: publishingStrategies.endpoints[0].strategy
       - description: |-
           PublishingStrategiesReconcileMode specifies if the list of strategies
-          should be merged with the defautls or replace them entirely. Allowed values
+          should be merged with the defaults or replace them entirely. Allowed values
           are "Merge" or "Replace". "Replace" strategy should be used to enable 2 strategies
           at the same time for a single endpoint.
         displayName: Mode
@@ -2857,7 +2857,7 @@ spec:
         displayName: Endpoints
         path: listener.publishingStrategies.endpoints
       - description: |-
-          Create explicitely tells the controller that this is a new endpoint that
+          Create explicitly tells the controller that this is a new endpoint that
           should be added. Default is false, causing the controller to error when seeing
           an unknown endpoint.
         displayName: Create
@@ -3049,7 +3049,7 @@ spec:
         path: listener.publishingStrategies.endpoints[0].strategy
       - description: |-
           PublishingStrategiesReconcileMode specifies if the list of strategies
-          should be merged with the defautls or replace them entirely. Allowed values
+          should be merged with the defaults or replace them entirely. Allowed values
           are "Merge" or "Replace". "Replace" strategy should be used to enable 2 strategies
           at the same time for a single endpoint.
         displayName: Mode
@@ -3494,7 +3494,7 @@ spec:
         displayName: Endpoints
         path: publishingStrategies.endpoints
       - description: |-
-          Create explicitely tells the controller that this is a new endpoint that
+          Create explicitly tells the controller that this is a new endpoint that
           should be added. Default is false, causing the controller to error when seeing
           an unknown endpoint.
         displayName: Create
@@ -3686,7 +3686,7 @@ spec:
         path: publishingStrategies.endpoints[0].strategy
       - description: |-
           PublishingStrategiesReconcileMode specifies if the list of strategies
-          should be merged with the defautls or replace them entirely. Allowed values
+          should be merged with the defaults or replace them entirely. Allowed values
           are "Merge" or "Replace". "Replace" strategy should be used to enable 2 strategies
           at the same time for a single endpoint.
         displayName: Mode
@@ -3986,7 +3986,7 @@ spec:
         displayName: Endpoints
         path: publishingStrategies.endpoints
       - description: |-
-          Create explicitely tells the controller that this is a new endpoint that
+          Create explicitly tells the controller that this is a new endpoint that
           should be added. Default is false, causing the controller to error when seeing
           an unknown endpoint.
         displayName: Create
@@ -4178,7 +4178,7 @@ spec:
         path: publishingStrategies.endpoints[0].strategy
       - description: |-
           PublishingStrategiesReconcileMode specifies if the list of strategies
-          should be merged with the defautls or replace them entirely. Allowed values
+          should be merged with the defaults or replace them entirely. Allowed values
           are "Merge" or "Replace". "Replace" strategy should be used to enable 2 strategies
           at the same time for a single endpoint.
         displayName: Mode
@@ -4394,7 +4394,7 @@ spec:
         displayName: Endpoints
         path: publishingStrategies.endpoints
       - description: |-
-          Create explicitely tells the controller that this is a new endpoint that
+          Create explicitly tells the controller that this is a new endpoint that
           should be added. Default is false, causing the controller to error when seeing
           an unknown endpoint.
         displayName: Create
@@ -4586,7 +4586,7 @@ spec:
         path: publishingStrategies.endpoints[0].strategy
       - description: |-
           PublishingStrategiesReconcileMode specifies if the list of strategies
-          should be merged with the defautls or replace them entirely. Allowed values
+          should be merged with the defaults or replace them entirely. Allowed values
           are "Merge" or "Replace". "Replace" strategy should be used to enable 2 strategies
           at the same time for a single endpoint.
         displayName: Mode
@@ -4932,7 +4932,7 @@ spec:
       - description: Reference to a Secret that contains the SSH private key
         displayName: Private Key Secret Ref
         path: sshOptions.privateKeySecretRef
-      - description: Use sudo to execute commands agains the remote host
+      - description: Use sudo to execute commands against the remote host
         displayName: Sudo
         path: sshOptions.sudo
       - description: SSH user
@@ -5042,7 +5042,7 @@ spec:
         displayName: Endpoints
         path: app.publishingStrategies.endpoints
       - description: |-
-          Create explicitely tells the controller that this is a new endpoint that
+          Create explicitly tells the controller that this is a new endpoint that
           should be added. Default is false, causing the controller to error when seeing
           an unknown endpoint.
         displayName: Create
@@ -5234,7 +5234,7 @@ spec:
         path: app.publishingStrategies.endpoints[0].strategy
       - description: |-
           PublishingStrategiesReconcileMode specifies if the list of strategies
-          should be merged with the defautls or replace them entirely. Allowed values
+          should be merged with the defaults or replace them entirely. Allowed values
           are "Merge" or "Replace". "Replace" strategy should be used to enable 2 strategies
           at the same time for a single endpoint.
         displayName: Mode
@@ -5965,109 +5965,109 @@ spec:
       - description: Image tag
         displayName: Tag
         path: image.tag
-      - description: Searchd specific configuration options
-        displayName: Searchd
-        path: searchd
-      - description: Configuration options for System's Searchd
+      - description: Searched specific configuration options
+        displayName: Searched
+        path: searched
+      - description: Configuration options for System's Searched
         displayName: Config
-        path: searchd.config
-      - description: Searchd database path
+        path: searched.config
+      - description: Searched database path
         displayName: Database Path
-        path: searchd.config.databasePath
-      - description: Searchd database storage type
+        path: searched.config.databasePath
+      - description: Searched database storage type
         displayName: Database Storage Class
-        path: searchd.config.databaseStorageClass
-      - description: Searchd database storage size
+        path: searched.config.databaseStorageClass
+      - description: Searched database storage size
         displayName: Database Storage Size
-        path: searchd.config.databaseStorageSize
-      - description: The TCP port Searchd will run its daemon on
+        path: searched.config.databaseStorageSize
+      - description: The TCP port Searched will run its daemon on
         displayName: Port
-        path: searchd.config.port
-      - description: Allows setting the service name for Searchd
+        path: searched.config.port
+      - description: Allows setting the service name for Searched
         displayName: Service Name
-        path: searchd.config.serviceName
-      - description: Deploy searchd instance
+        path: searched.config.serviceName
+      - description: Deploy searched instance
         displayName: Enabled
-        path: searchd.enabled
+        path: searched.enabled
       - description: |-
-          Image specification for the Searchd component.
+          Image specification for the Searched component.
           Defaults to system image if not defined.
         displayName: Image
-        path: searchd.image
+        path: searched.image
       - description: Docker repository of the image
         displayName: Name
-        path: searchd.image.name
+        path: searched.image.name
       - description: Pull policy for the image
         displayName: Pull Policy
-        path: searchd.image.pullPolicy
+        path: searched.image.pullPolicy
       - description: |-
           Name of the Secret that holds quay.io credentials to access
           the image repository
         displayName: Pull Secret Name
-        path: searchd.image.pullSecretName
+        path: searched.image.pullSecretName
       - description: Image tag
         displayName: Tag
-        path: searchd.image.tag
-      - description: Liveness probe for the Searchd component
+        path: searched.image.tag
+      - description: Liveness probe for the Searched component
         displayName: Liveness Probe
-        path: searchd.livenessProbe
+        path: searched.livenessProbe
       - description: Minimum consecutive failures for the probe to be considered failed
           after having succeeded
         displayName: Failure Threshold
-        path: searchd.livenessProbe.failureThreshold
+        path: searched.livenessProbe.failureThreshold
       - description: Number of seconds after the container has started before liveness
           probes are initiated
         displayName: Initial Delay Seconds
-        path: searchd.livenessProbe.initialDelaySeconds
+        path: searched.livenessProbe.initialDelaySeconds
       - description: How often (in seconds) to perform the probe
         displayName: Period Seconds
-        path: searchd.livenessProbe.periodSeconds
+        path: searched.livenessProbe.periodSeconds
       - description: Minimum consecutive successes for the probe to be considered
           successful after having failed
         displayName: Success Threshold
-        path: searchd.livenessProbe.successThreshold
+        path: searched.livenessProbe.successThreshold
       - description: Number of seconds after which the probe times out
         displayName: Timeout Seconds
-        path: searchd.livenessProbe.timeoutSeconds
-      - description: Readiness probe for the Searchd component
+        path: searched.livenessProbe.timeoutSeconds
+      - description: Readiness probe for the Searched component
         displayName: Readiness Probe
-        path: searchd.readinessProbe
+        path: searched.readinessProbe
       - description: Minimum consecutive failures for the probe to be considered failed
           after having succeeded
         displayName: Failure Threshold
-        path: searchd.readinessProbe.failureThreshold
+        path: searched.readinessProbe.failureThreshold
       - description: Number of seconds after the container has started before liveness
           probes are initiated
         displayName: Initial Delay Seconds
-        path: searchd.readinessProbe.initialDelaySeconds
+        path: searched.readinessProbe.initialDelaySeconds
       - description: How often (in seconds) to perform the probe
         displayName: Period Seconds
-        path: searchd.readinessProbe.periodSeconds
+        path: searched.readinessProbe.periodSeconds
       - description: Minimum consecutive successes for the probe to be considered
           successful after having failed
         displayName: Success Threshold
-        path: searchd.readinessProbe.successThreshold
+        path: searched.readinessProbe.successThreshold
       - description: Number of seconds after which the probe times out
         displayName: Timeout Seconds
-        path: searchd.readinessProbe.timeoutSeconds
-      - description: Resource requirements for the Searchd component
+        path: searched.readinessProbe.timeoutSeconds
+      - description: Resource requirements for the Searched component
         displayName: Resources
-        path: searchd.resources
+        path: searched.resources
       - description: |-
           Limits describes the maximum amount of compute resources allowed.
           More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
         displayName: Limits
-        path: searchd.resources.limits
+        path: searched.resources.limits
       - description: |-
           Requests describes the minimum amount of compute resources required.
           If Requests is omitted for a container, it defaults to Limits if that is explicitly specified,
           otherwise to an implementation-defined value.
           More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
         displayName: Requests
-        path: searchd.resources.requests
-      - description: Configures the TerminationGracePeriodSeconds for Searchd
+        path: searched.resources.requests
+      - description: Configures the TerminationGracePeriodSeconds for Searched
         displayName: Termination Grace Period Seconds
-        path: searchd.terminationGracePeriodSeconds
+        path: searched.terminationGracePeriodSeconds
       - description: Sidekiq Billing specific configuration options
         displayName: Sidekiq Billing
         path: sidekiqBilling
@@ -6809,7 +6809,7 @@ spec:
         displayName: Endpoints
         path: api.publishingStrategies.endpoints
       - description: |-
-          Create explicitely tells the controller that this is a new endpoint that
+          Create explicitly tells the controller that this is a new endpoint that
           should be added. Default is false, causing the controller to error when seeing
           an unknown endpoint.
         displayName: Create
@@ -7001,7 +7001,7 @@ spec:
         path: api.publishingStrategies.endpoints[0].strategy
       - description: |-
           PublishingStrategiesReconcileMode specifies if the list of strategies
-          should be merged with the defautls or replace them entirely. Allowed values
+          should be merged with the defaults or replace them entirely. Allowed values
           are "Merge" or "Replace". "Replace" strategy should be used to enable 2 strategies
           at the same time for a single endpoint.
         displayName: Mode
@@ -7639,7 +7639,7 @@ spec:
                   valueFrom:
                     fieldRef:
                       fieldPath: metadata.annotations['olm.targetNamespaces']
-                image: quay.io/3scale-sre/saas-operator:v0.26.0-alpha.2
+                image: quay.io/3scale-sre/saas-operator:v0.26.0-alpha.5
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -7735,4 +7735,4 @@ spec:
   provider:
     name: Red Hat
     url: https://www.3scale.net/
-  version: 0.26.0-alpha.2
+  version: 0.26.0-alpha.5
