@@ -87,6 +87,9 @@ all: build
 help: ## Display this help.
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
+# Target to print make variables
+print-%  : ; @echo $($*)
+
 ##@ Development
 
 .PHONY: manifests
@@ -450,24 +453,64 @@ endif
 # These images MUST exist in a registry and be pull-able.
 BUNDLE_IMGS ?= $(BUNDLE_IMG)
 
+##@ Catalog
+
 # The image tag given to the resulting catalog image (e.g. make catalog-build CATALOG_IMG=example.com/operator-catalog:v0.2.0).
 CATALOG_IMG ?= $(IMAGE_TAG_BASE)-catalog:v$(VERSION)
 
+# The image contailer file for the catalog
+CATALOG_CONTAINER_FILE := "catalog/saas-operator.Dockerfile"
+
+# The image docker context for the catalog
+CATALOG_CONTAINER_CTX := "catalog/"
+
 # Default catalog base image to append bundles to
 CATALOG_BASE_IMG ?= $(IMAGE_TAG_BASE)-catalog:latest
+
+# Default catalog channel file
+CATALOG_CHANNEL_FILE ?= catalog/saas-operator/stable-channel.yaml
+
+# Catalog CSVs path
+CATALOG_OBJECTS_PATH := catalog/saas-operator/objects/saas-operator.v$(VERSION).clusterserviceversion.yaml
 
 # Set CATALOG_BASE_IMG to an existing catalog image tag to add $BUNDLE_IMGS to that image.
 ifneq ($(origin CATALOG_BASE_IMG), undefined)
 FROM_INDEX_OPT := --from-index $(CATALOG_BASE_IMG)
 endif
 
+.PHONY: catalog
+catalog: catalog-add-bundle catalog-validate  ## Update and validate the catalog with the current bundle.
+
+$(CATALOG_OBJECTS_PATH): opm # Render the current clusterserviceversion yaml from the bundle container into the catalog.
+	$(OPM) render $(BUNDLE_IMGS) -oyaml > $(CATALOG_OBJECTS_PATH)
+
+.PHONY: catalog-add-entry
+catalog-add-entry: # Adds a catalog entry if missing
+	grep -Eq 'name: saas-operator\.v$(VERSION)$$' $(CATALOG_CHANNEL_FILE) || \
+		yq -i '.entries += {"name": "saas-operator.v$(VERSION)","replaces":"$(shell yq '.entries[-1].name' $(CATALOG_CHANNEL_FILE))"}' $(CATALOG_CHANNEL_FILE)
+
+.PHONY: catalog-add-bundle-to-alpha
+catalog-add-bundle-to-alpha: override CATALOG_CHANNEL_FILE=catalog/saas-operator/alpha-channel.yaml
+catalog-add-bundle-to-alpha: $(CATALOG_OBJECTS_PATH) catalog-add-entry # Adds the alpha bundle to a file based catalog
+
+.PHONY: catalog-add-bundle-to-stable
+catalog-add-bundle-to-stable: $(CATALOG_OBJECTS_PATH) catalog-add-bundle-to-alpha # Adds a bundle to a file based catalog
+	$(MAKE) catalog-add-entry
+
+.PHONY: catalog-add-bundle
+catalog-add-bundle: $(CATALOG_OBJECTS_PATH) # Adds a bundle to a file based catalog
+	if echo $(VERSION) | grep -q 'alpha'; \
+		then $(MAKE) catalog-add-bundle-to-alpha; \
+		else $(MAKE) catalog-add-bundle-to-stable; \
+	fi
+
 .PHONY: catalog-validate
-catalog-validate: ## Validate the file based catalog.
+catalog-validate: opm ## Validate the file based catalog.
 	$(OPM) validate catalog/saas-operator
 
 .PHONY: catalog-build
-catalog-build: opm catalog-validate ## Build the file based catalog image.
-	$(call container-build-multiplatform,$(CATALOG_IMG),$(CONTAINER_TOOL),catalog/saas-operator.Dockerfile,catalog/,$(PLATFORMS))
+catalog-build: catalog-validate ## Build the file based catalog image.
+	$(call container-build-multiplatform,$(CATALOG_IMG),$(CONTAINER_TOOL),$(CATALOG_CONTAINER_FILE),$(CATALOG_CONTAINER_CTX),$(PLATFORMS))
 
 .PHONY: catalog-run
 catalog-run: catalog-build ## Run the catalog image locally.
@@ -477,17 +520,6 @@ catalog-run: catalog-build ## Run the catalog image locally.
 .PHONY: catalog-push
 catalog-push: ## Push a catalog image.
 	$(call container-push-multiplatform,$(CATALOG_IMG),$(CONTAINER_TOOL))
-
-.PHONY: catalog-add-bundle-to-alpha
-catalog-add-bundle-to-alpha: opm ## Adds a bundle to a file based catalog
-	$(OPM) render $(BUNDLE_IMGS) -oyaml > catalog/saas-operator/objects/saas-operator.v$(VERSION).clusterserviceversion.yaml
-	yq -i '.entries += {"name": "saas-operator.v$(VERSION)","replaces":"$(shell yq '.entries[-1].name' catalog/saas-operator/alpha-channel.yaml)"}' catalog/saas-operator/alpha-channel.yaml
-
-.PHONY: catalog-add-bundle-to-stable
-catalog-add-bundle-to-stable: opm ## Adds a bundle to a file based catalog
-	$(OPM) render $(BUNDLE_IMGS) -oyaml > catalog/saas-operator/objects/saas-operator.v$(VERSION).clusterserviceversion.yaml
-	yq -i '.entries += {"name": "saas-operator.v$(VERSION)","replaces":"$(shell yq '.entries[-1].name' catalog/saas-operator/alpha-channel.yaml)"}' catalog/saas-operator/alpha-channel.yaml
-	yq -i '.entries += {"name": "saas-operator.v$(VERSION)","replaces":"$(shell yq '.entries[-1].name' catalog/saas-operator/stable-channel.yaml)"}' catalog/saas-operator/stable-channel.yaml
 
 ##@ Kind Deployment
 
@@ -608,7 +640,7 @@ bundle-publish: container-buildx container-pushx bundle-build bundle-push bundle
 catalog-publish: catalog-build catalog-push catalog-retag-latest ## Builds and pushes the catalog image
 
 .PHONY: get-new-release
-get-new-release: ## Checks if a release with the name $(VERSION) already exists in https://github.com/3scale-sre/marin3r/releases
+get-new-release: ## Checks if a release with the name $(VERSION) already exists in https://github.com/3scale-sre/saas-operator/releases
 	@hack/new-release.sh v$(VERSION)
 
 .PHONY: catalog-retag-latest
