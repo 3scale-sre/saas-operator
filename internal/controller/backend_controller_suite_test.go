@@ -92,6 +92,7 @@ var _ = Describe("Backend controller", func() {
 					},
 				},
 			}
+
 			err := k8sClient.Create(context.Background(), backend)
 			Expect(err).ToNot(HaveOccurred())
 			Eventually(func() error {
@@ -450,7 +451,7 @@ var _ = Describe("Backend controller", func() {
 			})
 		})
 
-		When("updating a backend resource with canary", func() {
+		When("updating a backend resource with marin3r + canary", func() {
 
 			// Resource Versions
 			rvs := make(map[string]string)
@@ -467,14 +468,29 @@ var _ = Describe("Backend controller", func() {
 						return err
 					}
 
-					rvs["svc/backend-listener"] = testutil.GetResourceVersion(
-						k8sClient, &corev1.Service{}, "backend-listener-http-svc", namespace, timeout, poll)
 					rvs["deployment/backend-listener"] = testutil.GetResourceVersion(
 						k8sClient, &appsv1.Deployment{}, "backend-listener", namespace, timeout, poll)
 					rvs["deployment/backend-worker"] = testutil.GetResourceVersion(
 						k8sClient, &appsv1.Deployment{}, "backend-worker", namespace, timeout, poll)
 
 					patch := client.MergeFrom(backend.DeepCopy())
+					backend.Spec.Listener.PublishingStrategies = &saasv1alpha1.PublishingStrategies{
+						Endpoints: []saasv1alpha1.PublishingStrategy{{
+							Strategy:     saasv1alpha1.Marin3rSidecarStrategy,
+							EndpointName: "HTTP",
+							Marin3rSidecar: &saasv1alpha1.Marin3rSidecarSpec{
+								Simple: &saasv1alpha1.Simple{ServiceType: ptr.To(saasv1alpha1.ServiceTypeClusterIP)},
+								EnvoyDynamicConfig: saasv1alpha1.MapOfEnvoyDynamicConfig{
+									"http": {
+										GeneratorVersion: ptr.To("v1"),
+										ListenerHttp: &saasv1alpha1.ListenerHttp{
+											Port:            8080,
+											RouteConfigName: "route",
+										},
+									}},
+							},
+						}},
+					}
 					backend.Spec.Listener.Canary = &saasv1alpha1.Canary{
 						ImageName: ptr.To("newImage"),
 						ImageTag:  ptr.To("newTag"),
@@ -523,15 +539,25 @@ var _ = Describe("Backend controller", func() {
 							"-x", "/dev/stdout",
 						},
 						PodMonitor:  true,
+						EnvoyConfig: true,
 						LastVersion: rvs["deployment/backend-listener"],
 					}).Assert(k8sClient, backend, dep, timeout, poll))
 
-				svc := &corev1.Service{}
-				By("keeps the backend-listener-http-svc service deployment label selector",
-					(&testutil.ExpectedResource{
-						Name: "backend-listener-http-svc", Namespace: namespace,
-					}).Assert(k8sClient, svc, timeout, poll))
+				Expect(dep.Spec.Template.ObjectMeta.Labels).To(HaveKeyWithValue("marin3r.3scale.net/status", "enabled"))
+				Expect(dep.Spec.Template.ObjectMeta.Annotations).To(HaveKeyWithValue("marin3r.3scale.net/node-id", "backend-listener-canary"))
 
+				ec := &marin3rv1alpha1.EnvoyConfig{}
+				By("the node-id for the backend-listener-canary EnvoyConfig is correct",
+					(&testutil.ExpectedResource{
+						Name: "backend-listener-canary", Namespace: namespace,
+					}).Assert(k8sClient, ec, timeout, poll))
+				Expect(ec.Spec.NodeID).To(Equal("backend-listener-canary"))
+
+				svc := &corev1.Service{}
+				By("creates the backend-listener-http-marin3r service with the correct label selector",
+					(&testutil.ExpectedResource{
+						Name: "backend-listener-http-marin3r", Namespace: namespace,
+					}).Assert(k8sClient, svc, timeout, poll))
 				Expect(svc.Spec.Selector["deployment"]).To(Equal("backend-listener"))
 				Expect(svc.Spec.Selector["saas.3scale.net/traffic"]).To(Equal("backend-listener"))
 
@@ -546,7 +572,8 @@ var _ = Describe("Backend controller", func() {
 						ContainterArgs: []string{
 							"bin/3scale_backend_worker", "run",
 						},
-						PodMonitor: true,
+						PodMonitor:  true,
+						EnvoyConfig: false,
 					}).Assert(k8sClient, backend, dep, timeout, poll))
 
 				Expect(dep.Spec.Template.Spec.Containers[0].Env[0].Name).To(Equal("RACK_ENV"))
@@ -572,8 +599,8 @@ var _ = Describe("Backend controller", func() {
 
 						rvs["deployment/backend-listener-canary"] = testutil.GetResourceVersion(
 							k8sClient, &appsv1.Deployment{}, "backend-listener-canary", namespace, timeout, poll)
-						rvs["svc/backend-listener-http-svc"] = testutil.GetResourceVersion(
-							k8sClient, &corev1.Service{}, "backend-listener-http-svc", namespace, timeout, poll)
+						rvs["svc/backend-listener-http-marin3r"] = testutil.GetResourceVersion(
+							k8sClient, &corev1.Service{}, "backend-listener-http-marin3r", namespace, timeout, poll)
 						rvs["deployment/backend-worker-canary"] = testutil.GetResourceVersion(
 							k8sClient, &appsv1.Deployment{}, "backend-worker-canary", namespace, timeout, poll)
 
@@ -605,16 +632,17 @@ var _ = Describe("Backend controller", func() {
 							Namespace:   namespace,
 							Replicas:    3,
 							PodMonitor:  true,
+							EnvoyConfig: true,
 							LastVersion: rvs["deployment/backend-listener-canary"],
 						}).Assert(k8sClient, backend, dep, timeout, poll))
 
 					Expect(dep.Spec.Replicas).To(Equal(ptr.To[int32](3)))
 
 					svc := &corev1.Service{}
-					By("removing the backend-listener service deployment label selector",
+					By("updating the backend-listener-http-marin3r service label selector",
 						(&testutil.ExpectedResource{
-							Name: "backend-listener-http-svc", Namespace: namespace,
-							LastVersion: rvs["svc/backend-listener-http-svc"],
+							Name: "backend-listener-http-marin3r", Namespace: namespace,
+							LastVersion: rvs["svc/backend-listener-http-marin3r"],
 						}).Assert(k8sClient, svc, timeout, poll))
 
 					Expect(svc.Spec.Selector).ToNot(HaveKey("deployment"))
@@ -672,6 +700,19 @@ var _ = Describe("Backend controller", func() {
 					By("removing the backend-worker-canary PodMonitor",
 						(&testutil.ExpectedResource{
 							Name: "backend-worker-canary", Namespace: namespace, Missing: true}).Assert(k8sClient, pm, timeout, poll))
+				})
+
+				It("restores the service label selector", func() {
+
+					svc := &corev1.Service{}
+					By("updating the backend-listener-http-marin3r service label selector",
+						(&testutil.ExpectedResource{
+							Name: "backend-listener-http-marin3r", Namespace: namespace,
+							LastVersion: rvs["svc/backend-listener-http-marin3r"],
+						}).Assert(k8sClient, svc, timeout, poll))
+
+					Expect(svc.Spec.Selector).To(HaveKey("deployment"))
+					Expect(svc.Spec.Selector["saas.3scale.net/traffic"]).To(Equal("backend-listener"))
 				})
 			})
 		})

@@ -118,7 +118,7 @@ func (r *TwemproxyConfigReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		return ctrl.Result{}, err
 	}
 
-	if _, err := resource.CreateOrUpdate(ctx, r.Client, r.Scheme, instance, gen.GrafanaDashboard()); err != nil {
+	if _, err := resource.CreateOrModify(ctx, r.Client, r.Scheme, instance, gen.GrafanaDashboard()); err != nil {
 		return ctrl.Result{}, err
 	}
 

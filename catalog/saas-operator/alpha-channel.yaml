@@ -6,6 +6,10 @@ entries:
   - name: saas-operator.v0.26.0
     replaces: saas-operator.v0.25.1
     skipRange: ">=0.25.1 <0.26.0"
+  - name: saas-operator.v0.26.1-alpha.1
+    replaces: saas-operator.v0.26.0
+  - name: saas-operator.v0.26.1-alpha.2
+    replaces: saas-operator.v0.26.1-alpha.1
 name: alpha
 package: saas-operator
 schema: olm.channel

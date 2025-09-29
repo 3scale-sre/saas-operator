@@ -25,12 +25,15 @@ import (
 	"time"
 
 	"github.com/3scale-sre/basereconciler/reconciler"
+	"github.com/3scale-sre/basereconciler/runtimeconfig"
 	"github.com/3scale-sre/saas-operator/internal/pkg/reconcilers/threads"
 	redis "github.com/3scale-sre/saas-operator/internal/pkg/redis/server"
 	"github.com/goombaio/namegenerator"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"k8s.io/client-go/kubernetes/scheme"
+	apimachineryruntime "k8s.io/apimachinery/pkg/runtime"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
@@ -58,11 +61,25 @@ var (
 	poll          time.Duration = 10 * time.Second
 	ctx           context.Context
 	cancel        context.CancelFunc
+	scheme        = apimachineryruntime.NewScheme()
 )
+
+// nolint:wsl
+func init() {
+	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
+	utilruntime.Must(saasv1alpha1.AddToScheme(scheme))
+	utilruntime.Must(monitoringv1.AddToScheme(scheme))
+	utilruntime.Must(grafanav1beta1.AddToScheme(scheme))
+	utilruntime.Must(externalsecretsv1beta1.AddToScheme(scheme))
+	utilruntime.Must(marin3rv1alpha1.AddToScheme(scheme))
+	utilruntime.Must(pipelinev1.AddToScheme(scheme))
+	// +kubebuilder:scaffold:scheme
+
+	runtimeconfig.SetDefaultScheme(scheme)
+}
 
 func TestAPIs(t *testing.T) {
 	RegisterFailHandler(Fail)
-
 	RunSpecs(t, "Controller Suite")
 }
 
@@ -85,21 +102,8 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 	Expect(cfg).NotTo(BeNil())
 
-	err = saasv1alpha1.AddToScheme(scheme.Scheme)
-	Expect(err).NotTo(HaveOccurred())
-	err = monitoringv1.AddToScheme(scheme.Scheme)
-	Expect(err).NotTo(HaveOccurred())
-	err = grafanav1beta1.AddToScheme(scheme.Scheme)
-	Expect(err).NotTo(HaveOccurred())
-	err = externalsecretsv1beta1.AddToScheme(scheme.Scheme)
-	Expect(err).NotTo(HaveOccurred())
-	err = marin3rv1alpha1.AddToScheme(scheme.Scheme)
-	Expect(err).NotTo(HaveOccurred())
-	err = pipelinev1.AddToScheme(scheme.Scheme)
-	Expect(err).NotTo(HaveOccurred())
-
 	mgr, err := ctrl.NewManager(cfg, ctrl.Options{
-		Scheme: scheme.Scheme,
+		Scheme: runtimeconfig.DefaultScheme(),
 		// Disable the metrics port to allow running the
 		// test suite in parallel
 		Metrics: metricsserver.Options{

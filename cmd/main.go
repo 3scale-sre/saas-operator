@@ -29,6 +29,7 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	"github.com/3scale-sre/basereconciler/reconciler"
+	"github.com/3scale-sre/basereconciler/runtimeconfig"
 	marin3rv1alpha1 "github.com/3scale-sre/marin3r/api/marin3r/v1alpha1"
 	operatorutils "github.com/3scale-sre/saas-operator/internal/pkg/util"
 	externalsecretsv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
@@ -67,7 +68,6 @@ var (
 // nolint:wsl
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
-
 	utilruntime.Must(saasv1alpha1.AddToScheme(scheme))
 	utilruntime.Must(monitoringv1.AddToScheme(scheme))
 	utilruntime.Must(grafanav1beta1.AddToScheme(scheme))
@@ -75,6 +75,8 @@ func init() {
 	utilruntime.Must(marin3rv1alpha1.AddToScheme(scheme))
 	utilruntime.Must(pipelinev1.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
+
+	runtimeconfig.SetDefaultScheme(scheme)
 }
 
 func main() {
@@ -107,7 +109,7 @@ func main() {
 	}
 
 	options := ctrl.Options{
-		Scheme: scheme,
+		Scheme: runtimeconfig.DefaultScheme(),
 		Metrics: metricsserver.Options{
 			BindAddress: metricsAddr,
 		},
