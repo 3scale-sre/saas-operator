@@ -80,6 +80,10 @@ var _ = Describe("twemproxyconfig e2e suite", func() {
 		sentinel = saasv1alpha1.Sentinel{
 			ObjectMeta: metav1.ObjectMeta{Name: "sentinel", Namespace: ns},
 			Spec: saasv1alpha1.SentinelSpec{
+				Image: &saasv1alpha1.ImageSpec{
+					Name: ptr.To("bitnami/redis-sentinel"),
+					Tag:  ptr.To("latest"),
+				},
 				Config: &saasv1alpha1.SentinelConfig{
 					ClusterTopology: map[string]map[string]string{
 						shards[0].GetName(): {
