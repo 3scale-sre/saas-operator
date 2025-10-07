@@ -12,6 +12,8 @@ entries:
     replaces: saas-operator.v0.26.1-alpha.1
   - name: saas-operator.v0.26.1-alpha.3
     replaces: saas-operator.v0.26.1-alpha.2
+  - name: saas-operator.v0.26.1
+    replaces: saas-operator.v0.26.1-alpha.3
 name: alpha
 package: saas-operator
 schema: olm.channel

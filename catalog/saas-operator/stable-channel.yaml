@@ -5,6 +5,8 @@ entries:
     replaces: saas-operator.v0.25.0
   - name: saas-operator.v0.26.0
     replaces: saas-operator.v0.25.1
+  - name: saas-operator.v0.26.1
+    replaces: saas-operator.v0.26.0
 name: stable
 package: saas-operator
 schema: olm.channel
