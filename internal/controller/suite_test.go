@@ -27,24 +27,16 @@ import (
 	"github.com/3scale-sre/basereconciler/reconciler"
 	"github.com/3scale-sre/saas-operator/internal/pkg/reconcilers/threads"
 	redis "github.com/3scale-sre/saas-operator/internal/pkg/redis/server"
+	operatorscheme "github.com/3scale-sre/saas-operator/internal/pkg/scheme"
 	"github.com/goombaio/namegenerator"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
-
-	marin3rv1alpha1 "github.com/3scale-sre/marin3r/api/marin3r/v1alpha1"
-	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
-	externalsecretsv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
-	grafanav1beta1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
-	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
-	pipelinev1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1"
-	// +kubebuilder:scaffold:imports
 )
 
 // These tests use Ginkgo (BDD-style Go testing framework). Refer to
@@ -62,7 +54,6 @@ var (
 
 func TestAPIs(t *testing.T) {
 	RegisterFailHandler(Fail)
-
 	RunSpecs(t, "Controller Suite")
 }
 
@@ -85,21 +76,8 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 	Expect(cfg).NotTo(BeNil())
 
-	err = saasv1alpha1.AddToScheme(scheme.Scheme)
-	Expect(err).NotTo(HaveOccurred())
-	err = monitoringv1.AddToScheme(scheme.Scheme)
-	Expect(err).NotTo(HaveOccurred())
-	err = grafanav1beta1.AddToScheme(scheme.Scheme)
-	Expect(err).NotTo(HaveOccurred())
-	err = externalsecretsv1beta1.AddToScheme(scheme.Scheme)
-	Expect(err).NotTo(HaveOccurred())
-	err = marin3rv1alpha1.AddToScheme(scheme.Scheme)
-	Expect(err).NotTo(HaveOccurred())
-	err = pipelinev1.AddToScheme(scheme.Scheme)
-	Expect(err).NotTo(HaveOccurred())
-
 	mgr, err := ctrl.NewManager(cfg, ctrl.Options{
-		Scheme: scheme.Scheme,
+		Scheme: operatorscheme.BuildAndRegister(),
 		// Disable the metrics port to allow running the
 		// test suite in parallel
 		Metrics: metricsserver.Options{

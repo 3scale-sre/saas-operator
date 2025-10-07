@@ -39,8 +39,8 @@ contrib.go.opencensus.io/exporter/prometheus v0.4.2/go.mod h1:dvEHbiKmgvbr5pjaF9
 dario.cat/mergo v1.0.1 h1:Ra4+bf83h2ztPIQYNP99R6m+Y7KfnARDfID+a+vLl4s=
 dario.cat/mergo v1.0.1/go.mod h1:uNxQE+84aUszobStD9th8a29P2fMDhsBdgRYvZOxGmk=
 dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7gZCb22OMCxBHrMx7a5I7Hp++hsVxbQ4BYO7hU=
-github.com/3scale-sre/basereconciler v0.6.0 h1:Ggu87K0I+GoiBC8pxqx8MtgXYyjlUt4Wdkg/ST6ZgH4=
-github.com/3scale-sre/basereconciler v0.6.0/go.mod h1:GzRACguUV+nIqb1cpUr7CEHGw/b4COOyKxxubY8QX2Q=
+github.com/3scale-sre/basereconciler v0.7.0 h1:S4uTvihoD2nR+fP9ybeNSOK4D/DIZyHY5DNWMCqXP+c=
+github.com/3scale-sre/basereconciler v0.7.0/go.mod h1:H1uetZSq4a4gVw5uomzjM8QuaPwBG2YuWjYM7HgfPA0=
 github.com/3scale-sre/marin3r/api v0.13.2 h1:rxPi57p2PL9SU9eYfqAVnnl0iOeVWTz41jOu6kw5JcA=
 github.com/3scale-sre/marin3r/api v0.13.2/go.mod h1:9Q94bkm7+QBPR92f5Hh22iRlSXpCvyay+85z0S4rzmg=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=

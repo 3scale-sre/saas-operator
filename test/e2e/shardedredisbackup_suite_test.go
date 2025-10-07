@@ -96,6 +96,10 @@ var _ = Describe("shardedredisbackup e2e suite", func() {
 		sentinel = saasv1alpha1.Sentinel{
 			ObjectMeta: metav1.ObjectMeta{Name: "sentinel", Namespace: ns},
 			Spec: saasv1alpha1.SentinelSpec{
+				Image: &saasv1alpha1.ImageSpec{
+					Name: ptr.To("bitnami/redis-sentinel"),
+					Tag:  ptr.To("latest"),
+				},
 				Replicas: ptr.To(int32(1)),
 				Config: &saasv1alpha1.SentinelConfig{
 					MonitoredShards: map[string][]string{
