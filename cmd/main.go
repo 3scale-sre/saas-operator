@@ -29,27 +29,16 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	"github.com/3scale-sre/basereconciler/reconciler"
-	"github.com/3scale-sre/basereconciler/runtimeconfig"
-	marin3rv1alpha1 "github.com/3scale-sre/marin3r/api/marin3r/v1alpha1"
+	controllers "github.com/3scale-sre/saas-operator/internal/controller"
+	"github.com/3scale-sre/saas-operator/internal/pkg/reconcilers/threads"
+	redis "github.com/3scale-sre/saas-operator/internal/pkg/redis/server"
+	operatorscheme "github.com/3scale-sre/saas-operator/internal/pkg/scheme"
 	operatorutils "github.com/3scale-sre/saas-operator/internal/pkg/util"
-	externalsecretsv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
-	grafanav1beta1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
-	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
-	pipelinev1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1"
-	apimachineryruntime "k8s.io/apimachinery/pkg/runtime"
-	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
-	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	"github.com/3scale-sre/saas-operator/internal/pkg/version"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
-
-	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
-	controllers "github.com/3scale-sre/saas-operator/internal/controller"
-	"github.com/3scale-sre/saas-operator/internal/pkg/reconcilers/threads"
-	redis "github.com/3scale-sre/saas-operator/internal/pkg/redis/server"
-	"github.com/3scale-sre/saas-operator/internal/pkg/version"
-	// +kubebuilder:scaffold:imports
 )
 
 // Change below variables to serve metrics on different host or port.
@@ -60,24 +49,7 @@ const (
 	watchNamespaceEnvVar string = "WATCH_NAMESPACE"
 )
 
-var (
-	scheme   = apimachineryruntime.NewScheme()
-	setupLog = ctrl.Log.WithName("setup")
-)
-
-// nolint:wsl
-func init() {
-	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
-	utilruntime.Must(saasv1alpha1.AddToScheme(scheme))
-	utilruntime.Must(monitoringv1.AddToScheme(scheme))
-	utilruntime.Must(grafanav1beta1.AddToScheme(scheme))
-	utilruntime.Must(externalsecretsv1beta1.AddToScheme(scheme))
-	utilruntime.Must(marin3rv1alpha1.AddToScheme(scheme))
-	utilruntime.Must(pipelinev1.AddToScheme(scheme))
-	// +kubebuilder:scaffold:scheme
-
-	runtimeconfig.SetDefaultScheme(scheme)
-}
+var setupLog = ctrl.Log.WithName("setup")
 
 func main() {
 	var metricsAddr string
@@ -109,7 +81,7 @@ func main() {
 	}
 
 	options := ctrl.Options{
-		Scheme: runtimeconfig.DefaultScheme(),
+		Scheme: operatorscheme.BuildAndRegister(),
 		Metrics: metricsserver.Options{
 			BindAddress: metricsAddr,
 		},

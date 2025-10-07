@@ -14,6 +14,7 @@ import (
 	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
 	descriptor "github.com/3scale-sre/saas-operator/internal/pkg/resource_builders/envoyconfig/descriptor"
 	"github.com/3scale-sre/saas-operator/internal/pkg/resource_builders/service"
+	operatorscheme "github.com/3scale-sre/saas-operator/internal/pkg/scheme"
 	"github.com/google/go-cmp/cmp"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -565,6 +566,8 @@ func TestWorkloadReconciler_NewDeploymentWorkload(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			operatorscheme.BuildAndRegister()
+
 			templates, err := New(tt.args.main, tt.args.canary)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("New() error = %v, wantErr %v", err, tt.wantErr)
@@ -621,6 +624,8 @@ func Test_applyTrafficSelectorToDeployment(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			operatorscheme.BuildAndRegister()
+
 			got, _ := tt.template.Apply(trafficSelectorToDeployment(tt.args.w)).Build(context.TODO(), nil, nil)
 			if diff := cmp.Diff(got, tt.want); len(diff) > 0 {
 				t.Errorf("applyTrafficSelectorToDeployment() got diff %v", diff)
@@ -668,6 +673,8 @@ func Test_applyHPAScaleTargetRef(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			operatorscheme.BuildAndRegister()
+
 			got, _ := tt.template.Apply(scaleTargetRefToHPA(tt.args.w)).Build(context.TODO(), nil, nil)
 			if diff := cmp.Diff(got, tt.want); len(diff) > 0 {
 				t.Errorf("applyHPAScaleTargetRef() got diff %v", diff)
@@ -734,6 +741,8 @@ func Test_applyMeta(t *testing.T) {
 	}
 	for _, tt := range tests1 {
 		t.Run(tt.name, func(t *testing.T) {
+			operatorscheme.BuildAndRegister()
+
 			got, _ := tt.template.Apply(meta[*corev1.ConfigMap](tt.args.w)).Build(context.TODO(), nil, nil)
 			if diff := cmp.Diff(got, tt.want); len(diff) > 0 {
 				t.Errorf("applyMeta() got diff %v", diff)
@@ -774,6 +783,8 @@ func Test_applyMeta(t *testing.T) {
 	}
 	for _, tt := range tests2 {
 		t.Run(tt.name, func(t *testing.T) {
+			operatorscheme.BuildAndRegister()
+
 			got, _ := tt.template.Apply(meta[*corev1.Service](tt.args.w)).Build(context.TODO(), nil, nil)
 			if diff := cmp.Diff(got, tt.want); len(diff) > 0 {
 				t.Errorf("applyMeta() got diff %v", diff)
@@ -829,6 +840,8 @@ func Test_applyTrafficSelectorToService(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			operatorscheme.BuildAndRegister()
+
 			got, _ := tt.template.Apply(trafficSelectorToService(tt.args.main, tt.args.canary)).Build(context.TODO(), nil, nil)
 			if diff := cmp.Diff(got, tt.want); len(diff) > 0 {
 				t.Errorf("applyTrafficSelectorToService() got diff %v", diff)
@@ -899,6 +912,8 @@ func Test_trafficSwitcher(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			operatorscheme.BuildAndRegister()
+
 			if diff := cmp.Diff(trafficSwitcher(&tt.args.main, &tt.args.canary), tt.want); len(diff) > 0 {
 				t.Errorf("trafficSwitcher() = diff %v", diff)
 			}
@@ -961,6 +976,8 @@ func Test_applyNodeIdToEnvoyConfig(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			operatorscheme.BuildAndRegister()
+
 			got, _ := tt.template.Apply(nodeIdToEnvoyConfig(tt.args.sd)).Build(context.TODO(), nil, nil)
 			if diff := cmp.Diff(got, tt.want); len(diff) > 0 {
 				t.Errorf("applyNodeIdToEnvoyConfig() got diff %v", diff)
@@ -1029,6 +1046,8 @@ func Test_marin3rSidecarToDeployment(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			operatorscheme.BuildAndRegister()
+
 			got, _ := tt.template.Apply(marin3rSidecarToDeployment(tt.args.sd)).Build(context.TODO(), nil, nil)
 			if diff := cmp.Diff(got, tt.want); len(diff) > 0 {
 				t.Errorf("marin3rSidecarToDeployment() got diff %v", diff)
@@ -1075,6 +1094,8 @@ func Test_toWithCanaryOrNil(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			operatorscheme.BuildAndRegister()
+
 			if got := toWithCanaryOrNil(tt.args.w); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("toWithCanaryOrNil() = %+v, want %+v", got, tt.want)
 			}

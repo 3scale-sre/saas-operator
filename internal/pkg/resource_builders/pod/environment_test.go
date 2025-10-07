@@ -7,6 +7,7 @@ import (
 	"time"
 
 	saasv1alpha1 "github.com/3scale-sre/saas-operator/api/v1alpha1"
+	operatorscheme "github.com/3scale-sre/saas-operator/internal/pkg/scheme"
 	externalsecretsv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
 	"github.com/google/go-cmp/cmp"
 	corev1 "k8s.io/api/core/v1"
@@ -501,6 +502,8 @@ func TestOptions_GenerateExternalSecrets(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			operatorscheme.BuildAndRegister()
+
 			templates := tt.opts.GenerateExternalSecrets(tt.args.namespace, tt.args.labels, tt.args.secretStoreName, tt.args.secretStoreKind, tt.args.refreshInterval)
 			got := []client.Object{}
 
