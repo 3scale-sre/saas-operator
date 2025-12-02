@@ -366,6 +366,9 @@ type ListenerHttp struct {
 	// +optional
 	// Max connection duration. If unset no max connection duration will be applied.
 	MaxConnectionDuration *metav1.Duration `json:"maxConnectionDuration,omitempty"`
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
+	// +optional
+	MaxRequestHeadersKb *uint32 `json:"maxRequestHeadersKb,omitempty"`
 }
 
 // RateLimitOptions contains options for the ratelimit filter of the

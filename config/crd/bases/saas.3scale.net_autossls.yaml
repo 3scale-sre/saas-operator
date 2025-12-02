@@ -702,6 +702,9 @@ spec:
                                         description: Max connection duration. If unset
                                           no max connection duration will be applied.
                                         type: string
+                                      maxRequestHeadersKb:
+                                        format: int32
+                                        type: integer
                                       port:
                                         description: The port where the listener listens
                                           for new connections
