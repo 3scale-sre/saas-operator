@@ -521,7 +521,7 @@ var _ = Describe("Backend controller", func() {
 				}, timeout, poll).ShouldNot(HaveOccurred())
 			})
 
-			It("creates the required cannary resources", func() {
+			It("creates the required canary resources", func() {
 
 				dep := &appsv1.Deployment{}
 				By("deploying the backend-listener-canary workload",
@@ -539,19 +539,11 @@ var _ = Describe("Backend controller", func() {
 							"-x", "/dev/stdout",
 						},
 						PodMonitor:  true,
-						EnvoyConfig: true,
 						LastVersion: rvs["deployment/backend-listener"],
 					}).Assert(k8sClient, backend, dep, timeout, poll))
 
 				Expect(dep.Spec.Template.ObjectMeta.Labels).To(HaveKeyWithValue("marin3r.3scale.net/status", "enabled"))
 				Expect(dep.Spec.Template.ObjectMeta.Annotations).To(HaveKeyWithValue("marin3r.3scale.net/node-id", "backend-listener-canary"))
-
-				ec := &marin3rv1alpha1.EnvoyConfig{}
-				By("the node-id for the backend-listener-canary EnvoyConfig is correct",
-					(&testutil.ExpectedResource{
-						Name: "backend-listener-canary", Namespace: namespace,
-					}).Assert(k8sClient, ec, timeout, poll))
-				Expect(ec.Spec.NodeID).To(Equal("backend-listener-canary"))
 
 				svc := &corev1.Service{}
 				By("creates the backend-listener-http-marin3r service with the correct label selector",
@@ -632,7 +624,6 @@ var _ = Describe("Backend controller", func() {
 							Namespace:   namespace,
 							Replicas:    3,
 							PodMonitor:  true,
-							EnvoyConfig: true,
 							LastVersion: rvs["deployment/backend-listener-canary"],
 						}).Assert(k8sClient, backend, dep, timeout, poll))
 

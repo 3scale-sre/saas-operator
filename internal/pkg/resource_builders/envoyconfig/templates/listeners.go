@@ -16,6 +16,7 @@ import (
 	envoy_extensions_filters_listener_tls_inspector_v3 "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/listener/tls_inspector/v3"
 	http_connection_manager_v3 "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
 	envoy_extensions_transport_sockets_tls_v3 "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
+	proto "google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -35,46 +36,55 @@ func ListenerHTTP_v1(name string, opts any) (envoy.Resource, error) {
 				ConfigType: &envoy_config_listener_v3.Filter_TypedConfig{
 					TypedConfig: func() *anypb.Any {
 						proto, err := anypb.New(
-							&http_connection_manager_v3.HttpConnectionManager{
-								AccessLog: AccessLogConfig_v1(name, o.CertificateSecretName != nil),
-								CommonHttpProtocolOptions: func() *envoy_config_core_v3.HttpProtocolOptions {
-									po := &envoy_config_core_v3.HttpProtocolOptions{
-										IdleTimeout: durationpb.New(3600 * time.Second),
-									}
-									if o.MaxConnectionDuration != nil {
-										po.MaxConnectionDuration = durationpb.New(o.MaxConnectionDuration.Duration)
-									}
-									if o.AllowHeadersWithUnderscores != nil && *o.AllowHeadersWithUnderscores {
-										po.HeadersWithUnderscoresAction = envoy_config_core_v3.HttpProtocolOptions_ALLOW
-									} else {
-										po.HeadersWithUnderscoresAction = envoy_config_core_v3.HttpProtocolOptions_REJECT_REQUEST
-									}
-
-									return po
-								}(),
-
-								HttpFilters: HttpFilters_v1(o.RateLimitOptions),
-								HttpProtocolOptions: func() *envoy_config_core_v3.Http1ProtocolOptions {
-									if o.DefaultHostForHttp10 != nil {
-										return &envoy_config_core_v3.Http1ProtocolOptions{
-											AcceptHttp_10:         true,
-											DefaultHostForHttp_10: *o.DefaultHostForHttp10,
+							func() proto.Message {
+								conMgr := &http_connection_manager_v3.HttpConnectionManager{
+									AccessLog: AccessLogConfig_v1(name, o.CertificateSecretName != nil),
+									CommonHttpProtocolOptions: func() *envoy_config_core_v3.HttpProtocolOptions {
+										po := &envoy_config_core_v3.HttpProtocolOptions{
+											IdleTimeout: durationpb.New(3600 * time.Second),
 										}
-									}
+										if o.MaxConnectionDuration != nil {
+											po.MaxConnectionDuration = durationpb.New(o.MaxConnectionDuration.Duration)
+										}
+										if o.AllowHeadersWithUnderscores != nil && *o.AllowHeadersWithUnderscores {
+											po.HeadersWithUnderscoresAction = envoy_config_core_v3.HttpProtocolOptions_ALLOW
+										} else {
+											po.HeadersWithUnderscoresAction = envoy_config_core_v3.HttpProtocolOptions_REJECT_REQUEST
+										}
 
-									return &envoy_config_core_v3.Http1ProtocolOptions{}
-								}(),
-								Http2ProtocolOptions: &envoy_config_core_v3.Http2ProtocolOptions{
-									MaxConcurrentStreams:        wrapperspb.UInt32(100),
-									InitialStreamWindowSize:     wrapperspb.UInt32(65536),   // 64 KiB
-									InitialConnectionWindowSize: wrapperspb.UInt32(1048576), // 1 MiB
-								},
-								RequestTimeout:    durationpb.New(300 * time.Second),
-								RouteSpecifier:    RouteConfigFromAds_v1(o.RouteConfigName),
-								StatPrefix:        name,
-								StreamIdleTimeout: durationpb.New(300 * time.Second),
-								UseRemoteAddress:  wrapperspb.Bool(*o.ProxyProtocol),
-							})
+										return po
+									}(),
+
+									HttpFilters: HttpFilters_v1(o.RateLimitOptions),
+									HttpProtocolOptions: func() *envoy_config_core_v3.Http1ProtocolOptions {
+										if o.DefaultHostForHttp10 != nil {
+											return &envoy_config_core_v3.Http1ProtocolOptions{
+												AcceptHttp_10:         true,
+												DefaultHostForHttp_10: *o.DefaultHostForHttp10,
+											}
+										}
+
+										return &envoy_config_core_v3.Http1ProtocolOptions{}
+									}(),
+									Http2ProtocolOptions: &envoy_config_core_v3.Http2ProtocolOptions{
+										MaxConcurrentStreams:        wrapperspb.UInt32(100),
+										InitialStreamWindowSize:     wrapperspb.UInt32(65536),   // 64 KiB
+										InitialConnectionWindowSize: wrapperspb.UInt32(1048576), // 1 MiB
+									},
+									RequestTimeout:    durationpb.New(300 * time.Second),
+									RouteSpecifier:    RouteConfigFromAds_v1(o.RouteConfigName),
+									StatPrefix:        name,
+									StreamIdleTimeout: durationpb.New(300 * time.Second),
+									UseRemoteAddress:  wrapperspb.Bool(*o.ProxyProtocol),
+								}
+								if o.MaxRequestHeadersKb != nil {
+									conMgr.MaxRequestHeadersKb = wrapperspb.UInt32(*o.MaxRequestHeadersKb)
+								}
+
+								return conMgr
+							}(),
+						)
+
 						if err != nil {
 							panic(err)
 						}

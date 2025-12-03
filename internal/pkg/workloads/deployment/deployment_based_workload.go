@@ -74,20 +74,6 @@ func New(main DeploymentWorkload, canary DeploymentWorkload) ([]resource.Templat
 						Apply(meta[*marin3rv1alpha1.EnvoyConfig](main)).
 						Apply(nodeIdToEnvoyConfig(descriptor)),
 				)
-
-				// Duplicate the EnvoyConfig resource for the canary deployment. It uses the same publishing strategies
-				// spec as the main deployment but applies the metadata for the canary deployment.
-				// This means that the publising strategies of the main workload are always the source of truth and any
-				// patch applied via canary spec to the publishing strategies will have no effect.
-				if !lo.IsNil(canary) {
-					resources = append(resources,
-						resource.NewTemplate(
-							envoyconfig.New(EmptyKey, EmptyKey.Name, factory.Default(), dynamicConfigurations...)).
-							WithEnabled(len(dynamicConfigurations) > 0).
-							Apply(meta[*marin3rv1alpha1.EnvoyConfig](canary)).
-							Apply(nodeIdToEnvoyConfig(descriptor)),
-					)
-				}
 			}
 		}
 	}
