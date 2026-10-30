@@ -175,7 +175,7 @@ fix-cover:
 e2e-test: export KUBECONFIG = $(PWD)/kubeconfig
 e2e-test: kind-create ## Runs e2e test suite
 	$(MAKE) e2e-envtest-suite
-	$(MAKE) kind-delete
+	-$(MAKE) kind-delete # best effort: rootless podman can fail to tear down its netns on ephemeral CI runners
 
 .PHONY: e2e-envtest-suite
 e2e-envtest-suite: export KUBECONFIG = $(PWD)/kubeconfig
@@ -306,7 +306,7 @@ HELM ?= $(LOCALBIN)/helm
 
 ## Tool Versions
 KUSTOMIZE_VERSION ?= v5.6.0
-CONTROLLER_TOOLS_VERSION ?= v0.17.1
+CONTROLLER_TOOLS_VERSION ?= v0.18.0
 #ENVTEST_VERSION is the version of controller-runtime release branch to fetch the envtest setup script (i.e. release-0.20)
 ENVTEST_VERSION ?= $(shell go list -m -f "{{ .Version }}" sigs.k8s.io/controller-runtime | awk -F'[v.]' '{printf "release-%d.%d", $$2, $$3}')
 #ENVTEST_K8S_VERSION is the version of Kubernetes to use for setting up ENVTEST binaries (i.e. 1.31)
@@ -535,7 +535,7 @@ kind-create: kind ## Runs a k8s kind cluster
 install-%: export KUBECONFIG = $(PWD)/kubeconfig
 install-%: kustomize yq helm
 	echo
-	KUSTOMIZE_BIN=$(KUSTOMIZE) YQ_BIN=$(YQ) BASE_PATH=config/dependencies hack/apply-kustomize.sh $*
+	KUSTOMIZE_BIN=$(KUSTOMIZE) YQ_BIN=$(YQ) HELM_BIN=$(HELM) BASE_PATH=config/dependencies hack/apply-kustomize.sh $*
 
 .PHONY: kind-delete
 kind-delete: ## Deletes the kind cluster and the registry

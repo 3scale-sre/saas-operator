@@ -8,6 +8,15 @@ helmCharts:
     releaseName: minio
     namespace: minio
     valuesInline:
+      # The upstream quay.io/minio and docker.io/minio images are no longer
+      # published, so frozen bitnamilegacy builds are used instead. Their binaries
+      # live in different paths than what the chart expects, see the patches below.
+      image:
+        repository: docker.io/bitnamilegacy/minio
+        tag: 2025.4.22-debian-12-r1
+      mcImage:
+        repository: docker.io/bitnamilegacy/minio-client
+        tag: 2025.4.16-debian-12-r1
       mode: standalone
       persistence:
         enabled: false
@@ -23,3 +32,40 @@ helmCharts:
           versioning: false
       rootUser: admin
       rootPassword: admin123
+patches:
+  # The bitnami image has no /usr/bin/docker-entrypoint.sh, run the binary directly
+  - target:
+      kind: Deployment
+      name: minio
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/command
+        value:
+          - /bin/sh
+          - -ce
+          - minio server /export -S /etc/minio/certs/ --address :9000 --console-address :9001
+  # The chart scripts hardcode /usr/bin/mc, link the bitnami binary there (needs root)
+  - target:
+      kind: Job
+      name: minio-post-job
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/command
+        value:
+          - /bin/sh
+          - -c
+          - ln -sf /opt/bitnami/minio-client/bin/mc /usr/bin/mc && exec /bin/sh /config/initialize
+      - op: add
+        path: /spec/template/spec/containers/0/securityContext
+        value:
+          runAsUser: 0
+      - op: replace
+        path: /spec/template/spec/containers/1/command
+        value:
+          - /bin/sh
+          - -c
+          - ln -sf /opt/bitnami/minio-client/bin/mc /usr/bin/mc && exec /bin/sh /config/add-user
+      - op: add
+        path: /spec/template/spec/containers/1/securityContext
+        value:
+          runAsUser: 0
