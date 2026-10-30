@@ -70,7 +70,9 @@ test -n "${YQ_BIN}" || (echo "YQ_BIN envvar must be set" && exit -1)
 test -n "${BASE_PATH}" || (echo "BASE_PATH envvar must be set" && exit -1)
 
 TIMEOUT="${WAIT_TIMEOUT:-120s}" 
-KUSTOMIZE_OPTIONS="--enable-helm"
+test -n "${HELM_BIN}" || (echo "HELM_BIN envvar must be set" && exit -1)
+
+KUSTOMIZE_OPTIONS="--enable-helm --helm-command ${HELM_BIN}"
 NAME=${1}
 RESFILE=$(generate_resources ${BASE_PATH}/${NAME})
 deploy_crds ${RESFILE}

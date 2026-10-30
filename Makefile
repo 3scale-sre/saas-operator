@@ -535,7 +535,7 @@ kind-create: kind ## Runs a k8s kind cluster
 install-%: export KUBECONFIG = $(PWD)/kubeconfig
 install-%: kustomize yq helm
 	echo
-	KUSTOMIZE_BIN=$(KUSTOMIZE) YQ_BIN=$(YQ) BASE_PATH=config/dependencies hack/apply-kustomize.sh $*
+	KUSTOMIZE_BIN=$(KUSTOMIZE) YQ_BIN=$(YQ) HELM_BIN=$(HELM) BASE_PATH=config/dependencies hack/apply-kustomize.sh $*
 
 .PHONY: kind-delete
 kind-delete: ## Deletes the kind cluster and the registry
