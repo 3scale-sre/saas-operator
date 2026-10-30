@@ -175,7 +175,7 @@ fix-cover:
 e2e-test: export KUBECONFIG = $(PWD)/kubeconfig
 e2e-test: kind-create ## Runs e2e test suite
 	$(MAKE) e2e-envtest-suite
-	$(MAKE) kind-delete
+	-$(MAKE) kind-delete # best effort: rootless podman can fail to tear down its netns on ephemeral CI runners
 
 .PHONY: e2e-envtest-suite
 e2e-envtest-suite: export KUBECONFIG = $(PWD)/kubeconfig
